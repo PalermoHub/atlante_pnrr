@@ -33,3 +33,44 @@
   .lente-testo { max-height: 34vh; }
   .lente-barra .raggio input { width: 6rem; }
 }
+
+.lente-svg .bnd { font-size: 11px; font-weight: 700; fill: #14181c; stroke: none; }
+.lente-svg .bandiera, .lente-svg .segm { pointer-events: all; cursor: pointer; }
+.lente-svg .segm:focus-visible path, .lente-svg .bandiera:focus-visible rect { stroke: var(--ink); stroke-width: 2; }
+.lente-svg .piccolo.sel { font-weight: 700; fill: var(--ink); }
+.lente-svg .bar rect { pointer-events: all; }
+.lente-svg .centro-n { font-size: 15px; }
+.lente-svg .manico { pointer-events: all; }
+.chips { display: flex; flex-wrap: wrap; gap: .3rem; margin-bottom: .4rem; }
+.chip-m { display: inline-flex; gap: .35rem; align-items: center; padding: .15rem .5rem; font-size: .82rem; }
+.chip-m i { width: .7rem; height: .7rem; border-radius: 2px; }
+.chip-m span { display: none; }
+@media (min-width: 900px) { .chip-m span { display: inline; color: var(--ink2); } }
+.chip-m.off { opacity: .45; text-decoration: line-through; }
+
+/* v3: grafici fuori dalla lente, in un pannello accanto alla mappa */
+.lente-corpo { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.lente-mappa { flex: 1 1 50%; min-height: 260px; }
+.lente-lato { flex: 1 1 50%; overflow: auto; background: var(--surface); border-top: 1px solid var(--line); padding: .6rem .8rem 1rem; }
+@media (min-width: 900px) {
+  .lente-corpo { flex-direction: row; }
+  .lente-mappa { flex: 1 1 auto; min-height: 0; }
+  .lente-lato { flex: 0 0 25rem; border-top: 0; border-left: 1px solid var(--line); }
+}
+.grafico .comune { display: flex; flex-direction: column; margin-bottom: .45rem; }
+.grafico .comune strong { font-size: 1.25rem; line-height: 1.2; }
+.grafico .comune span { color: var(--ink2); font-size: .9rem; }
+.grafico .stadi { display: flex; flex-wrap: wrap; gap: .25rem; margin-bottom: .3rem; }
+.stad { padding: .2rem .55rem; font-size: .82rem; border-radius: 999px; }
+.stad.on { background: var(--acc); border-color: var(--acc); color: #fff; }
+.sky { width: 100%; height: auto; display: block; }
+.sky text { font-family: inherit; fill: var(--ink2); }
+.sky .piccolo { font-size: 9.5px; }
+.sky .bnd { font-size: 11px; font-weight: 700; fill: #14181c; }
+.sky .liv { stroke: var(--ink3); stroke-width: .8; stroke-dasharray: 3 4; opacity: .7; }
+.sky .base { stroke: var(--ink2); stroke-width: 1.2; }
+.sky .media { stroke: var(--ink); stroke-width: 2; stroke-linecap: round; }
+.sky .bandiera { cursor: pointer; }
+.sky .bandiera:focus-visible rect { stroke: var(--ink); stroke-width: 2; outline: none; }
+.grafico .legg, .grafico .vuoto { color: var(--ink2); font-size: .85rem; margin: .4rem 0 0; }
+.lente-lato .lente-testo { max-height: none; overflow: visible; border: 0; padding: .6rem 0 0; background: none; }
