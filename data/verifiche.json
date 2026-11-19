@@ -1,0 +1,16 @@
+{
+  "fonte": "docs/PIANO_PROFONDITA.md e docs/QUADRATURA.md (ricalcolo dai file originali Italia Domani, estrazione del 13/06/2026; importi di dotazione 'Spesa per misura' al 30/04/2026)",
+  "dotazione": 194440000000,
+  "su_progetti": 171315490778,
+  "senza_progetto": 23100000000,
+  "per_missione_senza_progetto_mld": {"M1": 7.9, "M2": 9.6, "M3": 1.5, "M5": 1.5, "M6": 0.8, "M7": 2.2, "M4": -0.25},
+  "sottomisure_piu_grandi": [
+    {"codice": "M1C2I9.01.00", "mld": 4.7},
+    {"codice": "M2C1I3.04.00", "mld": 2.85},
+    {"codice": "M2C2I1.04.00", "mld": 2.23},
+    {"codice": "M7C1I17.1.00", "mld": 1.38}
+  ],
+  "sottomisure_oltre_dotazione": {"numero": 19, "mld": 2.76},
+  "localizzazioni_non_assegnabili": {"righe": 43, "mln": 10.3},
+  "codici_comune_raccordati": {"codici": 159, "mln": 63.1}
+}

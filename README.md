@@ -4,6 +4,13 @@ Dove e come sono stati spesi i fondi del PNRR: una scheda per Italia, regione, p
 
 Dati: [Italia Domani, Catalogo Open Data](https://www.italiadomani.gov.it/content/sogei-ng/it/it/catalogo-open-data.html) (CC-BY 4.0), estrazione del 13/06/2026. Confini dei comuni: ISTAT, tramite il repository ANNCSU. Popolazione: ISTAT, 1/1/2026.
 
+## Pagine
+- `index.html`: mappa e schede (Italia, regione, provincia, comune).
+- `statistiche.html`: grafici sull'insieme dei dati.
+- `relazione.html`: lettura dei dati in parole semplici, con mappe e grafici interattivi. Le cifre vengono da `data/*.json` e si ricontrollano con `python3 scrpits/relazione_numeri.py`. I numeri che non stanno nei JSON (divario tra dotazione e progetti) sono in `data/verifiche.json`, con la fonte.
+
+Per provare in locale le mappe serve un server che gestisca le richieste «Range» (i PMTiles): `python3 -m http.server` non basta.
+
 ## Rigenerare i dati
 ```
 python3 -m venv scrpits/.venv && scrpits/.venv/bin/pip install duckdb openpyxl

@@ -1,0 +1,83 @@
+/* Pagina «La relazione»: colonna di lettura stretta, grafici e mappe a tutta larghezza. Usa le variabili dei temi. */
+.rel { max-width: 1040px; }
+.rel article { display: block; }
+.rel .testata { margin: .4rem 0 1.4rem; }
+.rel .testata h1 { font-size: clamp(1.9rem, 4.5vw, 2.8rem); line-height: 1.08; margin: 0 0 .5rem; letter-spacing: -.01em; }
+.rel .sottotitolo { font-size: 1.15rem; color: var(--ink2); margin: 0 0 .4rem; max-width: 52ch; }
+.rel .firma { font-size: .85rem; color: var(--ink3); margin: 0; }
+.rel .rsez { margin-top: 3rem; scroll-margin-top: 1rem; }
+.rel .rsez > h2 { font-size: clamp(1.35rem, 3vw, 1.8rem); line-height: 1.2; border-bottom: 2px solid var(--ink); padding-bottom: .4rem; margin: 0 0 1rem; max-width: 30ch; border-bottom-width: 0; padding-bottom: 0; }
+.rel .rsez > h2::before { content: attr(data-n); display: block; font-size: .8rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--acc); margin-bottom: .25rem; }
+.rel .rsez > p, .rel .rsez > ul, .rel .rsez > ol { max-width: 66ch; font-size: 1.05rem; line-height: 1.6; }
+.rel .rsez > ul li, .rel .rsez > ol li { margin: .35rem 0; }
+.rel .rsez > .grafico, .rel .rsez > .grafici, .rel .rsez > .mappa-box, .rel .rsez > .calc, .rel .rsez > .limiti { max-width: none; }
+.rel .rsez > .grafico { margin: 1.2rem 0; }
+.rel .rsez > .grafici { margin: 1.2rem 0; }
+.rel .rsez > p b, .rel .rsez > ul b { font-variant-numeric: tabular-nums; }
+.rel .indice { margin: 1.2rem 0 0; padding: .9rem 1.1rem; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.rel .indice b { display: block; font-size: .85rem; color: var(--ink2); margin-bottom: .3rem; }
+.rel .indice ol { margin: 0; padding-left: 1.2rem; columns: 2; column-gap: 2rem; font-size: .92rem; }
+.rel .indice li { break-inside: avoid; margin: .15rem 0; } .rel .indice a { color: var(--acc); }
+.rel .inbreve { margin-top: 1.4rem; padding: 1.1rem 1.3rem; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.rel .inbreve h2 { font-size: 1rem; margin: 0 0 .5rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink2); }
+.rel .inbreve ol { margin: 0; padding-left: 1.2rem; } .rel .inbreve li { margin: .55rem 0; line-height: 1.5; }
+.rel .calc { margin: .8rem 0; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.rel .calc summary { cursor: pointer; padding: .55rem .8rem; font-weight: 600; font-size: .92rem; }
+.rel .calc > div { padding: 0 .9rem .8rem; font-size: .92rem; line-height: 1.55; color: var(--ink2); max-width: none; }
+.rel .calc code { font-size: .85em; background: var(--bg); padding: 0 .25rem; border-radius: 4px; white-space: normal; word-break: break-word; }
+.rel .limiti { max-width: none; line-height: 1.55; margin: .8rem 0; padding: .7rem .9rem; border: 1px dashed var(--ink3); border-radius: 8px; font-size: .92rem; color: var(--ink2); }
+.rel .limiti b { color: var(--ink); } .rel .limiti ul { margin: .3rem 0 0; padding-left: 1.1rem; } .rel .limiti li { margin: .25rem 0; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin: .2rem 0 .8rem; flex-wrap: wrap; }
+.seg button { border: 0; border-radius: 0; background: var(--surface); padding: .4rem .8rem; font-size: .85rem; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--acc); color: #fff; font-weight: 600; }
+:root[data-theme="contrasto"] .seg button[aria-pressed="true"] { background: #000; color: #fff; }
+.rel .cifre { margin: .6rem 0 1rem; }
+.rel .cifra-val { font-size: 1.7rem; }
+/* barra impilata */
+.pila { display: flex; height: 38px; border-radius: 6px; overflow: hidden; background: var(--line); gap: 2px; }
+.pila i { display: block; min-width: 2px; cursor: default; transition: width .35s ease; }
+.pila i:hover, .pila i:focus { filter: brightness(1.15); outline: 2px solid var(--ink); outline-offset: -2px; }
+.pila-leg { list-style: none; margin: .8rem 0 0; padding: 0; }
+.pila-leg li { display: grid; grid-template-columns: 14px 1fr auto; gap: .6rem; padding: .35rem 0; border-bottom: 1px solid var(--line); font-size: .9rem; align-items: start; }
+.pila-leg i { width: 14px; height: 14px; border-radius: 3px; margin-top: .15rem; }
+.pila-leg small { display: block; color: var(--ink3); font-size: .78rem; }
+.pila-leg .v { text-align: right; font-variant-numeric: tabular-nums; }
+/* coppie osservato / atteso */
+.cp { display: grid; gap: .9rem; }
+.cp-riga { display: grid; grid-template-columns: 7.5rem 1fr; gap: .8rem; align-items: center; }
+.cp-riga > span { font-weight: 600; font-size: .9rem; } .cp-riga small { display: block; font-weight: 400; color: var(--ink3); font-size: .74rem; }
+.cp-b { display: grid; grid-template-columns: 1fr 3.4rem; gap: .5rem; align-items: center; font-size: .78rem; margin: .12rem 0; }
+.cp-b .pista { height: 14px; background: color-mix(in srgb, var(--line) 45%, transparent); border-radius: 0 3px 3px 0; }
+.cp-b .pista i { display: block; height: 100%; border-radius: 0 3px 3px 0; }
+.cp-b.atteso .pista i { background: repeating-linear-gradient(45deg, var(--ink3) 0 4px, transparent 4px 8px); opacity: .55; }
+.cp-b b { text-align: right; font-variant-numeric: tabular-nums; }
+.cp-leg { display: flex; gap: 1.2rem; flex-wrap: wrap; font-size: .8rem; color: var(--ink2); margin-top: .7rem; }
+.cp-leg i { display: inline-block; width: 22px; height: 10px; margin-right: .35rem; vertical-align: middle; border-radius: 2px; }
+/* dispersione */
+.sc { width: 100%; max-width: 720px; height: auto; display: block; margin: 0 auto; }
+.sc text { font-size: 11px; fill: var(--ink2); } .sc .sc-ax { stroke: var(--ink3); stroke-width: 1; } .sc .sc-gr { stroke: var(--line); stroke-width: .6; }
+.sc .sc-eq { stroke: var(--ink3); stroke-dasharray: 5 4; } .sc circle { stroke: var(--surface); stroke-width: 1; opacity: .9; } .sc circle:hover, .sc circle:focus { opacity: 1; stroke: var(--ink); stroke-width: 2; outline: none; }
+/* mappa */
+.mappa-box { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden; margin: 1.2rem 0; }
+.mappa-barra { display: flex; flex-wrap: wrap; gap: .6rem 1rem; padding: .6rem .8rem; border-bottom: 1px solid var(--line); align-items: center; font-size: .85rem; }
+.mappa-barra label { display: flex; gap: .4rem; align-items: center; } .mappa-barra select { padding: .3rem .4rem; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; max-width: 100%; }
+.mappa-tela { position: relative; height: clamp(360px, 62vh, 620px); }
+.mappa-tela .mp { position: absolute; inset: 0; }
+.mappa-leg { position: absolute; left: .6rem; top: .6rem; background: color-mix(in srgb, var(--surface) 92%, transparent); border: 1px solid var(--line); border-radius: 8px; padding: .45rem .6rem; font-size: .75rem; max-width: 230px; z-index: 2; }
+.mappa-leg .rampa { display: flex; height: 10px; margin: .3rem 0 .15rem; gap: 2px; } .mappa-leg .rampa i { flex: 1; border-radius: 2px; }
+.mappa-leg .estr { display: flex; justify-content: space-between; color: var(--ink2); }
+.mappa-tip { position: absolute; z-index: 3; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: .35rem .55rem; font-size: .8rem; box-shadow: 0 2px 8px rgba(0,0,0,.18); max-width: 220px; }
+.mappa-tip b { display: block; } .mappa-tip span { color: var(--ink2); }
+.mappa-desc { margin: 0; padding: .6rem .8rem; font-size: .82rem; color: var(--ink2); border-top: 1px solid var(--line); }
+.mappa-ko { display: grid; place-items: center; height: 100%; color: var(--ink3); padding: 1rem; text-align: center; }
+.glossario { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: .9rem 2rem; margin: 0; }
+.glossario .g-voce { break-inside: avoid; } .glossario dt { font-weight: 700; margin: 0; } .glossario dd { margin: .15rem 0 0; color: var(--ink2); font-size: .92rem; line-height: 1.45; }
+.rel .rsez > h3 { font-size: 1.1rem; margin: 1.6rem 0 .4rem; }
+@media (max-width: 760px) {
+  .rel .indice ol { columns: 1; }
+  .cp-riga { grid-template-columns: 1fr; gap: .2rem; }
+  .rel .rsez > p, .rel .rsez > ul, .rel .rsez > ol { font-size: 1rem; }
+  .mappa-leg { max-width: 170px; }
+}
+@media print { .mappa-box, .seg, .tools, .nav { display: none; } }

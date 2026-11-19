@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La relazione sul PNRR · Atlante del PNRR</title>
+<meta name="description" content="Una lettura dei dati ufficiali del PNRR in parole semplici: quanto è stato pagato, quanto è finito, dove sono andati i soldi, che cosa non torna. Con mappe e grafici da esplorare.">
+<link rel="icon" href="img/favicon.png">
+<!-- SOCIAL -->
+<link rel="canonical" href="https://palermohub.github.io/atlante_pnrr/relazione.html">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="OpenDataSicilia">
+<meta name="keywords" content="PNRR, Piano Nazionale di Ripresa e Resilienza, PNRR Italia, Italia Domani, Next Generation EU, open data, dati aperti, OpenDataSicilia, fondi PNRR, progetti PNRR, missioni PNRR, spesa pubblica, trasparenza, relazione PNRR, inchiesta sui dati, qualità dei dati, quadratura dei conti, fondi non assegnati, progetti conclusi, ritardi PNRR, cosa non torna, lettura dei dati, data journalism, Mezzogiorno">
+<meta name="theme-color" content="#256abf" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121211" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="img/icon-192.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Atlante del PNRR">
+<meta property="og:locale" content="it_IT">
+<meta property="og:title" content="La relazione sul PNRR · Atlante del PNRR">
+<meta property="og:description" content="Una lettura dei dati ufficiali del PNRR in parole semplici: quanto è stato pagato, quanto è finito, dove sono andati i soldi, che cosa non torna. Con mappe e grafici da esplorare.">
+<meta property="og:url" content="https://palermohub.github.io/atlante_pnrr/relazione.html">
+<meta property="og:image" content="https://palermohub.github.io/atlante_pnrr/img/social-card.png">
+<meta property="og:image:secure_url" content="https://palermohub.github.io/atlante_pnrr/img/social-card.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="PNRR Italia, Atlante dei progetti: mappa d'Italia a punti, anello delle sette missioni, 291.398 progetti e 171 miliardi di euro finanziati.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="La relazione sul PNRR · Atlante del PNRR">
+<meta name="twitter:description" content="Una lettura dei dati ufficiali del PNRR in parole semplici: quanto è stato pagato, quanto è finito, dove sono andati i soldi, che cosa non torna. Con mappe e grafici da esplorare.">
+<meta name="twitter:image" content="https://palermohub.github.io/atlante_pnrr/img/social-card.png">
+<meta name="twitter:image:alt" content="PNRR Italia, Atlante dei progetti: mappa d'Italia a punti, anello delle sette missioni, 291.398 progetti e 171 miliardi di euro finanziati.">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebPage", "name": "La relazione sul PNRR · Atlante del PNRR", "url": "https://palermohub.github.io/atlante_pnrr/relazione.html", "description": "Una lettura dei dati ufficiali del PNRR in parole semplici: quanto è stato pagato, quanto è finito, dove sono andati i soldi, che cosa non torna. Con mappe e grafici da esplorare.", "inLanguage": "it", "isPartOf": {"@type": "WebSite", "name": "Atlante del PNRR", "url": "https://palermohub.github.io/atlante_pnrr/"}, "publisher": {"@type": "Organization", "name": "OpenDataSicilia"}, "license": "https://creativecommons.org/licenses/by/4.0/", "image": "https://palermohub.github.io/atlante_pnrr/img/social-card.png", "keywords": "PNRR, Piano Nazionale di Ripresa e Resilienza, PNRR Italia, Italia Domani, Next Generation EU, open data, dati aperti, OpenDataSicilia, fondi PNRR, progetti PNRR, missioni PNRR, spesa pubblica, trasparenza, relazione PNRR, inchiesta sui dati, qualità dei dati, quadratura dei conti, fondi non assegnati, progetti conclusi, ritardi PNRR, cosa non torna, lettura dei dati, data journalism, Mezzogiorno"}</script>
+<!-- /SOCIAL -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<link rel="stylesheet" href="css/atlante.css?v=13">
+<link rel="stylesheet" href="css/statistiche.css?v=6">
+<link rel="stylesheet" href="css/relazione.css?v=6">
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-KHR1GHDRQS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-KHR1GHDRQS');
+</script>
+
+</head>
+<body class="pagina-stat pagina-rel">
+<header class="top">
+  <div class="brand"><strong>Atlante del PNRR</strong><span>la relazione · dati al 13 giugno 2026</span></div>
+  <nav aria-label="Sezioni" class="nav"><a href="index.html">Mappa e schede</a><a href="statistiche.html">Statistiche</a><a href="relazione.html" aria-current="page">Relazione</a></nav>
+  <div class="tools">
+    <button id="btn-info" type="button" data-info="metodo" aria-haspopup="dialog">Info</button>
+    <label class="sr" for="sel-tema">Tema</label>
+    <select id="sel-tema" aria-label="Tema dell'interfaccia">
+      <option value="auto">Tema: sistema</option><option value="chiaro">Chiaro</option><option value="scuro">Scuro</option>
+      <option value="seppia">Seppia</option><option value="contrasto">Alto contrasto</option><option value="oceano">Oceano</option>
+    </select>
+  </div>
+</header>
+<main class="stat rel">
+  <article id="rel" aria-live="polite"><p id="caric" class="caric">Caricamento dei dati…</p></article>
+  <noscript><p>Questa relazione usa JavaScript per disegnare mappe e grafici.</p></noscript>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pmtiles@4.3.0/dist/pmtiles.js"></script>
+<script src="js/tema.js?v=2"></script>
+<script src="js/cima.js?v=1" defer></script>
+<script src="js/info.js?v=4" defer></script>
+<script src="js/grafici.js?v=6"></script>
+<script src="js/relazione.js?v=6"></script>
+</body>
+</html>
