@@ -40,7 +40,7 @@ button:hover { border-color: var(--acc); }
 #crumbs { flex: 1; display: flex; gap: .3rem; flex-wrap: wrap; font-size: .9rem; min-width: 0; }
 #crumbs a { color: var(--acc); text-decoration: none; } #crumbs a:hover { text-decoration: underline; }
 #crumbs .sep { color: var(--ink3); } #crumbs .cur { font-weight: 600; }
-.tools { display: flex; gap: .4rem; margin-left: auto; }
+.tools { display: flex; gap: .4rem; }
 main { flex: 1; display: grid; grid-template-columns: minmax(300px, 46%) 1fr; min-height: 0; }
 .mapcol { position: relative; border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
 .mapbar { padding: .5rem .75rem; display: flex; gap: .5rem; align-items: center; background: var(--surface); border-bottom: 1px solid var(--line); font-size: .85rem; flex-wrap: wrap; }
@@ -117,7 +117,7 @@ tr.cl.on td { outline: none; background: var(--accbg); box-shadow: inset 0 1px 0
 .avviso.cl small { color: var(--ink2); }
 
 /* navigazione tra mappa e statistiche */
-.nav { display: flex; gap: 1rem; font-size: .9rem; }
+.nav { display: flex; gap: 1rem; font-size: .9rem; margin-left: auto; }
 .nav a { color: var(--ink2); text-decoration: none; padding: .2rem 0; border-bottom: 2px solid transparent; }
 .nav a[aria-current] { color: var(--ink); border-color: var(--acc); font-weight: 600; }
 .nav a:hover { color: var(--acc); }
@@ -152,3 +152,4 @@ tr.cl.on td { outline: none; background: var(--accbg); box-shadow: inset 0 1px 0
 .info-pan ul { padding-left: 1.2rem; } .info-pan a { color: var(--acc); }
 .cr-logo { margin: 1rem 0 .4rem; } .cr-logo img { height: 48px; width: auto; }
 .tools button#btn-info { white-space: nowrap; }
+@media (max-width: 1000px) { .brand span { display: none; } }

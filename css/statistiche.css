@@ -73,7 +73,7 @@ body.pagina-stat { display: block; height: auto; }
   .cifre { grid-template-columns: 1fr 1fr; gap: 0 1rem; } .cifra-val { font-size: 1.4rem; }
   .b-riga { grid-template-columns: 6.2rem 1fr 4.4rem; font-size: .78rem; gap: .4rem; }
   .imb-riga { grid-template-columns: 1fr; gap: .2rem; } .imb-val { text-align: left; }
-  .nav { order: 3; flex-basis: 100%; }
+  .nav { order: 3; flex-basis: 100%; margin-left: 0; } .tools { margin-left: auto; }
 }
 
 
