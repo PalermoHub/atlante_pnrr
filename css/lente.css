@@ -74,3 +74,38 @@
 .sky .bandiera:focus-visible rect { stroke: var(--ink); stroke-width: 2; outline: none; }
 .grafico .legg, .grafico .vuoto { color: var(--ink2); font-size: .85rem; margin: .4rem 0 0; }
 .lente-lato .lente-testo { max-height: none; overflow: visible; border: 0; padding: .6rem 0 0; background: none; }
+
+/* v4: raggiera attorno alla lente, nel linguaggio dell'Atlante */
+.lente-main { overflow: hidden; }
+.lente-mappa { flex: 1 1 auto; min-height: 0; }
+.lente-lato, .lente-corpo { display: none; }
+.lente-testo { flex: 0 0 auto; max-height: 26vh; overflow: auto; padding: .45rem .8rem; }
+.lente-svg { font-family: inherit; }
+.lente-svg .liv { stroke: var(--ink3); stroke-width: .9; stroke-dasharray: 2 4; opacity: .75; }
+.lente-svg .livt { font-size: 10.5px; fill: var(--ink2); stroke: var(--bg); stroke-width: 3px; paint-order: stroke; }
+.lente-svg .anello { fill: var(--surface); stroke: var(--line); stroke-width: 1; filter: drop-shadow(0 1px 4px rgba(0,0,0,.25)); }
+.lente-svg .lente-bordo { stroke: var(--acc); stroke-width: 2; }
+.lente-svg .croce { stroke: var(--ink); stroke-width: 1.6; fill: none; }
+.lente-svg .nome { font-size: 14px; font-weight: 700; fill: var(--ink); stroke: none; }
+.lente-svg .stadio { font-size: 10.5px; fill: var(--ink3); stroke: none; cursor: pointer; }
+.lente-svg .stadio.on { font-weight: 700; fill: var(--acc); }
+.lente-svg .segm { pointer-events: all; cursor: pointer; }
+.lente-svg .segm:focus-visible, .lente-svg .nastro:focus-visible { outline: none; stroke: var(--ink); }
+.lente-svg .nastro { pointer-events: stroke; cursor: pointer; stroke-linecap: butt; }
+.lente-svg .nastro.spento { opacity: .6; }
+.lente-svg .nastrot { font-size: 11px; font-weight: 700; fill: #14181c; stroke: none; pointer-events: none; }
+.lente-svg .nastrot.chiaro { fill: #fff; }
+.lente-svg .rag { pointer-events: stroke; cursor: pointer; }
+.lente-svg .rag line { pointer-events: stroke; }
+.lente-svg .call { pointer-events: none; }
+.lente-svg .box { fill: var(--surface); stroke-width: 2; }
+.lente-svg .guida { stroke: var(--ink); stroke-width: 1; }
+.lente-svg .bx-n { font-size: 13px; font-weight: 700; fill: var(--ink); stroke: none; }
+.lente-svg .bx-k { font-size: 10px; letter-spacing: .04em; fill: var(--ink3); stroke: none; }
+.lente-svg .bx-v { font-size: 13px; font-weight: 700; fill: var(--ink); stroke: none; }
+
+body.lente-pag main.lente-main { display: flex; flex-direction: column; grid-template-columns: none; overflow: hidden; }
+body.lente-pag .lente-mappa { flex: 1 1 auto; min-height: 240px; }
+.lente-svg .rag polygon { pointer-events: all; cursor: pointer; }
+body.lente-pag { display: flex; flex-direction: column; height: 100dvh; }
+.lente-testo { max-height: 18vh; }
