@@ -69,7 +69,7 @@
           const piede = nodo(doc, 'div', 'display:flex;align-items:center;gap:.7rem;margin-top:.8rem;padding-top:.5rem;border-top:1px solid var(--line);font-size:.68rem;line-height:1.4;color:var(--ink3)');
           if (odsUrl) { const i = doc.createElement('img'); i.src = odsUrl; i.width = 30; i.height = 35; i.style.cssText = 'display:block;flex:none'; piede.append(i); }
           const tx = nodo(doc, 'div', 'min-width:0');
-          tx.append(nodo(doc, 'div', null, FONTE), nodo(doc, 'div', 'font-weight:700;color:var(--ink2);margin-top:.15rem', `${SITO} · immagine creata il ${fData.format(new Date())}`));
+          tx.append(nodo(doc, 'div', null, FONTE), nodo(doc, 'div', 'font-weight:700;color:var(--ink2);margin-top:.15rem', SITO), nodo(doc, 'div', 'font-weight:700;color:var(--ink2)', `Immagine creata il ${fData.format(new Date())}`));
           piede.append(tx);
           el.append(piede);
         },
