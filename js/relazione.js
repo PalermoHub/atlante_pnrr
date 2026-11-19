@@ -230,6 +230,38 @@
       limiti(s, ['«Pagato» vuol dire soldi già versati a chi realizza il progetto, anche come anticipo. Non dice quanti lavori sono stati fatti.', 'I dati sono quelli che gli enti dichiarano nel sistema ReGiS: qui non sono stati verificati uno per uno.']);
     }
 
+    /* ================= 1 bis. Come è organizzato il Piano ================= */
+    {
+      const codComp = (k) => k.slice(0, 4), codMsr = (k) => k.replace(/\.[^.]+$/, '');
+      const nMis = meta.missioni.length, nComp = Object.keys(it.comp).length, nMsr = new Set(meta.sub.map(codMsr)).size, nSub = meta.sub.length;
+      const dotC = {}; Object.entries(meta.dot).forEach(([k, v]) => { dotC[codComp(k)] = (dotC[codComp(k)] || 0) + v; });
+      const dotTot = Object.values(meta.dot).reduce((a, b) => a + b, 0);
+      const rc = Object.entries(it.comp).map(([k, v]) => ({ k, nome: meta.nomi[k] || k, n: v[0], fin: v[1], pag: v[2], dot: dotC[k] || 0, vuoto: (dotC[k] || 0) - v[1] })).sort((a, b) => a.k.localeCompare(b.k, 'it', { numeric: true }));
+      const grandi = rc.filter((x) => x.fin >= 1e9);
+      const vuotoMax = rc.slice().sort((a, b) => b.vuoto - a.vuoto)[0];
+      const pagMax = grandi.slice().sort((a, b) => b.pag / b.fin - a.pag / a.fin)[0], pagMin = grandi.slice().sort((a, b) => a.pag / a.fin - b.pag / b.fin)[0];
+      const oltre = rc.filter((x) => x.vuoto < 0);
+      const senzaProg = Object.keys(meta.dot).filter((k) => !meta.sub.includes(k));
+      const dotSenza = senzaProg.reduce((a, k) => a + meta.dot[k], 0);
+      const s = sezione('organizzazione', 'Come è fatto il Piano: quattro livelli, uno dentro l’altro');
+      P(s, `Il PNRR non è un unico elenco di progetti. È organizzato a scatole cinesi, in <b>quattro livelli</b>: ${nMis} <b>missioni</b> (i grandi capitoli, come «Salute» o «Transizione verde»), ${nComp} <b>componenti</b> (le parti di ogni missione), ${nf(nMsr)} <b>misure</b> (un investimento o una riforma) e ${nf(nSub)} <b>sub-misure</b>, le articolazioni più fini. Ogni progetto sta dentro una sub-misura. Il codice lo mostra: <b>M1C1I1.04.01</b> vuol dire Missione 1, Componente 1, Investimento 1.4, sub-misura 1.`);
+      P(s, `Perché conta: guardare solo le missioni nasconde le differenze. Dentro la stessa missione ci sono componenti che vanno molto diversamente. Nell'<a href="index.html">atlante</a> i quattro livelli si scelgono a cascata dal pulsante «Piano», e mappa, schede ed elenchi seguono la scelta.`);
+      fig(s, 'La dotazione ufficiale e quanto è già su progetti', 'per componente · miliardi di euro, dotazione = 100%', (h) => {
+        const box = H('div', { class: 'miss-conti' });
+        rc.forEach((x) => {
+          const base = Math.max(x.dot, x.fin), w = (v) => (100 * v / base).toFixed(1) + '%', fermo = Math.max(0, x.fin - x.pag), sp = Math.max(0, x.dot - x.fin);
+          box.append(H('div', { class: 'mc' }, [
+            H('h3', {}, [H('b', { text: x.k }), ' ' + x.nome]),
+            H('div', { class: 'mc-bar', role: 'img', 'aria-label': `${x.k}: pagato ${eur(x.pag)}, su progetti ma non ancora pagato ${eur(fermo)}, senza progetto ${eur(sp)}, su una dotazione di ${eur(x.dot)}` }, [H('i', { class: 'mc-p', style: 'width:' + w(x.pag) }), H('i', { class: 'mc-f', style: 'width:' + w(fermo) }), H('i', { class: 'mc-s', style: 'width:' + w(sp) })]),
+            H('dl', {}, [H('dt', { text: 'Dotazione' }), H('dd', { text: eur(x.dot) }), H('dt', { text: 'Pagato' }), H('dd', { text: `${eur(x.pag)} (${pc(x.pag / x.dot)})` }), H('dt', { text: sp > 0 ? 'Senza progetto' : 'Oltre la dotazione' }), H('dd', { text: eur(sp > 0 ? sp : x.fin - x.dot) })])]));
+        });
+        h.append(box, (() => { const u = H('ul', { class: 'leg-tri' }); [['tp', 'Pagato'], ['tf', 'Già su progetti, non ancora pagato'], ['ts', 'Senza progetto nei dati']].forEach(([c, t]) => u.append(H('li', {}, [H('i', { class: c }), t]))); return u; })());
+      });
+      P(s, `Il divario più grande tra dotazione e progetti è nella componente <b>${vuotoMax.k}</b> (${vuotoMax.nome}): <b>${eur(vuotoMax.vuoto)}</b> senza progetto. Tra le componenti con almeno un miliardo di finanziamento, quella che ha pagato di più rispetto ai progetti registrati è <b>${pagMax.k}</b> (${pc(pagMax.pag / pagMax.fin)} dei soldi dei suoi progetti), quella che ha pagato meno è <b>${pagMin.k}</b> (${pc(pagMin.pag / pagMin.fin)}). ${oltre.length ? `In ${oltre.length} componenti (${oltre.map((x) => x.k).join(', ')}) i progetti superano la dotazione.` : ''} Sono differenze che a livello di missione si perdono.`);
+      calc(s, `Dotazione = somma delle dotazioni ufficiali delle sub-misure, raggruppate per componente (<code>data/meta.json</code>, campo <code>dot</code>, «Spesa per misura» al ${meta.spesa_misura}). Finanziato e pagato per componente: <code>data/italia.json</code>, campo <code>comp</code> (estrazione del ${meta.estrazione}). Misura = codice della sub-misura senza l'ultimo segmento.`);
+      limiti(s, [`Dotazione e progetti hanno date diverse (${meta.spesa_misura} e ${meta.estrazione}): le differenze piccole possono dipendere da questo.`, `${nf(senzaProg.length)} voci del Piano hanno una dotazione (${eur(dotSenza)}) ma nessun progetto nei dati. Sono già comprese nei «senza progetto» qui sopra.`, `La dotazione totale delle sub-misure qui è ${mld(dotTot)}: può non coincidere con altre cifre ufficiali, che usano altre fonti e altre date.`]);
+    }
+
     /* ================= 2. A che punto siamo ================= */
     {
       const s = sezione('avanzamento', 'Molti progetti finiti, ma sono quelli piccoli');
