@@ -1,0 +1,53 @@
+/* La lente dentro l'app: solo le regole della raggiera, del tooltip e del pannello «Lente».
+   Variabili e font vengono da atlante.css. Il disegno sta in un <svg> dentro #map (js/lente-app.js). */
+.lente-svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; overflow: visible; font-family: inherit; -webkit-tap-highlight-color: transparent; }
+.lente-svg[hidden] { display: none; }
+.lente-svg text { font-family: inherit; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 3px; stroke-linejoin: round; }
+.lente-svg *:focus, .lente-svg .segm, .lente-svg .segm * { outline: none; }
+.lente-svg .liv { stroke: var(--ink3); stroke-width: .9; stroke-dasharray: 2 4; opacity: .75; }
+.lente-svg .livt { font-size: 10.5px; fill: var(--ink2); }
+.lente-svg .velo { fill: var(--surface); fill-opacity: .78; pointer-events: none; }
+.lente-svg .anello { fill: var(--surface); stroke: var(--line); stroke-width: 1; filter: drop-shadow(0 1px 4px rgba(0,0,0,.25)); }
+.lente-svg .lente-bordo { stroke: var(--acc); stroke-width: 2; }
+.lente-svg .croce { stroke: var(--ink); stroke-width: 1.6; fill: none; }
+.lente-svg .nome { font-size: 14px; font-weight: 700; fill: var(--ink); stroke: none; }
+.lente-svg .msg-bg { fill: var(--surface); stroke: var(--line); }
+.lente-svg .msg { font-size: 13px; font-weight: 600; stroke: none; }
+.lente-svg .presa { pointer-events: all; cursor: grab; touch-action: none; }
+.lente-svg .presa:active { cursor: grabbing; }
+.lente-svg .rag { pointer-events: all; cursor: pointer; }
+.lente-svg .nastro { pointer-events: stroke; cursor: pointer; stroke-linecap: butt; }
+.lente-svg .nastro.spento { opacity: .6; }
+.lente-svg .nastro:focus-visible { stroke-width: 20; }
+.lente-svg .nastrot { font-size: 11px; font-weight: 700; fill: #14181c; stroke: none; pointer-events: none; }
+.lente-svg .nastrot.chiaro { fill: #fff; }
+/* stadi: segmenti dell'anello; il selezionato ha lo sfondo pieno */
+.lente-svg .segm { pointer-events: all; cursor: pointer; }
+.lente-svg .stadio { font-size: 11.5px; font-weight: 700; fill: var(--ink); stroke: none; cursor: pointer; }
+.lente-svg .stadio.on { fill: var(--surface); }
+.lente-svg .sfondo { fill: var(--accbg); stroke: var(--line); stroke-width: .8; transition: fill .15s; }
+.lente-svg .segm:hover .sfondo { fill: var(--acc); fill-opacity: .35; }
+.lente-svg .segm[aria-pressed="true"] .sfondo { fill: var(--acc); fill-opacity: 1; stroke: var(--acc); }
+.lente-svg .segm:focus-visible .sfondo { stroke: var(--ink); stroke-width: 2; }
+.lente-tip { position: absolute; z-index: 6; width: 17rem; max-width: calc(100% - 12px); padding: .5rem .65rem; background: var(--surface); color: var(--ink); border: 2px solid var(--acc); border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,.25); font-size: .82rem; pointer-events: none; }
+.lente-tip[hidden] { display: none; }
+.lente-tip b { display: block; line-height: 1.25; margin-bottom: .15rem; }
+.lente-tip .k { display: block; color: var(--ink3); font-size: .74rem; margin-bottom: .3rem; }
+.lente-tip dl { display: grid; grid-template-columns: auto 1fr; gap: .1rem .6rem; margin: 0; }
+.lente-tip dt { color: var(--ink3); }
+.lente-tip dd { margin: 0; text-align: right; word-break: break-word; }
+.lente-tip small { display: block; margin-top: .3rem; color: var(--ink3); }
+
+/* chip e pannello «Lente» nella barra della mappa */
+.chip2.attiva { border-color: var(--acc); color: var(--acc); background: var(--accbg); }
+.pan-lente { display: grid; gap: .6rem; }
+.pan-lente .chk { display: flex; align-items: center; gap: .55rem; min-height: 44px; font-size: .95rem; }
+.pan-lente .chk input { width: 1.3rem; height: 1.3rem; accent-color: var(--acc); }
+.pan-lente .seg { display: flex; }
+.pan-lente .seg button { flex: 1 1 0; display: inline-flex; align-items: center; justify-content: center; gap: .4rem; min-height: 44px; padding: 0 .6rem; background: var(--surface); border: 1px solid var(--line); border-radius: 0; font-weight: 600; }
+.pan-lente .seg button:first-child { border-radius: 10px 0 0 10px; }
+.pan-lente .seg button:last-child { border-radius: 0 10px 10px 0; border-left: 0; }
+.pan-lente .seg button[aria-pressed="true"] { background: var(--acc); border-color: var(--acc); color: #fff; }
+.pan-lente .seg svg { width: 1.2rem; height: 1.2rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.pan-lente .nota-lente { margin: 0; font-size: .85rem; color: var(--ink2); }
+.pan-lente .ripr { min-height: 44px; padding: 0 .85rem; font-weight: 600; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }

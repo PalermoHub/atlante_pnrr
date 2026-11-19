@@ -215,9 +215,9 @@ const NESSUNO = ['==', ['get', 'pro_com_t'], '__nessuno__'];
 function evidenzia(liv, id, noFit) {
   const m = S.map; if (!m || !m.getLayer('vela')) return;
   const eq = liv === 'c' ? ['get', 'pro_com_t'] : liv === 'p' ? ['slice', ['get', 'pro_com_t'], 0, 3] : ['to-string', ['get', 'cod_reg']];
-  m.setFilter('vela', liv ? ['!=', eq, id] : NESSUNO); m.setFilter('contorno', liv ? ['==', eq, id] : NESSUNO);
+  m.setFilter('vela', liv && !S.lente ? ['!=', eq, id] : NESSUNO); m.setFilter('contorno', liv ? ['==', eq, id] : NESSUNO);
   m.setPaintProperty('contorno', 'line-width', liv === 'c' ? 2 : 0.6);
-  if (noFit) return;
+  if (noFit || S.lente) return; /* con la lente accesa è lei a scegliere il comune: la mappa non deve spostarsi da sola */
   const b = liv ? S.bbox[liv][id] : ITALIA;
   if (b) m.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding: 30, duration: 600, maxZoom: 11 });
 }
@@ -343,6 +343,7 @@ function creaMappa() {
   addEventListener('keydown', (e) => { if (e.key === 'Escape') chiudiTip(); }); addEventListener('blur', chiudiTip);
   m.on('click', (e) => { if (!m.queryRenderedFeatures(e.point, { layers: ['comuni'] }).length) chiudiTip(); });
   m.on('click', 'comuni', (e) => {
+    if (S.lente) return; /* con la lente accesa il clic sposta la lente (js/lente-app.js) */
     const f = e.features[0]; const id = f && f.properties.pro_com_t; if (!id || !S.com[id]) return;
     if (senzaHover.matches) { tipTocco = id; go('c', id, S.cur?.F); mostraTocco(); } else go('c', id, S.cur?.F);
   });
@@ -667,5 +668,8 @@ async function init() {
   document.addEventListener('tema-cambia', () => { if (S.map && tono() !== S.tonoMappa) { S.tonoMappa = tono(); S.map.setStyle(STILI[S.tonoMappa], { diff: false }); } else if (S.map?.getLayer('vela')) { const st = getComputedStyle(document.documentElement); S.map.setPaintProperty('vela', 'fill-color', st.getPropertyValue('--bg')); S.map.setPaintProperty('bordi', 'line-color', st.getPropertyValue('--surface')); aggiornaMappa(); } if (S.cur && S.cube.c) route(); });
   addEventListener('hashchange', route);
   S.vista0 = vistaDaHash(); creaMappa(); route();
+  /* ponte per la lente (js/lente-app.js), che vive in un file a parte */
+  window.AtlantePNRR = { S, go, get, evidenzia, parseHash };
+  document.dispatchEvent(new Event('atlante-pronto'));
 }
 init();
