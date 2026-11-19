@@ -326,3 +326,17 @@ html[data-iframe] header.top, html[data-iframe] body:not(.home) .top, html[data-
 .prog-det > summary small { font-weight: 400; color: var(--ink3); margin-left: .4rem; }
 .scheda td small.cod { display: block; color: var(--ink3); font-size: .72rem; }
 .scheda td b { font-weight: 650; }
+
+/* Grafici come filtri: voce attiva in evidenza, le altre attenuate */
+.clicca { cursor: pointer; }
+.ciambella .fetta.clicca:hover, .col.clicca:hover .col-barra, .b-riga.clicca:hover .b-riempi { filter: brightness(1.12); }
+.ha-attivo .fetta:not(.attivo), .ha-attivo.colonne .col:not(.attivo) .col-barra, .barre.ha-attivo .b-riga:not(.attivo) .b-riempi { opacity: .35; }
+.fetta.attivo { stroke: var(--ink); stroke-width: 2; }
+.col.attivo .col-barra { stroke: var(--ink); stroke-width: 2; }
+.cia-legenda li.clicca { border-radius: 6px; }
+.cia-legenda li.clicca:hover { background: var(--surface2, rgba(127,127,127,.12)); }
+.cia-box.ha-attivo .cia-legenda li:not(.attivo) { opacity: .55; }
+.cia-legenda li.attivo, .b-riga.attivo { background: rgba(37, 106, 191, .12); outline: 1px solid var(--acc); border-radius: 6px; }
+.calore td.clicca:hover { outline: 2px solid var(--ink); outline-offset: -2px; }
+.calore td.attivo { outline: 3px solid var(--ink); outline-offset: -3px; font-weight: 700; }
+canvas.disp.clicca { cursor: pointer; }

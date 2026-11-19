@@ -79,32 +79,34 @@
     ].map((t) => H('li', { text: t }))));
 
     const MIS = Object.keys(it.mis).sort();
+    /* i grafici sono filtri: un clic apre la mappa dell'atlante già filtrata (stesso indirizzo, stessi filtri) */
+    const mappa = (hash) => { location.href = 'index.html#/' + hash; };
     /* ---- Mezzogiorno ---- */
     cap('g-sud', 'Quota del Mezzogiorno per missione', (h) => {
-      const voci = MIS.map((m) => { const s = sud.reduce((t, r) => t + (r.mis[m]?.[1] || 0), 0), t = regs.reduce((x, r) => x + (r.mis[m]?.[1] || 0), 0); return { nome: m, val: s / t, sub: `${NOMI_MIS[m]} · ${eur(s)} su ${eur(t)}`, col: '--c4' }; });
+      const voci = MIS.map((m) => { const s = sud.reduce((t, r) => t + (r.mis[m]?.[1] || 0), 0), t = regs.reduce((x, r) => x + (r.mis[m]?.[1] || 0), 0); return { nome: m, id: m, val: s / t, sub: `${NOMI_MIS[m]} · ${eur(s)} su ${eur(t)}`, col: '--c4' }; });
       voci.push({ nome: 'Totale', val: sudFin / regFin, sub: 'tutte le missioni', col: '--s7' });
-      G.colonne(h, { voci, formatta: (v) => pc(v), conTip, nome: 'Quota Mezzogiorno', soglia: 0.4, sogliaNome: 'soglia 40%' });
+      G.colonne(h, { voci, clic: (x) => mappa('?m=' + x.id), formatta: (v) => pc(v), conTip, nome: 'Quota Mezzogiorno', soglia: 0.4, sogliaNome: 'soglia 40%' });
     }, { sub: 'Sud + Isole, sui fondi localizzati in una regione', nota: `Il Mezzogiorno ha il ${pc(sudPop / popTot, 1)} della popolazione. La soglia del 40% vale per il PNRR nel suo complesso; qui è mostrata a titolo di confronto per ogni missione.` });
 
     /* ---- 6 calore regioni × missioni ---- */
     const righe = regs.slice().sort((a, b) => (a.rip === b.rip ? a.nome.localeCompare(b.nome) : Object.keys(RIP).indexOf(a.rip) - Object.keys(RIP).indexOf(b.rip))).map((r) => ({ id: r.id, nome: r.nome }));
     const valori = (f) => { const o = {}; regs.forEach((r) => { o[r.id] = f(r); }); return o; };
     cap('g-calore', 'Quota di importo concluso, regione per missione', (h) => G.calore(h, {
-      righe, capo: 'Regione',
-      colonne: MIS.map((m) => ({ nome: m, sub: 'concluso', valori: valori((r) => (r.mis[m]?.[1] > 0 ? r.mis[m][5] / r.mis[m][1] : null)), formatta: (v) => pc(v) }))
+      righe, capo: 'Regione', apri: (r) => 'index.html#/r/' + r.id, cella: (r, c) => mappa('r/' + r.id + '?m=' + c.id),
+      colonne: MIS.map((m) => ({ nome: m, id: m, sub: 'concluso', valori: valori((r) => (r.mis[m]?.[1] > 0 ? r.mis[m][5] / r.mis[m][1] : null)), formatta: (v) => pc(v) }))
         .concat([{ nome: 'Tutte', sub: 'concluso', valori: valori((r) => r.fs[4] / r.fin), formatta: (v) => pc(v) }, { nome: 'Pagato', sub: 'tutte', valori: valori((r) => r.pag / r.fin), formatta: (v) => pc(v) }]),
     }), { largo: true, nota: 'Il colore va dal più basso al più alto di ciascuna colonna (scala propria): serve a confrontare le regioni, non le missioni tra loro.' });
 
     /* ---- per componente (Missione > Componente): stessi due grafici, un livello più in basso ---- */
     const COMP = Object.keys(it.comp).sort(), nomeC = (c) => meta.nomi[c] || c;
     cap('g-sud-comp', 'Quota del Mezzogiorno per componente', (h) => {
-      const voci = COMP.map((c) => { const s = sud.reduce((t, r) => t + (r.comp[c]?.[1] || 0), 0), t = regs.reduce((x, r) => x + (r.comp[c]?.[1] || 0), 0); return { nome: c, val: t > 0 ? s / t : 0, sub: `${nomeC(c)} · ${eur(s)} su ${eur(t)}`, col: '--c4' }; });
+      const voci = COMP.map((c) => { const s = sud.reduce((t, r) => t + (r.comp[c]?.[1] || 0), 0), t = regs.reduce((x, r) => x + (r.comp[c]?.[1] || 0), 0); return { nome: c, id: c, val: t > 0 ? s / t : 0, sub: `${nomeC(c)} · ${eur(s)} su ${eur(t)}`, col: '--c4' }; });
       voci.push({ nome: 'Totale', val: sudFin / regFin, sub: 'tutti i componenti', col: '--s7' });
-      G.colonne(h, { voci, formatta: (v) => pc(v), conTip, nome: 'Quota Mezzogiorno per componente', soglia: 0.4, sogliaNome: 'soglia 40%' });
+      G.colonne(h, { voci, clic: (x) => mappa('?c=' + x.id), formatta: (v) => pc(v), conTip, nome: 'Quota Mezzogiorno per componente', soglia: 0.4, sogliaNome: 'soglia 40%' });
     }, { sub: 'Sud + Isole, sui fondi localizzati in una regione', nota: 'Ogni componente è una parte di una missione (M1C2 = missione 1, componente 2). La soglia del 40% vale per il PNRR nel suo complesso.' });
     cap('g-calore-comp', 'Quota di importo concluso, regione per componente', (h) => G.calore(h, {
-      righe, capo: 'Regione',
-      colonne: COMP.map((c) => ({ nome: c, sub: 'concluso', valori: valori((r) => (r.comp[c]?.[1] > 0 ? r.comp[c][5] / r.comp[c][1] : null)), formatta: (v) => pc(v) })),
+      righe, capo: 'Regione', apri: (r) => 'index.html#/r/' + r.id, cella: (r, c) => mappa('r/' + r.id + '?c=' + c.id),
+      colonne: COMP.map((c) => ({ nome: c, id: c, sub: 'concluso', valori: valori((r) => (r.comp[c]?.[1] > 0 ? r.comp[c][5] / r.comp[c][1] : null)), formatta: (v) => pc(v) })),
     }), { largo: true, nota: 'Il colore va dal più basso al più alto di ciascuna colonna (scala propria): serve a confrontare le regioni, non i componenti tra loro. Celle vuote: nessun progetto del componente in quella regione.' });
 
     /* ---- 9 concentrazione ---- */
@@ -116,11 +118,11 @@
 
     /* ---- 11 ritardi per provincia ---- */
     el('leg-rip2').append(...Object.entries(RIP).map(([n, c]) => H('span', {}, [H('i', { style: `background:var(${c})` }), n])));
-    const vp = (f) => provs.filter((p) => p.fin > 0 && p.rit).map((p) => ({ nome: `${p.nome} (${p.sigla})`, sub: reg[p.reg]?.nome, val: f(p), col: RIP[reg[p.reg]?.rip], righe: [['Progetti in ritardo', nf(p.rit[0])], ['Importo in ritardo', eur(p.rit[1])], ['Finanziato', eur(p.fin)]] })).sort((a, b) => b.val - a.val);
+    const vp = (f) => provs.filter((p) => p.fin > 0 && p.rit).map((p) => ({ id: p.id, nome: `${p.nome} (${p.sigla})`, sub: reg[p.reg]?.nome, val: f(p), col: RIP[reg[p.reg]?.rip], righe: [['Progetti in ritardo', nf(p.rit[0])], ['Importo in ritardo', eur(p.rit[1])], ['Finanziato', eur(p.fin)]] })).sort((a, b) => b.val - a.val);
     const rit = vp((p) => p.rit[1] / p.fin);
-    cap('g-rit', 'Le 15 province con più importo in ritardo', (h) => G.barre(h, { voci: rit.slice(0, 15), formatta: (v) => pc(v, 1), conTip, riferimento: it.rit[1] / fin, rifNome: 'Italia', nome: 'Province con più ritardo' }), { sub: 'importo in ritardo ÷ finanziato · tacca = Italia', nota: 'La quota dipende dalla data di estrazione (13/06/2026): non dice chi sia in ritardo oggi.' });
-    cap('g-rit', 'Le 15 province con meno importo in ritardo', (h) => G.barre(h, { voci: rit.slice(-15), formatta: (v) => pc(v, 1), conTip, riferimento: it.rit[1] / fin, rifNome: 'Italia', nome: 'Province con meno ritardo' }), { sub: 'importo in ritardo ÷ finanziato · tacca = Italia', nota: `Mediana delle province: ${pc(mediana(rit.map((x) => x.val)), 1)}. Pochi grandi progetti possono spostare molto la quota di una provincia piccola. La quota dipende dalla data di estrazione (13/06/2026): non dice chi sia in ritardo oggi.` });
+    cap('g-rit', 'Le 15 province con più importo in ritardo', (h) => G.barre(h, { voci: rit.slice(0, 15), apri: (x) => mappa('p/' + x.id), formatta: (v) => pc(v, 1), conTip, riferimento: it.rit[1] / fin, rifNome: 'Italia', nome: 'Province con più ritardo' }), { sub: 'importo in ritardo ÷ finanziato · tacca = Italia', nota: 'La quota dipende dalla data di estrazione (13/06/2026): non dice chi sia in ritardo oggi.' });
+    cap('g-rit', 'Le 15 province con meno importo in ritardo', (h) => G.barre(h, { voci: rit.slice(-15), apri: (x) => mappa('p/' + x.id), formatta: (v) => pc(v, 1), conTip, riferimento: it.rit[1] / fin, rifNome: 'Italia', nome: 'Province con meno ritardo' }), { sub: 'importo in ritardo ÷ finanziato · tacca = Italia', nota: `Mediana delle province: ${pc(mediana(rit.map((x) => x.val)), 1)}. Pochi grandi progetti possono spostare molto la quota di una provincia piccola. La quota dipende dalla data di estrazione (13/06/2026): non dice chi sia in ritardo oggi.` });
     const icc = vp((p) => p.icc[1] / p.fin);
-    cap('g-icc', 'Chiusura da formalizzare: le 15 province con la quota più alta', (h) => G.barre(h, { voci: icc.slice(0, 15).map((x) => ({ ...x, righe: [] })), formatta: (v) => pc(v, 1), conTip, riferimento: it.icc[1] / fin, rifNome: 'Italia', nome: 'Iter concluso ma stato in corso' }), { largo: true, sub: 'iter concluso ma stato ancora «in corso» ÷ finanziato · tacca = Italia', nota: 'Questi progetti hanno finito l’iter ma non risultano «Concluso» in ReGiS: non sono contati come conclusi. Il dato dipende dalla data di estrazione (13/06/2026).' });
+    cap('g-icc', 'Chiusura da formalizzare: le 15 province con la quota più alta', (h) => G.barre(h, { voci: icc.slice(0, 15).map((x) => ({ ...x, righe: [] })), apri: (x) => mappa('p/' + x.id), formatta: (v) => pc(v, 1), conTip, riferimento: it.icc[1] / fin, rifNome: 'Italia', nome: 'Iter concluso ma stato in corso' }), { largo: true, sub: 'iter concluso ma stato ancora «in corso» ÷ finanziato · tacca = Italia', nota: 'Questi progetti hanno finito l’iter ma non risultano «Concluso» in ReGiS: non sono contati come conclusi. Il dato dipende dalla data di estrazione (13/06/2026).' });
   }).catch((e) => { el('caric').textContent = 'Errore di caricamento dei dati: ' + e.message; });
 })();

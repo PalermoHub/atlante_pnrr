@@ -13,10 +13,17 @@
     return e;
   };
   const SC = ['--s7', '--s6', '--s5', '--s4', '--s3', '--s2', '--s1'];
+  /* Clic = filtro: rende cliccabile un nodo (mouse, tocco, Invio/Spazio) e ne segna lo stato attivo. */
+  const rendiCliccabile = (nodo, fn, on) => {
+    nodo.classList.add('clicca'); if (on) nodo.classList.add('attivo');
+    nodo.setAttribute('aria-pressed', String(!!on)); nodo.setAttribute('role', 'button');
+    nodo.addEventListener('click', () => fn());
+    nodo.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } });
+  };
   const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 
   /* ---------- ciambella con legenda ---------- */
-  function ciambella(host, { voci, formatta, centro = null, conTip = null, nome = 'Composizione' }) {
+  function ciambella(host, { voci, formatta, centro = null, conTip = null, nome = 'Composizione', clic = null, attivo = null }) {
     const v = voci.filter((x) => x.val > 0);
     const tot = v.reduce((s, x) => s + x.val, 0) || 1;
     const R = 92, r = 56, C = 110;
@@ -36,6 +43,7 @@
       const p = S('path', { d, class: 'fetta', 'fill-rule': 'evenodd', style: `fill:var(${col})`, tabindex: '0' });
       p.setAttribute('aria-label', `${x.nome}: ${formatta(x.val)}, ${nf(100 * q, 1)}%`);
       if (conTip) conTip(p, x.nome, [['Valore', formatta(x.val)], ['Quota', nf(100 * q, 1) + '%'], x.sub ? ['Dettaglio', x.sub] : null]);
+      if (clic) { x._p = p; rendiCliccabile(p, () => clic(x), attivo && attivo(x)); }
       svg.append(p);
       x._col = col; a0 += q * 2 * Math.PI;
     });
@@ -44,16 +52,17 @@
       const t2 = S('text', { x: C, y: C + 16, 'text-anchor': 'middle', class: 'cia-sotto', 'aria-hidden': 'true' }); t2.textContent = centro.etichetta;
       svg.append(t1, t2);
     }
-    const leg = H('ul', { class: 'cia-legenda' }, v.map((x) => H('li', {}, [
+    const leg = H('ul', { class: 'cia-legenda' }, v.map((x) => H('li', clic ? { class: 'clicca' + (attivo && attivo(x) ? ' attivo' : ''), tabindex: '0', role: 'button', 'aria-pressed': String(!!(attivo && attivo(x))) } : {}, [
       H('span', { class: 'pastiglia', style: `background:var(${x._col})` }),
       H('span', { class: 'cia-nome' }, [H('b', { text: x.nome }), x.sub ? H('small', { text: x.sub }) : null]),
       H('span', { class: 'cia-val' }, [H('b', { text: formatta(x.val) }), H('small', { text: nf(100 * x.val / tot, 1) + '%' })]),
     ])));
-    host.append(H('div', { class: 'cia-box' }, [svg, leg]));
+    if (clic) [...leg.children].forEach((li, i) => { li.addEventListener('click', () => clic(v[i])); li.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); clic(v[i]); } }); });
+    host.append(H('div', { class: 'cia-box' + (clic && v.some((x) => attivo && attivo(x)) ? ' ha-attivo' : '') }, [svg, leg]));
   }
 
   /* ---------- barre orizzontali ordinate, colore per gruppo, tacca di riferimento ---------- */
-  function barre(host, { voci, formatta, conTip = null, riferimento = null, rifNome = 'Italia', apri = null, nome = 'Barre' }) {
+  function barre(host, { voci, formatta, conTip = null, riferimento = null, rifNome = 'Italia', apri = null, nome = 'Barre', attivo = null }) {
     const mx = Math.max(...voci.map((x) => x.val || 0), riferimento || 0) || 1;
     const box = H('div', { class: 'barre', role: 'list', 'aria-label': nome });
     voci.forEach((x) => {
@@ -62,13 +71,14 @@
         H('i', { class: 'b-riempi', style: `width:${Math.max(w, 0.4)}%;background:var(${x.col || '--s5'})` }),
         riferimento != null ? H('i', { class: 'b-rif', style: `left:${100 * riferimento / mx}%`, title: `${rifNome}: ${formatta(riferimento)}` }) : null,
       ]);
-      const riga = H('div', { class: 'b-riga' + (apri ? ' clic' : ''), role: 'listitem', tabindex: '0' }, [
+      const riga = H('div', { class: 'b-riga' + (apri ? ' clic clicca' : '') + (attivo && attivo(x) ? ' attivo' : ''), role: 'listitem', tabindex: '0' }, [
         H('span', { class: 'b-nome' }, [x.nome, x.sub ? H('small', { text: x.sub }) : null]), pista, H('b', { class: 'b-val', text: formatta(x.val) })]);
       riga.setAttribute('aria-label', `${x.nome}: ${formatta(x.val)}${x.sub ? ', ' + x.sub : ''}`);
       if (conTip) conTip(riga, x.nome, [['Valore', formatta(x.val)], riferimento != null ? [rifNome, formatta(riferimento)] : null, x.sub ? ['Dettaglio', x.sub] : null, ...(x.righe || [])]);
       if (apri) { riga.addEventListener('click', () => apri(x)); riga.addEventListener('keydown', (e) => { if (e.key === 'Enter') apri(x); }); }
       box.append(riga);
     });
+    if (attivo && voci.some((x) => attivo(x))) box.classList.add('ha-attivo');
     host.append(box);
   }
 
@@ -80,7 +90,7 @@
     ridisegna();
     if (window.ResizeObserver) new ResizeObserver(ridisegna).observe(box);
   }
-  function colonneSvg(box, { voci, formatta, conTip = null, nome = 'Colonne', soglia = null, sogliaNome = '' }, avail) {
+  function colonneSvg(box, { voci, formatta, conTip = null, nome = 'Colonne', soglia = null, sogliaNome = '', clic = null, attivo = null }, avail) {
     const n = voci.length, mx = Math.max(...voci.map((x) => x.val || 0), soglia || 0) || 1;
     const larg0 = n <= 3 ? 88 : n <= 5 ? 76 : 64, larg = Math.max(larg0, Math.min(200, Math.floor(((avail || 0) - 16) / n))), W = n * larg + 16, x0 = 8, top = 26, h = 150, bot = 34;
     const svg = S('svg', { viewBox: `0 0 ${W} ${top + h + bot}`, class: 'colonne', role: 'img' });
@@ -97,8 +107,10 @@
       g.append(v, l, S('rect', { x: bx - 11, y: 0, width: larg, height: top + h + bot, fill: 'transparent' }));
       if (x.sotto) { const l2 = S('text', { x: bx + bw / 2, y: top + h + 30, 'text-anchor': 'middle', class: 'col-sotto', 'aria-hidden': 'true' }); l2.textContent = x.sotto; g.append(l2); }
       if (conTip) conTip(g, x.nome, [['Valore', formatta(x.val)], x.sub ? ['Dettaglio', x.sub] : null]);
+      if (clic && x.id != null) rendiCliccabile(g, () => clic(x), attivo && attivo(x));
       svg.append(g);
     });
+    if (clic && voci.some((x) => attivo && attivo(x))) svg.classList.add('ha-attivo');
     if (soglia != null) {
       const y = top + h - h * soglia / mx;
       svg.append(S('line', { x1: x0, x2: W - x0, y1: y, y2: y, class: 'col-soglia' }));
@@ -108,7 +120,7 @@
   }
 
   /* ---------- tabella a colori: righe × colonne, scala propria per colonna ---------- */
-  function calore(host, { righe, colonne: cols, apri = null, capo = 'Territorio' }) {
+  function calore(host, { righe, colonne: cols, apri = null, capo = 'Territorio', cella = null, attiva = null }) {
     const sc = ['--s1', '--s2', '--s3', '--s4', '--s5', '--s6', '--s7'];
     const t = H('table', { class: 'calore' });
     t.append(H('thead', {}, H('tr', {}, [H('th', { scope: 'col', text: capo })].concat(cols.map((c) => H('th', { scope: 'col', class: 'num' }, [H('span', { text: c.nome }), c.sub ? H('small', { text: c.sub }) : null]))))));
@@ -121,7 +133,9 @@
         if (v == null) { tr.append(H('td', { class: 'num vuota', text: '–' })); return; }
         const b = mx > mn ? Math.min(6, Math.floor(7 * (v - mn) / (mx - mn))) : 3;
         const td = H('td', { class: 'num cal-' + (b + 1), style: `background:var(${sc[b]})`, text: c.formatta(v) });
-        td.title = `${r.nome} · ${c.nome}: ${c.formatta(v)}`; tr.append(td);
+        td.title = `${r.nome} · ${c.nome}: ${c.formatta(v)}`;
+        if (cella && c.id != null) { td.tabIndex = 0; rendiCliccabile(td, () => cella(r, c), attiva && attiva(r, c)); }
+        tr.append(td);
       });
       corpo.append(tr);
     });
@@ -130,7 +144,7 @@
   }
 
   /* ---------- dispersione su canvas (migliaia di punti), assi logaritmici ---------- */
-  function dispersione(host, { punti, xNome, yNome, xFmt, yFmt, nome = 'Dispersione', mediane = null, gruppi = [], evidenzia = null }) {
+  function dispersione(host, { punti, xNome, yNome, xFmt, yFmt, nome = 'Dispersione', mediane = null, gruppi = [], evidenzia = null, clic = null }) {
     const W = 760, Hh = 400, m = { l: 62, r: 14, t: 12, b: 44 };
     const cv = H('canvas', { width: W * 2, height: Hh * 2, class: 'disp', role: 'img' });
     cv.style.aspectRatio = `${W} / ${Hh}`;
@@ -159,6 +173,14 @@
       ctx.font = 'bold 12px system-ui'; ctx.textAlign = ex > W - 140 ? 'right' : 'left'; ctx.fillText(evidenzia.nome, ex + (ex > W - 140 ? -11 : 11), ey - 9);
     }
     if (mediane) { ctx.strokeStyle = css('--ink') || '#000'; ctx.lineWidth = 2.2; ctx.beginPath(); mediane.forEach((q, i) => { i ? ctx.lineTo(X(q.x), Y(q.y)) : ctx.moveTo(X(q.x), Y(q.y)); }); ctx.stroke(); }
+    if (clic) { /* clic sul punto più vicino (entro 10 px): apre quel comune */
+      cv.classList.add('clicca'); cv.title = 'Clic su un punto per aprire il comune';
+      cv.addEventListener('click', (e) => {
+        const b = cv.getBoundingClientRect(), mx = (e.clientX - b.left) * W / b.width, my = (e.clientY - b.top) * Hh / b.height; let best = null, bd = 100;
+        punti.forEach((p) => { const d = (X(p.x) - mx) ** 2 + (Y(p.y) - my) ** 2; if (d < bd) { bd = d; best = p; } });
+        if (best && best.id != null) clic(best);
+      });
+    }
     const leg = H('div', { class: 'disp-leg' }, gruppi.map((g) => H('span', {}, [H('i', { style: `background:var(${g.col})` }), g.nome])).concat(mediane ? [H('span', {}, [H('i', { class: 'linea' }), 'mediana per fascia'])] : []));
     host.append(H('div', { class: 'disp-box' }, [cv, leg]));
   }

@@ -581,11 +581,11 @@ function analisiScheda(liv, id, n, nome, F, A) {
   const tip = G.conTip, pop = n.pop || 0;
   const me = metriche(liv, id, pop, F), IT = metriche(null, null, S.it.pop, F);
   const prov = liv === 'c' ? S.prov[n.pv] : null, regn = liv === 'c' ? S.reg[n.rg] : liv === 'p' ? S.reg[n.reg] : null;
-  const ctx = [{ nome: liv === 'c' ? 'Questo comune' : liv === 'p' ? 'Questa provincia' : liv === 'r' ? 'Questa regione' : 'Italia', m: me, mio: true }];
-  if (liv === 'c') ctx.push({ nome: 'Provincia', sub: prov?.nome, m: metriche('p', n.pv, prov?.pop, F) });
-  if (liv === 'c') ctx.push({ nome: 'Regione', sub: regn?.nome, m: metriche('r', n.rg, regn?.pop, F) });
-  if (liv === 'p') ctx.push({ nome: 'Regione', sub: regn?.nome, m: metriche('r', n.reg, regn?.pop, F) });
-  if (liv) ctx.push({ nome: 'Italia', m: IT });
+  const ctx = [{ nome: liv === 'c' ? 'Questo comune' : liv === 'p' ? 'Questa provincia' : liv === 'r' ? 'Questa regione' : 'Italia', m: me, mio: true, liv, id }];
+  if (liv === 'c') ctx.push({ nome: 'Provincia', sub: prov?.nome, m: metriche('p', n.pv, prov?.pop, F), liv: 'p', id: n.pv });
+  if (liv === 'c') ctx.push({ nome: 'Regione', sub: regn?.nome, m: metriche('r', n.rg, regn?.pop, F), liv: 'r', id: n.rg });
+  if (liv === 'p') ctx.push({ nome: 'Regione', sub: regn?.nome, m: metriche('r', n.reg, regn?.pop, F), liv: 'r', id: n.reg });
+  if (liv) ctx.push({ nome: 'Italia', m: IT, liv: null, id: null });
 
   /* --- sintesi in parole --- */
   const dif = (a, b) => (b > 0 && a != null ? (a / b - 1) : null);
@@ -616,46 +616,46 @@ function analisiScheda(liv, id, n, nome, F, A) {
   if (liv) {
     const b = blocco('Confronto con il contesto', nFiltri(F) ? 'con i filtri attivi' : '');
     const M = [['Euro per abitante', 'pc', (v) => nf.format(Math.round(v)) + ' €'], ['Quota pagata', 'pag', (v) => q0(v)], ['Importo concluso', 'conc', (v) => q0(v)], ['Importo in ritardo', 'rit', (v) => q0(v, 1)]];
-    M.forEach(([t, k, fm]) => fig(b, t, null, (f) => G.barre(f, { voci: ctx.filter((c) => c.m[k] != null).map((c) => ({ nome: c.nome, sub: c.sub, val: c.m[k], col: c.mio ? '--s6' : '--s3' })), formatta: fm, conTip: tip, nome: t }), k === 'rit' ? 'Dipende dalla data di estrazione (13/06/2026): non dice chi sia in ritardo oggi.' : null));
+    M.forEach(([t, k, fm]) => fig(b, t, null, (f) => G.barre(f, { voci: ctx.filter((c) => c.m[k] != null).map((c) => ({ nome: c.nome, sub: c.sub, val: c.m[k], col: c.mio ? '--s6' : '--s3', liv: c.liv, id: c.id, mio: c.mio })), formatta: fm, conTip: tip, nome: t, apri: (x) => go(x.liv, x.id, F), attivo: (x) => x.mio }), k === 'rit' ? 'Dipende dalla data di estrazione (13/06/2026): non dice chi sia in ritardo oggi.' : null));
   }
 
   /* --- composizione --- */
   const bc = blocco('Come è fatto');
   const mk7 = S.meta.missioni.filter((k) => A.mis[k] && A.mis[k].fin > 0);
-  fig(bc, 'Per missione', 'importo finanziato', (f) => G.ciambella(f, { voci: mk7.map((k) => ({ nome: k, sub: (NOMI_MIS[k] || k).replace(/^M\d /, ''), val: A.mis[k].fin })).sort((a, b) => b.val - a.val), formatta: eur, conTip: tip, nome: 'Per missione', centro: { valore: eur(T.fin), etichetta: 'PNRR' } }));
+  fig(bc, 'Per missione', 'importo finanziato', (f) => G.ciambella(f, { voci: mk7.map((k) => ({ nome: k, sub: (NOMI_MIS[k] || k).replace(/^M\d /, ''), val: A.mis[k].fin })).sort((a, b) => b.val - a.val), formatta: eur, conTip: tip, nome: 'Per missione', centro: { valore: eur(T.fin), etichetta: 'PNRR' }, clic: (x) => toggle('mis', x.nome), attivo: (x) => x.nome === F.mis }));
   const kcomp = Object.keys(A.comp).filter((k) => A.comp[k].fin > 0);
-  if (kcomp.length > 1) fig(bc, 'Per componente', 'importo finanziato', (f) => G.ciambella(f, { voci: kcomp.map((k) => ({ nome: k, sub: nomeProg(k), val: A.comp[k].fin })).sort((a, b) => b.val - a.val), formatta: eur, conTip: tip, nome: 'Per componente', centro: { valore: eur(T.fin), etichetta: 'PNRR' } }));
-  fig(bc, 'Per stadio di avanzamento', 'importo finanziato', (f) => G.ciambella(f, { voci: STADI.map((s, i) => ({ nome: s, val: A.st[i].fin, sub: nf.format(A.st[i].n) + ' progetti' })).sort((a, b) => b.val - a.val), formatta: eur, conTip: tip, nome: 'Per stadio', centro: { valore: eur(T.fin), etichetta: 'PNRR' } }));
+  if (kcomp.length > 1) fig(bc, 'Per componente', 'importo finanziato', (f) => G.ciambella(f, { voci: kcomp.map((k) => ({ nome: k, sub: nomeProg(k), val: A.comp[k].fin })).sort((a, b) => b.val - a.val), formatta: eur, conTip: tip, nome: 'Per componente', centro: { valore: eur(T.fin), etichetta: 'PNRR' }, clic: (x) => toggle('comp', x.nome), attivo: (x) => x.nome === F.comp }));
+  fig(bc, 'Per stadio di avanzamento', 'importo finanziato', (f) => G.ciambella(f, { voci: STADI.map((s, i) => ({ nome: s, id: i, val: A.st[i].fin, sub: nf.format(A.st[i].n) + ' progetti' })).sort((a, b) => b.val - a.val), formatta: eur, conTip: tip, nome: 'Per stadio', centro: { valore: eur(T.fin), etichetta: 'PNRR' }, clic: (x) => toggle('st', String(x.id)), attivo: (x) => sameSet(F.st, [x.id]) }));
   const cp = concPerMis(cells(liv, id), F);
   const mAll = S.meta.missioni.filter((k) => { const t = A.mis[k]; return t && t.fin > 0; });
   const bm = blocco('Missione per missione');
-  fig(bm, 'Quota pagata', 'pagato ÷ finanziato', (f) => G.colonne(f, { voci: mAll.map((k) => ({ nome: k, val: A.mis[k].pag / A.mis[k].fin, sub: NOMI_MIS[k] })), formatta: (v) => q0(v), conTip: tip, nome: 'Quota pagata per missione', soglia: me.pag, sogliaNome: 'tutte ' + q0(me.pag) }));
+  fig(bm, 'Quota pagata', 'pagato ÷ finanziato', (f) => G.colonne(f, { voci: mAll.map((k) => ({ nome: k, id: k, val: A.mis[k].pag / A.mis[k].fin, sub: NOMI_MIS[k] })), clic: (x) => toggle('mis', x.id), attivo: (x) => x.id === F.mis, formatta: (v) => q0(v), conTip: tip, nome: 'Quota pagata per missione', soglia: me.pag, sogliaNome: 'tutte ' + q0(me.pag) }));
   /* un livello più in basso di quello filtrato: componenti, poi misure di un componente, poi sub-misure di una misura */
   const Lc = F.msr ? 'sub' : F.comp ? 'msr' : 'comp', aggL = A[Lc];
   const kc = Object.keys(aggL).filter((k) => aggL[k].fin > 0).sort((a, b) => aggL[b].fin - aggL[a].fin).slice(0, 20);
   if (kc.length > 1) {
     const cpL = concPerMis(cells(liv, id), F, Lc), cort = (k) => (Lc === 'comp' ? k : etich(k).replace('Investimento', 'Inv.').replace('Riforma', 'Rif.')), nomeL = LIV_NOME[Lc];
     const bk = blocco(`${nomeL} per ${nomeL.toLowerCase()}`, kc.length < Object.keys(aggL).filter((k) => aggL[k].fin > 0).length ? 'le 20 più grandi per importo' : '');
-    fig(bk, 'Quota pagata', 'pagato ÷ finanziato', (f) => G.colonne(f, { voci: kc.map((k) => ({ nome: cort(k), val: aggL[k].pag / aggL[k].fin, sub: labProg(k) })), formatta: (v) => q0(v), conTip: tip, nome: 'Quota pagata per ' + nomeL.toLowerCase(), soglia: me.pag, sogliaNome: 'tutte ' + q0(me.pag) }));
-    fig(bk, 'Importo dei progetti conclusi', 'concluso ÷ finanziato', (f) => G.colonne(f, { voci: kc.map((k) => ({ nome: cort(k), val: (cpL[k] || 0) / aggL[k].fin, sub: labProg(k), col: '--s3' })), formatta: (v) => q0(v), conTip: tip, nome: 'Quota conclusa per ' + nomeL.toLowerCase(), soglia: T.fin > 0 ? A.fase[3].fin / T.fin : null, sogliaNome: 'tutte ' + q0(A.fase[3].fin / T.fin) }));
+    fig(bk, 'Quota pagata', 'pagato ÷ finanziato', (f) => G.colonne(f, { voci: kc.map((k) => ({ nome: cort(k), id: k, val: aggL[k].pag / aggL[k].fin, sub: labProg(k) })), clic: (x) => toggle(Lc, x.id), formatta: (v) => q0(v), conTip: tip, nome: 'Quota pagata per ' + nomeL.toLowerCase(), soglia: me.pag, sogliaNome: 'tutte ' + q0(me.pag) }));
+    fig(bk, 'Importo dei progetti conclusi', 'concluso ÷ finanziato', (f) => G.colonne(f, { voci: kc.map((k) => ({ nome: cort(k), id: k, val: (cpL[k] || 0) / aggL[k].fin, sub: labProg(k), col: '--s3' })), clic: (x) => toggle(Lc, x.id), formatta: (v) => q0(v), conTip: tip, nome: 'Quota conclusa per ' + nomeL.toLowerCase(), soglia: T.fin > 0 ? A.fase[3].fin / T.fin : null, sogliaNome: 'tutte ' + q0(A.fase[3].fin / T.fin) }));
   }
-  fig(bm, 'Importo dei progetti conclusi', 'concluso ÷ finanziato', (f) => G.colonne(f, { voci: mAll.map((k) => ({ nome: k, val: (cp[k] || 0) / A.mis[k].fin, sub: NOMI_MIS[k], col: '--s3' })), formatta: (v) => q0(v), conTip: tip, nome: 'Quota conclusa per missione', soglia: T.fin > 0 ? A.fase[3].fin / T.fin : null, sogliaNome: 'tutte ' + q0(A.fase[3].fin / T.fin) }), 'Qui il «concluso» è sul finanziato totale della missione, non solo sui progetti con avanzamento rilevato.');
+  fig(bm, 'Importo dei progetti conclusi', 'concluso ÷ finanziato', (f) => G.colonne(f, { voci: mAll.map((k) => ({ nome: k, id: k, val: (cp[k] || 0) / A.mis[k].fin, sub: NOMI_MIS[k], col: '--s3' })), clic: (x) => toggle('mis', x.id), attivo: (x) => x.id === F.mis, formatta: (v) => q0(v), conTip: tip, nome: 'Quota conclusa per missione', soglia: T.fin > 0 ? A.fase[3].fin / T.fin : null, sogliaNome: 'tutte ' + q0(A.fase[3].fin / T.fin) }), 'Qui il «concluso» è sul finanziato totale della missione, non solo sui progetti con avanzamento rilevato.');
 
   /* --- posizione nel territorio --- */
   if (liv === null || liv === 'r') {
     const lista = liv === null ? Object.entries(S.reg).map(([k, v]) => ({ k, nome: v.nome, pop: v.pop, rip: v.rip, liv: 'r' })) : Object.entries(S.prov).filter(([, v]) => v.reg === id).map(([k, v]) => ({ k, nome: `${v.nome} (${v.sigla})`, pop: v.pop, liv: 'p' }));
-    const voci = lista.map((x) => { const m = metriche(x.liv, x.k, x.pop, F); return { nome: x.nome, val: m.pc, col: x.rip ? RIPCOL[x.rip] : '--s5', mio: false }; }).filter((x) => x.val != null).sort((a, b) => b.val - a.val);
+    const voci = lista.map((x) => { const m = metriche(x.liv, x.k, x.pop, F); return { nome: x.nome, val: m.pc, col: x.rip ? RIPCOL[x.rip] : '--s5', mio: false, liv: x.liv, id: x.k }; }).filter((x) => x.val != null).sort((a, b) => b.val - a.val);
     const bp = blocco(liv === null ? 'Le regioni a confronto' : 'Le province della regione');
-    fig(bp, 'Euro per abitante', 'tacca = media italiana', (f) => G.barre(f, { voci, formatta: (v) => nf.format(Math.round(v)) + ' €', conTip: tip, riferimento: IT.pc, rifNome: 'Italia', nome: 'Euro per abitante' }));
-    const vr = lista.map((x) => { const m = metriche(x.liv, x.k, x.pop, F); return { nome: x.nome, val: m.rit, col: x.rip ? RIPCOL[x.rip] : '--s5' }; }).filter((x) => x.val != null && x.val > 0).sort((a, b) => b.val - a.val);
-    if (vr.length) fig(bp, 'Importo in ritardo', 'tacca = Italia · ' + (liv === null ? 'regioni' : 'province'), (f) => G.barre(f, { voci: vr, formatta: (v) => q0(v, 1), conTip: tip, riferimento: IT.rit, rifNome: 'Italia', nome: 'Importo in ritardo' }), 'In ritardo = «in corso» con fine prevista prima del 13/06/2026. La quota dipende dalla data di estrazione: non dice chi sia in ritardo oggi.');
+    fig(bp, 'Euro per abitante', 'tacca = media italiana', (f) => G.barre(f, { voci, apri: (x) => go(x.liv, x.id, F), formatta: (v) => nf.format(Math.round(v)) + ' €', conTip: tip, riferimento: IT.pc, rifNome: 'Italia', nome: 'Euro per abitante' }));
+    const vr = lista.map((x) => { const m = metriche(x.liv, x.k, x.pop, F); return { nome: x.nome, val: m.rit, col: x.rip ? RIPCOL[x.rip] : '--s5', liv: x.liv, id: x.k }; }).filter((x) => x.val != null && x.val > 0).sort((a, b) => b.val - a.val);
+    if (vr.length) fig(bp, 'Importo in ritardo', 'tacca = Italia · ' + (liv === null ? 'regioni' : 'province'), (f) => G.barre(f, { voci: vr, apri: (x) => go(x.liv, x.id, F), formatta: (v) => q0(v, 1), conTip: tip, riferimento: IT.rit, rifNome: 'Italia', nome: 'Importo in ritardo' }), 'In ritardo = «in corso» con fine prevista prima del 13/06/2026. La quota dipende dalla data di estrazione: non dice chi sia in ritardo oggi.');
   }
   if (amb && amb.length > 2) {
     const bd = blocco('I comuni a confronto', ambNome);
     const bin = []; const xs = amb.map((c) => c.pop); const lo = Math.floor(2 * Math.log10(Math.min(...xs))) / 2, hi = Math.max(...xs);
     for (let e = lo; 10 ** e < hi; e += 0.5) { const v = amb.filter((c) => c.pop >= 10 ** e && c.pop < 10 ** (e + 0.5)).map((c) => c.pc); if (v.length >= 3) bin.push({ x: 10 ** (e + 0.25), y: mediana(v) }); }
     fig(bd, 'Popolazione e fondi per abitante', `${nf.format(amb.length)} comuni con progetti`, (f) => G.dispersione(f, {
-      punti: amb.map((c) => ({ x: c.pop, y: c.pc, g: 0 })), mediane: bin.length > 1 ? bin : null, nome: 'Comuni a confronto', xNome: 'abitanti (scala log.)', yNome: '€ per abitante (log)',
+      punti: amb.map((c) => ({ x: c.pop, y: c.pc, g: 0, id: c.k })), clic: (p) => go('c', p.id, F), mediane: bin.length > 1 ? bin : null, nome: 'Comuni a confronto', xNome: 'abitanti (scala log.)', yNome: '€ per abitante (log)',
       xFmt: (v) => (v >= 1e3 ? nf.format(v / 1e3) + ' mila' : nf.format(v)), yFmt: (v) => nf.format(v) + ' €', gruppi: [{ nome: 'comuni', col: '--s5' }],
       evidenzia: liv === 'c' && me.pc != null ? { x: pop, y: me.pc, nome: n.nm } : null,
     }), 'I piccoli comuni hanno valori molto dispersi: bastano pochi progetti per spostare il dato per abitante.');
