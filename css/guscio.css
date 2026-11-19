@@ -54,6 +54,8 @@ body.home .tools select, body.home .tools button { min-height: 40px; }
 body.home .scheda h1 { font-size: clamp(1.5rem, 3.2vw, 2rem); }
 body.home .kpi b { font-size: clamp(1.3rem, 2.3vw, 1.7rem); line-height: 1.15; }
 body.home .brand strong { white-space: nowrap; }
+/* «Italia» sulla riga del titolo (non a metà tra titolo e sottotitolo) */
+body.home #crumbs { align-self: flex-start; margin-top: -.06rem; }
 body.home .kpi div:first-child { background: var(--accbg); border-color: color-mix(in srgb, var(--acc) 35%, var(--line)); }
 body.home .kpi div:first-child b { color: var(--acc); }
 
@@ -63,7 +65,7 @@ html[data-embed] body.home .brand img { width: 28px; height: 28px; }
 html[data-embed] body.home .brand strong { font-size: .95rem; }
 /* il sottotitolo non allarga la testata: «Italia» resta accanto al titolo, sulla sua riga */
 html[data-embed] body.home .brand span { display: block; width: 0; overflow: visible; white-space: nowrap; }
-html[data-embed] body.home #crumbs { align-self: flex-start; margin-top: .3rem; }
+html[data-embed] body.home #crumbs { margin-top: .05rem; }
 
 /* ---------- mobile: la mappa è lo sfondo, la scheda un foglio a tre altezze ---------- */
 @media (max-width: 720px) {
