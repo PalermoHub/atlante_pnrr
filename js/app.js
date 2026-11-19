@@ -45,7 +45,7 @@ const senzaV = (h) => { const [p, qs = ''] = h.split('?'); const q = new URLSear
 function scriviVista() {
   const m = S.map; if (!m || !S.cur) return; const c = m.getCenter(); const q = new URLSearchParams(location.hash.split('?')[1] || '');
   q.set('v', `${m.getZoom().toFixed(2)}/${c.lat.toFixed(4)}/${c.lng.toFixed(4)}`);
-  try { history.replaceState(null, '', location.pathname + location.search + senzaV(location.hash).split('?')[0] + '?' + q.toString().replace(/%2F/g, '/')); } catch (e) {}
+  try { history.replaceState(null, '', location.pathname + location.search + (senzaV(location.hash).split('?')[0] || '#/') + '?' + q.toString().replace(/%2F/g, '/')); } catch (e) {}
 }
 const href = (liv, id, F) => (liv ? `#/${liv}/${id}` : '#/') + fStr(F || S.cur?.F || F0());
 const go = (liv, id, F) => { const h = href(liv, id, F); if (senzaV(location.hash) === h) route(); else location.hash = h; };
@@ -284,11 +284,6 @@ function filtriInit() {
     const c = e.target.closest('button[data-k]'); if (!c) return; const k = c.dataset.k;
     if (k === 'tutte') S.cls = null; else { const n = new Set(S.cls || []); n.has(+k) ? n.delete(+k) : n.add(+k); S.cls = n.size ? n : null; }
     aggiornaMappa(); });
-  $('#f-link').addEventListener('click', async (e) => {
-    const b = e.currentTarget, t0 = b.textContent;
-    try { await navigator.clipboard.writeText(location.href); b.textContent = 'Link copiato'; } catch (err) { prompt('Copia il link:', location.href); }
-    setTimeout(() => { b.textContent = t0; }, 1800);
-  });
   $('#indic').innerHTML = Object.entries(INDIC).map(([k, v]) => `<option value="${k}">${esc(v.nome)}</option>`).join('');
   $('#indic').addEventListener('change', (e) => { S.indic = e.target.value; aggiornaMappa(); evidenziaIndicatore(); });
   $('#f-scala').innerHTML = Object.entries(SCALE).map(([k, v]) => `<option value="${k}">${esc(v[0])}</option>`).join('');
