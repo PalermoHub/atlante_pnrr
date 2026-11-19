@@ -295,3 +295,6 @@ body.home .scheda { overflow-x: hidden; }
   body .menu-pan .tools select { padding-left: .85rem; }
   @media (prefers-reduced-motion: reduce) { .menu-vela, .menu-pan { transition: none; } }
 }
+
+/* In un iframe la linguetta ☰ della testata PalermoHub sta fissa in alto a sinistra (~50 px): logo e titolo si spostano a destra */
+html[data-iframe] header.top, html[data-iframe] body:not(.home) .top { padding-left: 3.6rem; }

@@ -3,6 +3,8 @@
    nelle altre pagine sta nella testata, che resta di una riga. Vale anche in modalità incorporata (iframe di atlante_pnrr.html, ?embed=1). Sul desktop non cambia nulla:
    .nav e .tools vengono spostati nel pannello solo su mobile e tornano al loro posto sopra i 720px. */
 (() => {
+  /* dentro un iframe (atlante_pnrr.html) la linguetta ☰ di PalermoHub copre l'angolo in alto a sinistra: le testate lasciano posto (atlante.css) */
+  try { if (self !== top) document.documentElement.setAttribute('data-iframe', ''); } catch (e) { document.documentElement.setAttribute('data-iframe', ''); }
   const mobile = matchMedia('(max-width: 720px)');
   const top = document.querySelector('header.top');
   const nav = document.querySelector('header.top .nav');

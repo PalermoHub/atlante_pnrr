@@ -131,6 +131,4 @@ html[data-embed] body.home .brand span { display: none; }
   html[data-embed] body.home .mapbar { padding-top: 1.9rem; }
   html[data-embed] body.home .maplibregl-ctrl-top-right { top: 9rem; }
 }
-@media (min-width: 721px) {
-  html[data-embed] body.home .top { padding-left: 3.6rem; }
-}
+
