@@ -109,6 +109,21 @@
       colonne: COMP.map((c) => ({ nome: c, id: c, sub: 'concluso', valori: valori((r) => (r.comp[c]?.[1] > 0 ? r.comp[c][5] / r.comp[c][1] : null)), formatta: (v) => pc(v) })),
     }), { largo: true, nota: 'Il colore va dal più basso al più alto di ciascuna colonna (scala propria): serve a confrontare le regioni, non i componenti tra loro. Celle vuote: nessun progetto del componente in quella regione.' });
 
+    /* ---- dotazione ufficiale per componente: quanto è su progetti e quanto è stato pagato ---- */
+    const dotC = {}; Object.entries(meta.dot).forEach(([k, v]) => { const c = k.slice(0, 4); dotC[c] = (dotC[c] || 0) + v; });
+    const CD = COMP.filter((c) => dotC[c] > 0);
+    const dotTot = CD.reduce((s, c) => s + dotC[c], 0), finTot = CD.reduce((s, c) => s + it.comp[c][1], 0), pagTot = CD.reduce((s, c) => s + it.comp[c][2], 0);
+    cap('g-dot', 'Quanta dotazione è già su progetti, per componente', (h) => {
+      const voci = CD.map((c) => ({ nome: c, id: c, val: it.comp[c][1] / dotC[c], sub: `${nomeC(c)} · progetti ${eur(it.comp[c][1])} su una dotazione di ${eur(dotC[c])}`, col: '--c2' }));
+      voci.push({ nome: 'Totale', val: finTot / dotTot, sub: 'tutti i componenti', col: '--s7' });
+      G.colonne(h, { voci, clic: (x) => x.id && mappa('?c=' + x.id), formatta: (v) => pc(v), conTip, nome: 'Progetti sulla dotazione, per componente', soglia: 1, sogliaNome: 'dotazione = 100%' });
+    }, { sub: 'finanziamento dei progetti ÷ dotazione ufficiale', nota: 'Sopra il 100% i progetti superano la dotazione della componente (cofinanziamenti o spostamenti di fondi: i dati non lo spiegano). Sotto, la differenza è denaro che nei dati non ha ancora un progetto. Dotazione: «Spesa per misura» al ' + meta.spesa_misura + '.' });
+    cap('g-dot', 'Quanta dotazione è già stata pagata, per componente', (h) => {
+      const voci = CD.map((c) => ({ nome: c, id: c, val: it.comp[c][2] / dotC[c], sub: `${nomeC(c)} · pagato ${eur(it.comp[c][2])} su ${eur(dotC[c])}`, col: '--c4' }));
+      voci.push({ nome: 'Totale', val: pagTot / dotTot, sub: 'tutti i componenti', col: '--s7' });
+      G.colonne(h, { voci, clic: (x) => x.id && mappa('?c=' + x.id), formatta: (v) => pc(v), conTip, nome: 'Pagato sulla dotazione, per componente' });
+    }, { sub: 'pagato ÷ dotazione ufficiale', nota: 'Il pagato è quello dei progetti registrati al ' + meta.estrazione + '; la quota è calcolata sulla dotazione, non sul finanziato, quindi include il denaro ancora senza progetto.' });
+
     /* ---- 9 concentrazione ---- */
     cap('g-conc', 'Quanto sono diseguali i comuni', (h) => G.lorenz(h, {
       curva: lor.filter((_, i) => i % Math.ceil(lor.length / 400) === 0 || i === lor.length - 1), xNome: 'quota di comuni (dal meno al più finanziato)', yNome: 'quota cumulata dei fondi', conTip,
