@@ -81,3 +81,13 @@
   .mappa-leg { max-width: 170px; }
 }
 @media print { .mappa-box, .seg, .tools, .nav { display: none; } }
+
+/* riquadro per missione (sezione «conti») */
+.miss-conti { display: grid; grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr)); gap: .8rem; padding: .6rem 0; }
+.miss-conti .mc { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: .7rem .85rem; }
+.miss-conti h3 { margin: 0 0 .5rem; font-size: .95rem; line-height: 1.3; }
+.mc-bar { display: flex; height: .7rem; border-radius: 4px; overflow: hidden; background: var(--line); margin-bottom: .6rem; }
+.mc-bar i { display: block; height: 100%; }
+.mc-p { background: var(--ok); } .mc-f { background: var(--warn); } .mc-s { background: var(--ink3); }
+.miss-conti dl { display: grid; grid-template-columns: 1fr auto; gap: .15rem .6rem; margin: 0; font-size: .85rem; }
+.miss-conti dt { color: var(--ink2); } .miss-conti dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }

@@ -342,6 +342,23 @@
       P(s, `Ogni misura del PNRR ha una dotazione, cioè una cifra a disposizione. La somma delle dotazioni è <b>${mld(ver.dotazione)}</b>. I progetti registrati valgono <b>${mld(ver.su_progetti)}</b>. La differenza, <b>${mld(ver.senza_progetto)}</b>, non ha un progetto nei dati. Si trova soprattutto nella Missione 2 (transizione verde, ${nf(ver.per_missione_senza_progetto_mld.M2, 1)} mld) e nella Missione 1 (digitale, ${nf(ver.per_missione_senza_progetto_mld.M1, 1)} mld).`);
       P(s, `Le voci singole più grandi: ${ver.sottomisure_piu_grandi.map((x) => `<b>${x.codice}</b> (${nf(x.mld, 2)} mld)`).join(', ')}. Al contrario, in <b>${ver.sottomisure_oltre_dotazione.numero} sottomisure</b> i progetti superano la dotazione, per ${nf(ver.sottomisure_oltre_dotazione.mld, 2)} miliardi in tutto: forse cofinanziamenti o spostamenti di fondi, ma i dati non lo spiegano.`);
       fig(s, 'Le quattro voci con più soldi senza progetto', 'miliardi di euro', (h) => G.barre(h, { voci: ver.sottomisure_piu_grandi.map((x) => ({ nome: x.codice, val: x.mld * 1e9, col: '--warn' })), formatta: eur, conTip, nome: 'Sottomisure senza progetto' }));
+      const pm = ver.per_missione;
+      const box = H('div', { class: 'miss-conti' });
+      Object.keys(pm).sort().forEach((k) => {
+        const d = pm[k], sp = Math.max(0, d.dotazione - d.su_progetti), fermo = Math.max(0, d.su_progetti - d.pagato), base = Math.max(d.dotazione, d.su_progetti);
+        const w = (v) => (100 * v / base).toFixed(1) + '%';
+        box.append(H('div', { class: 'mc' }, [
+          H('h3', {}, [H('b', { text: k }), ' ' + NOMI_MIS[k]]),
+          H('div', { class: 'mc-bar', role: 'img', 'aria-label': `${k}: pagato ${eur(d.pagato)}, su progetti ma non ancora pagato ${eur(fermo)}, senza progetto ${eur(sp)}, su una dotazione di ${eur(d.dotazione)}` }, [
+            H('i', { class: 'mc-p', style: 'width:' + w(d.pagato) }), H('i', { class: 'mc-f', style: 'width:' + w(fermo) }), H('i', { class: 'mc-s', style: 'width:' + w(sp) })]),
+          H('dl', {}, [
+            H('dt', { text: 'Dotazione' }), H('dd', { text: eur(d.dotazione) }),
+            H('dt', { text: 'Pagato' }), H('dd', { text: `${eur(d.pagato)} (${pc(d.pagato / d.dotazione)})` }),
+            H('dt', { text: 'Su progetti, non ancora pagato' }), H('dd', { text: eur(fermo) }),
+            H('dt', { text: sp > 0 ? 'Senza progetto' : 'Oltre la dotazione' }), H('dd', { text: eur(sp > 0 ? sp : d.su_progetti - d.dotazione) })])]));
+      });
+      s.append(H('figure', { class: 'grafico' }, [H('figcaption', {}, [H('b', { text: 'Per missione: disponibile, pagato, fermo' }), H('small', { text: 'dotazione = 100%' })]), box,
+        H('p', { class: 'grafico-nota', text: 'Verde: pagato. Giallo: già su progetti ma non ancora pagato. Grigio: senza progetto nei dati. Il perché non è nei dati ufficiali.' })]));
       calc(s, `Dotazione = «Importo» del file «Spesa per misura» (aggiornato al 30/04/2026). Progetti = somma dei progetti (estrazione del 13/06/2026). Le due date sono diverse. Cifre ricavate nel controllo indipendente descritto in <code>docs/PIANO_PROFONDITA.md</code> e raccolte in <code>data/verifiche.json</code>.`);
       limiti(s, ['La differenza può dipendere da fondi non ancora assegnati, ma anche da ritardi nell’inserire i progetti nel sistema. I dati non permettono di distinguere i due casi.', 'Un altro file ufficiale, il «Quadro finanziario di programmazione», somma 134,3 miliardi e lascia vuote molte voci: per questo non l’abbiamo usato come totale.']);
     }

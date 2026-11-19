@@ -3,14 +3,94 @@
   "dotazione": 194440000000,
   "su_progetti": 171315490778,
   "senza_progetto": 23100000000,
-  "per_missione_senza_progetto_mld": {"M1": 7.9, "M2": 9.6, "M3": 1.5, "M5": 1.5, "M6": 0.8, "M7": 2.2, "M4": -0.25},
+  "per_missione_senza_progetto_mld": {
+    "M1": 7.9,
+    "M2": 9.6,
+    "M3": 1.5,
+    "M5": 1.5,
+    "M6": 0.8,
+    "M7": 2.2,
+    "M4": -0.25
+  },
   "sottomisure_piu_grandi": [
-    {"codice": "M1C2I9.01.00", "mld": 4.7},
-    {"codice": "M2C1I3.04.00", "mld": 2.85},
-    {"codice": "M2C2I1.04.00", "mld": 2.23},
-    {"codice": "M7C1I17.1.00", "mld": 1.38}
+    {
+      "codice": "M1C2I9.01.00",
+      "mld": 4.7
+    },
+    {
+      "codice": "M2C1I3.04.00",
+      "mld": 2.85
+    },
+    {
+      "codice": "M2C2I1.04.00",
+      "mld": 2.23
+    },
+    {
+      "codice": "M7C1I17.1.00",
+      "mld": 1.38
+    }
   ],
-  "sottomisure_oltre_dotazione": {"numero": 19, "mld": 2.76},
-  "localizzazioni_non_assegnabili": {"righe": 43, "mln": 10.3},
-  "codici_comune_raccordati": {"codici": 159, "mln": 63.1}
+  "sottomisure_oltre_dotazione": {
+    "numero": 19,
+    "mld": 2.76
+  },
+  "localizzazioni_non_assegnabili": {
+    "righe": 43,
+    "mln": 10.3
+  },
+  "codici_comune_raccordati": {
+    "codici": 159,
+    "mln": 63.1
+  },
+  "per_missione": {
+    "M1": {
+      "dotazione": 43304794132,
+      "spesa_dichiarata": 31295614726,
+      "su_progetti": 35443791337,
+      "pagato": 26372375536,
+      "concluso": 3491984549
+    },
+    "M2": {
+      "dotazione": 56819716421,
+      "spesa_dichiarata": 28431978603,
+      "su_progetti": 47226559862,
+      "pagato": 28740882758,
+      "concluso": 2497714963
+    },
+    "M3": {
+      "dotazione": 24946699412,
+      "spesa_dichiarata": 16640318249,
+      "su_progetti": 23481753907,
+      "pagato": 11592209201,
+      "concluso": 19906544
+    },
+    "M4": {
+      "dotazione": 30255620295,
+      "spesa_dichiarata": 20341108025,
+      "su_progetti": 30507937063,
+      "pagato": 16087955323,
+      "concluso": 1587704341
+    },
+    "M5": {
+      "dotazione": 16270819821,
+      "spesa_dichiarata": 9348450960,
+      "su_progetti": 14767118591,
+      "pagato": 8034870567,
+      "concluso": 1705208880
+    },
+    "M6": {
+      "dotazione": 15625541084,
+      "spesa_dichiarata": 9145201113,
+      "su_progetti": 14863445971,
+      "pagato": 8269179721,
+      "concluso": 1020896942
+    },
+    "M7": {
+      "dotazione": 7212200000,
+      "spesa_dichiarata": 3403875955,
+      "su_progetti": 5024884045,
+      "pagato": 2799877041,
+      "concluso": 1886615119
+    }
+  }
 }
