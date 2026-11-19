@@ -10,7 +10,8 @@
 .lente-svg .anello { fill: var(--surface); stroke: var(--line); stroke-width: 1; filter: drop-shadow(0 1px 4px rgba(0,0,0,.25)); }
 .lente-svg .lente-bordo { stroke: var(--acc); stroke-width: 2; }
 .lente-svg .croce { stroke: var(--ink); stroke-width: 1.6; fill: none; }
-.lente-svg .nome { font-size: 14px; font-weight: 700; fill: var(--ink); stroke: none; }
+.lente-svg .nome { font-size: 14px; font-weight: 700; fill: var(--ink); stroke: none; pointer-events: all; cursor: pointer; }
+.lente-svg .nome:hover, .lente-svg .nome:focus-visible { text-decoration: underline; }
 .lente-svg .msg-bg { fill: var(--surface); stroke: var(--line); }
 .lente-svg .msg { font-size: 13px; font-weight: 600; stroke: none; }
 .lente-svg .presa { pointer-events: all; cursor: grab; touch-action: none; }

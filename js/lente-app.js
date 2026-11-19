@@ -104,7 +104,9 @@ function disegna() {
   g.append(el('path', { d: anello(Rout) + foro(Rin), 'fill-rule': 'evenodd', class: 'anello' }), el('circle', { cx, cy, r: Rin, fill: 'none', class: 'lente-bordo' }), el('path', { d: `M${cx - 6} ${cy} h12 M${cx} ${cy - 6} v12`, class: 'croce' }));
   if (L.libera) presa(g, cx, cy, Rin);
   defs.append(el('path', { id: 'larco-nome', d: arc(Rin + 7.5, -62, 62), fill: 'none' }));
-  const fs = Math.max(8.5, Math.min(14, ((Rin + 7.5) * 124 * Math.PI / 180) / (Math.max(6, nome.length) * 0.58))), tn = el('text', { class: 'nome', 'text-anchor': 'middle', style: `font-size:${fs}px` }); tn.append(el('textPath', { href: '#larco-nome', startOffset: '50%' }, nome)); g.append(tn);
+  const fs = Math.max(8.5, Math.min(14, ((Rin + 7.5) * 124 * Math.PI / 180) / (Math.max(6, nome.length) * 0.58))), tn = el('text', { class: 'nome', 'text-anchor': 'middle', style: `font-size:${fs}px` }); tn.append(el('textPath', { href: '#larco-nome', startOffset: '50%' }, nome), el('title', {}, `Apri la scheda di ${nome}`)); tn.setAttribute('role', 'link'); tn.setAttribute('tabindex', '0'); tn.setAttribute('aria-label', `Apri la scheda di ${nome}`);
+  const apri = () => { const cur = S.cur; if (!(cur && cur.liv === 'c' && cur.id === L.cur)) A.go('c', L.cur, cur?.F); if (document.body.dataset.foglio === 'chiuso') $('#maniglia')?.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true })); };
+  tn.addEventListener('click', apri); tn.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); apri(); } }); g.append(tn);
   /* stadi: numero di progetti e attenuazione dei raggi degli altri stadi */
   const nst = [0, 0, 0, 0, 0]; (prog || []).forEach((p) => { if (!L.hidM.has(MIS[p.m])) nst[p.st]++; });
   const span = Rin < 60 ? 104 : 88;
