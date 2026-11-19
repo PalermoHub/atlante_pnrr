@@ -9,12 +9,12 @@
 <link rel="icon" href="img/favicon.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <link rel="stylesheet" href="css/atlante.css?v=48">
-<link rel="stylesheet" href="css/lente.css?v=5">
+<link rel="stylesheet" href="css/lente.css?v=6">
 <script>try{if(self!==top||/[?&]embed=1/.test(location.search))document.documentElement.setAttribute("data-embed","")}catch(e){document.documentElement.setAttribute("data-embed","")}</script>
 </head>
 <body class="lente-pag">
 <header class="top">
-  <a class="brand" href="index.html" aria-label="Atlante del PNRR, pagina iniziale"><img src="img/logo-pnrr.svg" width="40" height="40" alt=""><div><strong>Atlante del PNRR</strong><span>la lente · prototipo 2 · dati al 13 giugno 2026</span></div></a>
+  <a class="brand" href="index.html" aria-label="Atlante del PNRR, pagina iniziale"><img src="img/logo-pnrr.svg" width="40" height="40" alt=""><div><strong>Atlante del PNRR</strong><span>la lente · prototipo 3 · dati al 13 giugno 2026</span></div></a>
   <nav class="nav" aria-label="Sezioni"><a href="index.html">Mappa e schede</a><a href="lente.html" aria-current="page">La lente</a><a href="statistiche.html">Statistiche</a></nav>
   <div class="tools">
     <label class="sr" for="sel-tema" style="position:absolute;left:-9999px">Tema</label>
@@ -26,18 +26,21 @@
 </header>
 <main class="lente-main">
   <div class="lente-barra">
-    <label class="raggio">Comuni nel grafico <input id="raggio" type="range" min="8" max="90" value="48" aria-label="Numero di comuni nel grafico"></label>
+    <label class="cerca-c">Comune <input id="cerca" type="search" list="elenco" placeholder="Cerca un comune…" autocomplete="off" aria-label="Cerca un comune"></label><datalist id="elenco"></datalist>
     <button id="azzera" type="button">Azzera</button>
   </div>
-  <section class="lente-mappa" aria-label="Mappa con la lente">
-    <div id="map" role="img" aria-label="Mappa dei comuni italiani colorata per euro PNRR per abitante; la lente al centro confronta i comuni vicini"></div>
-    <svg id="lente" class="lente-svg" aria-label="Raggiera dei comuni vicini al centro della lente, per missione"></svg>
-  </section>
-  <section id="lente-testo" class="lente-testo"></section>
+  <div class="lente-corpo">
+    <section class="lente-mappa" aria-label="Mappa con la lente">
+      <div id="map" role="img" aria-label="Mappa dei comuni italiani colorata per euro PNRR per abitante; la lente al centro analizza il comune sotto la croce"></div>
+      <svg id="lente" class="lente-svg" aria-label="Raggiera dei progetti del comune al centro, per missione e stadio"></svg>
+      <div id="tip" class="lente-tip" hidden></div>
+    </section>
+    <aside id="lente-testo" class="lente-testo" aria-live="polite" aria-label="Dati del comune"></aside>
+  </div>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pmtiles@4.3.0/dist/pmtiles.js"></script>
 <script src="js/tema.js?v=3"></script>
-<script src="js/lente.js?v=5"></script>
+<script src="js/lente.js?v=7"></script>
 </body>
 </html>
