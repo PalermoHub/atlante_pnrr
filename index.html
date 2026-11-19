@@ -34,22 +34,16 @@
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebSite", "name": "PNRR Italia · Atlante dei progetti", "url": "https://palermohub.github.io/atlante_pnrr/", "description": "Tutti i progetti del PNRR: dove sono finiti i fondi, a che punto sono i lavori, cosa non torna. Mappa e schede per Italia, regione, provincia e comune. Dati Italia Domani al 13 giugno 2026.", "inLanguage": "it", "isPartOf": {"@type": "WebSite", "name": "Atlante del PNRR", "url": "https://palermohub.github.io/atlante_pnrr/"}, "publisher": {"@type": "Organization", "name": "OpenDataSicilia"}, "license": "https://creativecommons.org/licenses/by/4.0/", "image": "https://palermohub.github.io/atlante_pnrr/img/social-card.png", "keywords": "PNRR, Piano Nazionale di Ripresa e Resilienza, PNRR Italia, Italia Domani, Next Generation EU, open data, dati aperti, OpenDataSicilia, fondi PNRR, progetti PNRR, missioni PNRR, spesa pubblica, trasparenza, mappa PNRR, mappa dei comuni, atlante PNRR, PNRR per regione, PNRR per provincia, PNRR per comune, 7.896 comuni, CUP, avanzamento lavori, gare aggiudicate, importi pagati, finanziamenti per comune, schede territoriali, Sicilia, Palermo, Mezzogiorno"}</script>
 <!-- /SOCIAL -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
-<link rel="stylesheet" href="css/atlante.css?v=25">
+<script>try{if(self!==top||/[?&]embed=1/.test(location.search))document.documentElement.setAttribute("data-embed","")}catch(e){document.documentElement.setAttribute("data-embed","")}</script>
+<link rel="stylesheet" href="css/atlante.css?v=26">
+<link rel="stylesheet" href="css/guscio.css?v=2">
 <link rel="stylesheet" href="css/statistiche.css?v=7">
 
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-KHR1GHDRQS"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-KHR1GHDRQS');
-</script>
+<script src="js/consenso.js?v=1" defer></script>
 </head>
-<body>
+<body class="home">
 <header class="top">
-  <a class="brand" href="index.html" aria-label="Atlante del PNRR, pagina iniziale"><img src="img/logo-pnrr.svg" width="40" height="40" alt=""><div><strong>Atlante del PNRR</strong><span>dati al 13 giugno 2026 · fase di attuazione chiusa il 30 giugno 2026</span></div></a>
+  <a class="brand" href="index.html" aria-label="Atlante del PNRR, pagina iniziale"><img src="img/logo-pnrr.svg" width="40" height="40" alt=""><div><strong>Atlante del PNRR</strong><span>dati al 13 giugno 2026 · attuazione chiusa il 30 giugno 2026</span></div></a>
   <nav id="crumbs" aria-label="Percorso"></nav>
   <nav class="nav" aria-label="Sezioni"><a href="index.html" aria-current="page">Mappa e schede</a><a href="statistiche.html">Statistiche</a><a href="relazione.html">Cosa dicono i dati</a></nav>
   <div class="tools">
@@ -57,30 +51,46 @@
     <label class="sr" for="sel-tema" style="position:absolute;left:-9999px">Tema</label>
     <select id="sel-tema" aria-label="Tema dell'interfaccia">
       <option value="auto">Tema: sistema</option><option value="chiaro">Chiaro</option><option value="scuro">Scuro</option>
-      <option value="seppia">Seppia</option><option value="contrasto">Alto contrasto</option><option value="oceano">Oceano</option>
+      <option value="contrasto">Alto contrasto</option>
     </select>
   </div>
 </header>
 <main>
   <section class="mapcol" aria-label="Mappa dei comuni">
     <div class="mapbar">
-      <div class="terr" role="group" aria-label="Filtro territoriale">
-        <label>Regione <select id="f-reg"></select></label>
-        <label>Provincia <select id="f-prov"></select></label>
-        <label>Comune <select id="f-com"></select></label>
-        <button id="f-reset" type="button" title="Torna all'Italia e togli tutti i filtri">Reset</button>
+      <div class="cerca-riga">
+      <div class="cerca">
+        <label class="sr" for="q-cerca">Cerca un comune</label>
+        <svg class="cerca-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
+        <input id="q-cerca" type="search" placeholder="Cerca un comune…" autocomplete="off" enterkeyhint="go" role="combobox" aria-expanded="false" aria-controls="q-lista" aria-autocomplete="list">
+        <ul id="q-lista" role="listbox" aria-label="Comuni trovati" hidden></ul>
       </div>
-      <div class="colora">
-        <label for="indic">Colora per</label>
-        <select id="indic"></select>
-        <label class="chk"><input type="checkbox" id="f-adatta" checked> scala sul territorio</label>
+      <button id="f-reset" class="azzera" type="button" title="Torna all'Italia e togli tutti i filtri"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v4.5h4.5"/></svg><span>Azzera</span></button>
       </div>
-      <div class="scale">
-        <label for="f-scala">Scala colore</label>
-        <select id="f-scala"></select>
-        <label for="f-classi">Classi</label>
-        <select id="f-classi"><option value="quantili">Quantili</option><option value="uguali">Intervalli uguali</option><option value="jenks">Rotture naturali</option></select>
-        <label class="chk"><input type="checkbox" id="f-inverti"> inverti</label>
+      <div class="chipbar" role="group" aria-label="Territorio e mappa">
+        <button id="chip-terr" class="chip2" type="button" aria-expanded="false" aria-controls="pan-terr"><span class="chip2-k">Territorio</span><span id="chip-terr-t" class="chip2-v">Italia</span></button>
+        <button id="chip-ind" class="chip2" type="button" aria-expanded="false" aria-controls="pan-ind"><span class="chip2-k">Colora per</span><span id="chip-ind-t" class="chip2-v">…</span></button>
+        <button id="chip-mappa" class="chip2 chip2-ico" type="button" aria-expanded="false" aria-controls="pan-mappa" aria-label="Opzioni della mappa"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
+      </div>
+      <div id="pan-terr" class="pan" hidden>
+        <div class="terr" role="group" aria-label="Filtro territoriale">
+          <label>Regione <select id="f-reg"></select></label>
+          <label>Provincia <select id="f-prov"></select></label>
+          <label>Comune <select id="f-com"></select></label>
+        </div>
+      </div>
+      <div id="pan-ind" class="pan" hidden>
+        <div class="colora"><label for="indic">Colora i comuni per</label><select id="indic"></select></div>
+      </div>
+      <div id="pan-mappa" class="pan" hidden>
+        <div class="scale">
+          <label for="f-scala">Scala colore</label><select id="f-scala"></select>
+          <label for="f-classi">Classi</label>
+          <select id="f-classi"><option value="quantili">Quantili</option><option value="uguali">Intervalli uguali</option><option value="jenks">Rotture naturali</option></select>
+          <label class="chk"><input type="checkbox" id="f-inverti"> inverti i colori</label>
+          <label class="chk"><input type="checkbox" id="f-adatta" checked> scala sul territorio</label>
+        </div>
+        <div id="pan-quadro"></div>
       </div>
     </div>
     <div id="map" role="img" aria-label="Mappa dei comuni italiani colorata per indicatore PNRR"></div>
@@ -89,15 +99,19 @@
       <details id="legenda" class="legenda" open><summary id="leg-t">Legenda</summary><div id="leg-c"></div></details>
     </div>
   </section>
-  <section id="scheda" class="scheda" aria-live="polite"><p class="caric">Caricamento dati…</p></section>
+  <div id="foglio" class="foglio" data-stato="chiuso">
+    <button id="maniglia" class="maniglia" type="button" aria-expanded="false" aria-controls="scheda" aria-label="Apri la scheda"><span></span></button>
+    <section id="scheda" class="scheda" aria-live="polite" tabindex="-1"><p class="caric">Caricamento dati…</p></section>
+  </div>
 </main>
 <noscript><p style="padding:1rem">Questo atlante richiede JavaScript.</p></noscript>
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pmtiles@4.3.0/dist/pmtiles.js"></script>
-<script src="js/tema.js?v=2"></script>
+<script src="js/tema.js?v=3"></script>
+<script src="js/guscio.js?v=2" defer></script>
 <script src="js/tabelle.js?v=1" defer></script>
 <script src="js/cima.js?v=1" defer></script>
-<script src="js/info.js?v=7" defer></script>
+<script src="js/info.js?v=8" defer></script>
 <script src="js/condividi.js?v=1" defer></script>
 <script src="js/grafici.js?v=6"></script>
 <script type="module" src="js/app.js?v=33"></script>

@@ -27,9 +27,11 @@ window.applicaScalaPNRR = (k) => {
 const scalaSalvata = () => { try { const k = JSON.parse(localStorage.getItem('atlante-pnrr-mappa') || '{}').scala; return window.SCALE_PNRR[k] ? k : 'blu'; } catch (e) { return 'blu'; } };
 (() => {
   const CHIAVE = 'atlante-pnrr-tema';
-  const TEMI = { chiaro: ['light', 'light'], scuro: ['dark', 'dark'], seppia: ['sepia', 'light'], contrasto: ['contrast', 'light'], oceano: ['ocean', 'dark'] };
+  const TEMI = { chiaro: ['light', 'light'], scuro: ['dark', 'dark'], contrasto: ['contrast', 'light'] };
+  const ALIAS = { seppia: 'chiaro', oceano: 'scuro' }; /* temi tolti: la scelta già salvata passa al più vicino */
+  const daUrl = () => { try { return new URLSearchParams(location.search).get('tema'); } catch (e) { return null; } };
   const sistema = matchMedia('(prefers-color-scheme: dark)');
-  const scelto = () => { try { const v = localStorage.getItem(CHIAVE); return TEMI[v] ? v : null; } catch (e) { return null; } };
+  const scelto = () => { try { const u = daUrl(); if (TEMI[u]) return u; const s = localStorage.getItem(CHIAVE), v = ALIAS[s] || s; return TEMI[v] ? v : null; } catch (e) { return null; } };
   const decidi = () => scelto() || (sistema.matches ? 'scuro' : 'chiaro');
   function applica(t) {
     const [nome, tono] = TEMI[t];

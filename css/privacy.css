@@ -1,0 +1,12 @@
+body.pagina-testo { display: block; height: auto; overflow: auto; }
+.testo { max-width: 46rem; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+.testo h1 { font-size: 2rem; margin: 0 0 .25rem; }
+.testo h2 { font-size: 1.2rem; margin: 2rem 0 .5rem; }
+.testo p, .testo li { line-height: 1.6; }
+.testo .agg { color: var(--ink2); font-size: .875rem; }
+.testo a { color: var(--acc); }
+.testo .tabella { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+.testo table { min-width: 44rem; }
+.testo th { position: static; cursor: default; }
+.testo code { font-size: .85em; }
+.azione { min-height: 44px; padding: .5rem 1rem; font-weight: 600; background: var(--accbg); border-color: var(--acc); }

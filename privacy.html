@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy e cookie · Atlante del PNRR</title>
+<meta name="description" content="Informativa privacy e cookie dell'Atlante del PNRR: quali dati tratta, perché, per quanto tempo e come esercitare i diritti previsti dal GDPR.">
+<meta name="robots" content="index, follow">
+<link rel="icon" href="img/favicon.png">
+<script>try{var t=localStorage.getItem("atlante-pnrr-tema");t={seppia:"chiaro",oceano:"scuro"}[t]||t;var d=t==="scuro"||(t!=="chiaro"&&t!=="contrasto"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",t==="contrasto"?"contrast":d?"dark":"light");document.documentElement.setAttribute("data-tone",d?"dark":"light")}catch(e){}</script>
+<link rel="stylesheet" href="css/atlante.css?v=26">
+<link rel="stylesheet" href="css/privacy.css?v=1">
+<script src="js/consenso.js?v=1" defer></script>
+</head>
+<body class="pagina-testo">
+<header class="top">
+  <a class="brand" href="index.html" aria-label="Atlante del PNRR, pagina iniziale"><img src="img/logo-pnrr.svg" width="40" height="40" alt=""><div><strong>Atlante del PNRR</strong></div></a>
+  <nav class="nav" aria-label="Sezioni"><a href="index.html">Mappa e schede</a><a href="statistiche.html">Statistiche</a><a href="relazione.html">Cosa dicono i dati</a></nav>
+</header>
+<main class="testo" id="contenuto">
+  <h1>Privacy e cookie</h1>
+  <p class="agg">Ultimo aggiornamento: 19 novembre 2026. Riferimenti: Regolamento (UE) 2016/679 (GDPR), direttiva 2002/58/CE (ePrivacy), D.Lgs. 196/2003, linee guida cookie del Garante (10 giugno 2021).</p>
+
+  <h2>In breve</h2>
+  <ul>
+    <li><strong>Nessun account, nessun modulo, nessun cookie nostro.</strong> L'atlante mostra dati pubblici sul PNRR: non ti chiede dati personali.</li>
+    <li><strong>Le statistiche sono facoltative.</strong> Google Analytics parte solo se accetti l'avviso, e puoi revocare il consenso in ogni momento.</li>
+    <li><strong>Servizi esterni necessari al funzionamento</strong> (script della mappa, mappa di base, hosting) ricevono il tuo indirizzo IP, come ogni sito che li usa. Sono elencati qui sotto.</li>
+  </ul>
+  <p><button type="button" class="azione" data-preferenze-cookie>Preferenze cookie</button></p>
+
+  <h2>Titolare del trattamento</h2>
+  <p>Atlante del PNRR è un progetto di <strong>OpenDataSicilia</strong>, che ne è titolare. Per esercitare i diritti o chiedere informazioni apri una segnalazione nel repository pubblico del progetto: <a href="https://github.com/PalermoHub/atlante_pnrr/issues" target="_blank" rel="noopener">github.com/PalermoHub/atlante_pnrr/issues</a>. Il progetto non ha un responsabile della protezione dei dati (DPO), perché non svolge attività che lo richiedono.</p>
+
+  <h2>Quali dati trattiamo e perché</h2>
+  <div class="tabella" role="region" aria-label="Dati trattati (tabella)" tabindex="0">
+  <table>
+    <thead><tr><th>Dato</th><th>Dove</th><th>Finalità</th><th>Base giuridica</th><th>Conservazione</th></tr></thead>
+    <tbody>
+      <tr><td>Tema, scala colore, classi della mappa</td><td>Il tuo browser (<code>localStorage</code>: <code>atlante-pnrr-tema</code>, <code>atlante-pnrr-mappa</code>)</td><td>Ricordare le tue preferenze di visualizzazione</td><td>Funzionamento richiesto dall'utente (art. 122 Codice privacy: non serve consenso)</td><td>Finché non le cancelli dal browser</td></tr>
+      <tr><td>La tua scelta sulle statistiche</td><td>Il tuo browser (<code>atlante-pnrr-consenso</code>)</td><td>Non richiederti più l'avviso e rispettare la scelta</td><td>Obbligo di legge: documentare il consenso (art. 6.1.c GDPR)</td><td>Finché non la cancelli o la cambi</td></tr>
+      <tr><td>Indirizzo IP e dati tecnici della richiesta</td><td>Log del servizio di hosting (GitHub Pages) e dei servizi esterni qui sotto</td><td>Consegnare le pagine, la mappa e gli script; sicurezza</td><td>Interesse legittimo a far funzionare il sito (art. 6.1.f GDPR)</td><td>Secondo le politiche di ciascun fornitore</td></tr>
+      <tr><td>Statistiche di uso anonime: pagine viste, durata, dispositivo, paese. Nessun testo digitato.</td><td>Google Analytics (cookie <code>_ga</code>, <code>_ga_*</code>)</td><td>Capire quali pagine servono e migliorare l'atlante</td><td><strong>Il tuo consenso</strong> (art. 6.1.a GDPR e art. 122 Codice privacy)</td><td>Cookie: 13 mesi al massimo. Dati in Google Analytics secondo le impostazioni del progetto.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Lo spazio di archiviazione del browser si svuota dalle impostazioni del browser (cancella «dati dei siti»).</p>
+
+  <h2>Servizi esterni</h2>
+  <p>Per mostrare l'atlante il tuo browser contatta direttamente questi servizi, che vedono il tuo indirizzo IP e le informazioni tecniche inviate da ogni browser:</p>
+  <ul>
+    <li><strong>GitHub Pages</strong> (GitHub, Inc., gruppo Microsoft): ospita le pagine e i dati.</li>
+    <li><strong>jsDelivr</strong> (<code>cdn.jsdelivr.net</code>): consegna le librerie della mappa (MapLibre GL JS, PMTiles).</li>
+    <li><strong>OpenFreeMap</strong> (<code>tiles.openfreemap.org</code>): fornisce la mappa di base, con dati di OpenStreetMap.</li>
+    <li><strong>Google Analytics</strong> (<code>googletagmanager.com</code>): <em>solo se accetti</em>, con IP anonimizzato.</li>
+    <li>Link che apri tu: <strong>OpenCUP</strong> (scheda del CUP) e i pulsanti di condivisione (WhatsApp, Telegram, Facebook, X, LinkedIn, e-mail). Non si carica nulla di loro finché non fai clic.</li>
+  </ul>
+  <p>Alcuni di questi fornitori possono avere sede o server fuori dallo Spazio economico europeo, in particolare negli Stati Uniti. Il trasferimento si basa sulle garanzie dei fornitori (decisione di adeguatezza UE-USA per i soggetti aderenti al Data Privacy Framework, o clausole contrattuali standard). Per i dettagli leggi le loro informative.</p>
+
+  <h2>I tuoi diritti</h2>
+  <p>Puoi chiedere l'accesso ai tuoi dati, la rettifica, la cancellazione, la limitazione, l'opposizione e la portabilità (artt. 15-22 GDPR), e <strong>revocare il consenso alle statistiche</strong> in ogni momento da «Preferenze cookie»: la revoca non toglie validità a ciò che è avvenuto prima. Poiché l'atlante non ti identifica, la maggior parte dei dati si trova solo presso i fornitori esterni. Se ritieni che il trattamento violi la legge puoi presentare reclamo al <a href="https://www.garanteprivacy.it/" target="_blank" rel="noopener">Garante per la protezione dei dati personali</a>.</p>
+
+  <h2>Bambini</h2>
+  <p>L'atlante non è rivolto ai minori e non raccoglie consapevolmente dati su di loro.</p>
+
+  <h2>Modifiche</h2>
+  <p>Se cambiano i servizi usati, questa pagina si aggiorna prima della modifica e il consenso alle statistiche viene richiesto di nuovo.</p>
+  <p><a href="index.html">← Torna all'atlante</a></p>
+</main>
+</body>
+</html>

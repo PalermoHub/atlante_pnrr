@@ -31,7 +31,9 @@
 <h3>Dati e mappe</h3>
 <p>Italia Domani (CC-BY 4.0), ISTAT, ANNCSU, OpenStreetMap, OpenFreeMap, OpenMapTiles: dettagli nella scheda Fonti.</p>
 <h3>Segnalazioni</h3>
-<p>Il sito non è un prodotto ufficiale del Governo né di Italia Domani. Errori o correzioni si segnalano a OpenDataSicilia.</p>`;
+<p>Il sito non è un prodotto ufficiale del Governo né di Italia Domani. Errori o correzioni si segnalano a OpenDataSicilia.</p>
+<h3>Privacy</h3>
+<p><a href="privacy.html">Informativa privacy e cookie</a> · <a href="#" data-preferenze-cookie>Preferenze cookie</a></p>`;
   const SCHEDE = [['metodo', 'Metodo e limiti', METODO], ['fonti', 'Fonti', FONTI], ['credits', 'Credits', CREDITS]];
   let dlg;
   function crea() {
