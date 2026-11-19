@@ -358,7 +358,7 @@
             H('dt', { text: sp > 0 ? 'Senza progetto' : 'Oltre la dotazione' }), H('dd', { text: eur(sp > 0 ? sp : d.su_progetti - d.dotazione) })])]));
       });
       s.append(H('figure', { class: 'grafico' }, [H('figcaption', {}, [H('b', { text: 'Per missione: disponibile, pagato, fermo' }), H('small', { text: 'dotazione = 100%' })]), box,
-        H('p', { class: 'grafico-nota', text: 'Verde: pagato. Giallo: già su progetti ma non ancora pagato. Grigio: senza progetto nei dati. Il perché non è nei dati ufficiali.' })]));
+        (() => { const u = H('ul', { class: 'leg-tri' }); [['tp', 'Pagato'], ['tf', 'Già su progetti, non ancora pagato'], ['ts', 'Senza progetto nei dati (dotazione meno progetti)']].forEach(([c, t]) => u.append(H('li', {}, [H('i', { class: c }), t]))); return u; })(), H('p', { class: 'grafico-nota', text: 'Il perché del mancato utilizzo non è nei dati ufficiali.' })]));
       calc(s, `Dotazione = «Importo» del file «Spesa per misura» (aggiornato al 30/04/2026). Progetti = somma dei progetti (estrazione del 13/06/2026). Le due date sono diverse. Cifre ricavate nel controllo indipendente descritto in <code>docs/PIANO_PROFONDITA.md</code> e raccolte in <code>data/verifiche.json</code>.`);
       limiti(s, ['La differenza può dipendere da fondi non ancora assegnati, ma anche da ritardi nell’inserire i progetti nel sistema. I dati non permettono di distinguere i due casi.', 'Un altro file ufficiale, il «Quadro finanziario di programmazione», somma 134,3 miliardi e lascia vuote molte voci: per questo non l’abbiamo usato come totale.']);
     }
