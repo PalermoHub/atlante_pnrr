@@ -65,7 +65,7 @@ const stadioOk = (p) => S.stadio == null || p.st === S.stadio;
 function disegna() {
   const svg = $('#lente'), W = svg.clientWidth, H = svg.clientHeight, cx = W / 2, cy = H / 2;
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.replaceChildren();
-  const avail = Math.min(W, H) / 2 - 34, Rin = Math.max(38, Math.min(84, avail * 0.27)), Rout = Rin + 24, rb = Rout + 5, Hm = Math.max(36, avail - Rout - 5), Rl = rb + Hm + 14;
+  const avail = (Math.min(W, H) / 2 - 34) * (W < 640 ? 0.8 : 0.68), Rin = Math.max(34, Math.min(70, avail * 0.27)), Rout = Rin + 24, rb = Rout + 5, Hm = Math.max(36, avail - Rout - 5), Rl = rb + Hm + 14;
   const P = (r, a) => [cx + r * Math.sin(a * Math.PI / 180), cy - r * Math.cos(a * Math.PI / 180)];
   const arc = (r, a0, a1) => { const [x0, y0] = P(r, a0), [x1, y1] = P(r, a1), cw = a1 > a0; return `M${x0} ${y0} A${r} ${r} 0 ${Math.abs(a1 - a0) > 180 ? 1 : 0} ${cw ? 1 : 0} ${x1} ${y1}`; };
   const defs = el('defs'); svg.append(defs); const g = el('g'); svg.append(g);
