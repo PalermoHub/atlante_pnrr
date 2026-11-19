@@ -38,7 +38,7 @@
 <link rel="stylesheet" href="css/atlante.css?v=48">
 <link rel="stylesheet" href="css/guscio.css?v=13">
 <link rel="stylesheet" href="css/statistiche.css?v=7">
-<link rel="stylesheet" href="css/lente-app.css?v=1">
+<link rel="stylesheet" href="css/lente-app.css?v=5">
 
 <script src="js/consenso.js?v=1" defer></script>
 </head>
@@ -72,7 +72,8 @@
         <button id="chip-terr" class="chip2" type="button" aria-expanded="false" aria-controls="pan-terr"><span class="chip2-k">Territorio</span><span id="chip-terr-t" class="chip2-v">Italia</span></button>
         <button id="chip-ind" class="chip2" type="button" aria-expanded="false" aria-controls="pan-ind"><span class="chip2-k">Colora per</span><span id="chip-ind-t" class="chip2-v">…</span></button>
         <button id="chip-mappa" class="chip2 chip2-ico" type="button" aria-expanded="false" aria-controls="pan-mappa" aria-label="Opzioni della mappa"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
-        <button id="chip-lente" class="chip2 chip2-ico" type="button" aria-expanded="false" aria-controls="pan-lente" aria-label="Lente sui progetti" title="Lente spenta"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/><path d="M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4"/></svg></button>
+        <button id="chip-lente" class="chip2 chip2-lente" type="button" aria-pressed="false" aria-label="Lente sui progetti" title="Lente spenta · tieni premuto per cambiare modalità"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><path d="m15.6 15.6 6 6"/><path class="rag" d="M10 10V4.6M10 10l4.4-3.1M10 10l3.6 3.4M10 10l-3.2 3.8M10 10l-4.5-2.2"/><circle class="rag" cx="10" cy="10" r="1.1"/></svg><span class="lente-txt"><span class="chip2-k">Grafici in mappa</span><span class="chip2-v">Lente</span></span></button>
+        <button id="lente-alt" class="chip2 chip2-lente" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"></svg><span class="lente-txt"><span class="chip2-k">Modalità</span><span class="chip2-v"></span></span></button>
       </div>
       <div id="pan-terr" class="pan" hidden>
         <div class="terr" role="group" aria-label="Filtro territoriale">
@@ -83,17 +84,6 @@
       </div>
       <div id="pan-ind" class="pan" hidden>
         <div class="colora"><label for="indic">Colora i comuni per</label><select id="indic"></select></div>
-      </div>
-      <div id="pan-lente" class="pan" hidden>
-        <div class="pan-lente">
-          <label class="chk"><input type="checkbox" id="lente-on"> Mostra la lente sulla mappa</label>
-          <div class="seg" role="group" aria-label="Modalità della lente">
-            <button type="button" data-modo="centro" aria-pressed="false" title="La lente resta ferma al centro e si sposta la mappa"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/></svg>Al centro</button>
-            <button type="button" data-modo="libera" aria-pressed="true" title="La mappa resta ferma e si trascina la lente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg>Libera</button>
-          </div>
-          <p class="nota-lente">La lente legge il comune sotto la croce: i suoi progetti si dispongono a raggiera per missione, lunghi quanto l'importo; clic su uno stadio o su una missione per evidenziarli. Quando smetti di spostarla si apre la scheda del comune.</p>
-          <button type="button" id="lente-ripristina" class="ripr">Ripristina la lente</button>
-        </div>
       </div>
       <div id="pan-mappa" class="pan" hidden>
         <div class="scale">
@@ -121,7 +111,7 @@
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pmtiles@4.3.0/dist/pmtiles.js"></script>
 <script src="js/tema.js?v=3"></script>
-<script src="js/guscio.js?v=4" defer></script>
+<script src="js/guscio.js?v=6" defer></script>
 <script src="js/tabelle.js?v=1" defer></script>
 <script src="js/cima.js?v=2" defer></script>
 <script src="js/piede.js?v=1" defer></script>
@@ -130,6 +120,6 @@
 <script src="js/condividi.js?v=2" defer></script>
 <script src="js/grafici.js?v=7"></script>
 <script type="module" src="js/app.js?v=42"></script>
-<script src="js/lente-app.js?v=2" defer></script>
+<script src="js/lente-app.js?v=5" defer></script>
 </body>
 </html>

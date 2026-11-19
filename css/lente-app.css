@@ -38,16 +38,20 @@
 .lente-tip dd { margin: 0; text-align: right; word-break: break-word; }
 .lente-tip small { display: block; margin-top: .3rem; color: var(--ink3); }
 
-/* chip e pannello «Lente» nella barra della mappa */
+/* chip «Lente»: un clic accende/spegne, un clic prolungato mostra l'altra modalità (#lente-alt) */
 .chip2.attiva { border-color: var(--acc); color: var(--acc); background: var(--accbg); }
-.pan-lente { display: grid; gap: .6rem; }
-.pan-lente .chk { display: flex; align-items: center; gap: .55rem; min-height: 44px; font-size: .95rem; }
-.pan-lente .chk input { width: 1.3rem; height: 1.3rem; accent-color: var(--acc); }
-.pan-lente .seg { display: flex; }
-.pan-lente .seg button { flex: 1 1 0; display: inline-flex; align-items: center; justify-content: center; gap: .4rem; min-height: 44px; padding: 0 .6rem; background: var(--surface); border: 1px solid var(--line); border-radius: 0; font-weight: 600; }
-.pan-lente .seg button:first-child { border-radius: 10px 0 0 10px; }
-.pan-lente .seg button:last-child { border-radius: 0 10px 10px 0; border-left: 0; }
-.pan-lente .seg button[aria-pressed="true"] { background: var(--acc); border-color: var(--acc); color: #fff; }
-.pan-lente .seg svg { width: 1.2rem; height: 1.2rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.pan-lente .nota-lente { margin: 0; font-size: .85rem; color: var(--ink2); }
-.pan-lente .ripr { min-height: 44px; padding: 0 .85rem; font-weight: 600; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+#lente-alt[hidden] { display: none; }
+/* sotto il chip, in sovrapposizione: così il layout non si sposta e il rilascio cade ancora sul chip */
+.chipbar { position: relative; }
+#lente-alt { position: absolute; right: 0; top: calc(100% + .3rem); width: 44px; flex: none; z-index: 7; border-style: dashed; box-shadow: 0 3px 10px rgba(0,0,0,.25); }
+
+/* chip «Lente»: lente d'ingrandimento con la raggiera dentro, più etichetta; da spenta è neutra, da accesa si riempie */
+.chip2-lente { flex: 0 0 auto; flex-direction: row; align-items: center; gap: .5rem; padding: .2rem .75rem .2rem .6rem; }
+.chip2-lente svg { flex: none; width: 1.7rem; height: 1.7rem; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.chip2-lente .rag { stroke: var(--acc); }
+.chip2-lente circle.rag { fill: var(--acc); }
+.chip2-lente .lente-txt { display: flex; flex-direction: column; min-width: 0; }
+.chip2-lente.attiva .chip2-k { color: inherit; opacity: .8; }
+.chip2-lente.attiva { border-width: 2px; padding: calc(.2rem - 1px) calc(.75rem - 1px) calc(.2rem - 1px) calc(.6rem - 1px); }
+#lente-alt { width: auto; right: 0; }
+@media (max-width: 480px) { .chip2-lente .chip2-k { display: none; } .chip2-lente { padding-inline: .5rem; } }

@@ -26,7 +26,7 @@ const OPAC = [0.3, 0.46, 0.64, 0.82, 1]; /* stadio più avanzato = colore più p
 const NM = MIS.length, MAXRAGGI = 90;
 const ZMIN = 8; /* sotto questo zoom il comune sotto la croce è arbitrario: la lente chiede di avvicinarsi */
 const ZVISTA = 9.2, VISTA = [13.4, 38.0];
-const mobile = matchMedia('(max-width: 640px)');
+const mobile = matchMedia('(max-width: 720px)'); /* stessa soglia del foglio inferiore (guscio.js): sul telefono la lente è fissa al centro, sempre accesa, senza impostazioni */
 
 const L = { on: false, libera: !mobile.matches, pos: null, stadio: null, hidM: new Set(), cur: null, prog: null, dati: null, rid: 0, ultimo: null, cent: null };
 let A, S, m, svg, tipEl;
@@ -176,21 +176,33 @@ function assesta() {
 }
 
 /* ---------- accensione e impostazioni ---------- */
-function accendi(on) {
+function accendi(on, auto) {
   if (on === L.on) return; L.on = on; S.lente = on;
   svg.hidden = !on; if (!on) { tip(null); svg.replaceChildren(); L.cur = null; L.prog = null; }
-  $('#lente-on').checked = on; $('#chip-lente').classList.toggle('attiva', on); $('#chip-lente').setAttribute('title', on ? 'Lente accesa' : 'Lente spenta');
+  chipLente();
   if (S.cur) A.evidenzia(S.cur.liv, S.cur.id, true); /* il velo dell'app si toglie con la lente accesa, si rimette da spenta */
   try { const u = new URL(location.href); on ? u.searchParams.set('lente', '1') : u.searchParams.delete('lente'); history.replaceState(null, '', u); } catch (e) {}
   /* legenda e riquadro dell'app si chiudono (restano come titoli) per non finire sotto la raggiera */
   if (on) { L.aperti = ['#quadro', '#legenda'].map((q) => { const d = $(q); const a = d.open; d.open = false; return [d, a]; }); }
   else if (L.aperti) { L.aperti.forEach(([d, a]) => { d.open = a; }); L.aperti = null; }
   if (on) {
-    if (m.getZoom() < ZMIN) { const b = S.cur?.liv === 'c' ? S.bbox.c[S.cur.id] : null; m.easeTo(b ? { center: [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2], zoom: 10.5, duration: 600 } : { center: VISTA, zoom: ZVISTA, duration: 600 }); }
+    if (m.getZoom() < ZMIN && !auto) { const b = S.cur?.liv === 'c' ? S.bbox.c[S.cur.id] : null; m.easeTo(b ? { center: [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2], zoom: 10.5, duration: 600 } : { center: VISTA, zoom: ZVISTA, duration: 600 }); }
     L.pos = null; ricalcola(); setTimeout(assesta, 700);
   }
 }
-function modo() { document.querySelectorAll('#pan-lente [data-modo]').forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.modo === 'libera') === L.libera))); }
+const ICO = { libera: '<path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/>', centro: '<circle cx="12" cy="12" r="8"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/>' };
+const ETI = { libera: 'Libera', centro: 'Al centro' };
+const NOME = { libera: 'libera: la mappa resta ferma e si trascina la lente', centro: 'al centro: la lente resta ferma e si sposta la mappa' };
+/* il chip mostra l'icona della modalità in uso; l'altra compare solo con un clic prolungato */
+function chipLente() {
+  const c = $('#chip-lente'), mod = L.libera ? 'libera' : 'centro', alt = L.libera ? 'centro' : 'libera';
+  c.classList.toggle('attiva', L.on); c.setAttribute('aria-pressed', String(L.on));
+  c.title = (L.on ? 'Lente accesa' : 'Lente spenta') + ' (' + NOME[mod] + ')' + (mobile.matches ? '' : ' · tieni premuto per cambiare modalità');
+  c.querySelector('.chip2-v').textContent = L.on ? 'Lente accesa' : 'Lente spenta';
+  const a = $('#lente-alt'); a.querySelector('svg').innerHTML = ICO[alt]; a.querySelector('.chip2-v').textContent = ETI[alt]; a.dataset.modo = alt; a.title = 'Passa a ' + NOME[alt]; a.setAttribute('aria-label', 'Passa alla modalità ' + NOME[alt]);
+}
+function altNascondi() { $('#lente-alt').hidden = true; }
+function impostaModo(lib) { if (lib === L.libera) return; L.libera = lib; L.pos = lib ? centro() : null; chipLente(); pianifica(); }
 function avvia() {
   A = window.AtlantePNRR; S = A.S; m = S.map;
   svg = el('svg', { id: 'lente-svg', class: 'lente-svg', 'aria-label': 'Raggiera dei progetti del comune sotto la lente, per missione e stadio' }); svg.hidden = true;
@@ -198,9 +210,6 @@ function avvia() {
   m.getContainer().append(svg, tipEl);
   m.on('move', pianifica); m.on('moveend', assesta); m.on('resize', pianifica); m.on('idle', pianifica);
   m.on('click', (e) => { if (!L.on) return; if (L.libera) { L.pos = [e.point.x, e.point.y]; assesta(); } else { m.easeTo({ center: e.lngLat, duration: 450 }); } });
-  $('#lente-on').addEventListener('change', (e) => accendi(e.target.checked));
-  document.querySelectorAll('#pan-lente [data-modo]').forEach((b) => b.addEventListener('click', () => { const lib = b.dataset.modo === 'libera'; if (lib === L.libera) return; L.libera = lib; L.pos = lib ? centro() : null; modo(); pianifica(); }));
-  $('#lente-ripristina').addEventListener('click', () => { L.pos = null; L.hidM.clear(); L.stadio = null; tip(null); assesta(); });
   /* ricerca o scelta di un altro comune dall'app: la mappa va lì (con la lente accesa l'app non sposta la mappa da sola) */
   addEventListener('hashchange', () => {
     if (!L.on) return; const { liv, id } = A.parseHash();
@@ -209,7 +218,19 @@ function avvia() {
     m.easeTo({ center: [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2], zoom: Math.max(m.getZoom(), 10.5), duration: 700 });
   });
   document.addEventListener('tema-cambia', () => setTimeout(pianifica, 400));
-  modo();
+  /* telefono: sempre al centro; desktop: libera di default. Clic = accende/spegne, clic prolungato (o tasto destro, freccia giù) = l'altra modalità */
+  const fissa = () => { if (mobile.matches) { L.libera = false; L.pos = null; altNascondi(); pianifica(); } chipLente(); };
+  mobile.addEventListener('change', fissa); fissa();
+  const chip = $('#chip-lente'), alt = $('#lente-alt'); let t = null, lungo = false;
+  const mostraAlt = () => { if (mobile.matches) return; lungo = true; alt.hidden = false; alt.focus({ preventScroll: true }); };
+  chip.addEventListener('pointerdown', () => { lungo = false; clearTimeout(t); t = setTimeout(mostraAlt, 500); });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => chip.addEventListener(ev, () => clearTimeout(t)));
+  chip.addEventListener('contextmenu', (e) => { e.preventDefault(); mostraAlt(); });
+  chip.addEventListener('keydown', (e) => { if (e.key === 'ArrowDown') { e.preventDefault(); mostraAlt(); } });
+  chip.addEventListener('click', () => { if (lungo) { lungo = false; return; } altNascondi(); accendi(!L.on, mobile.matches); });
+  alt.addEventListener('click', () => { impostaModo(!L.libera); altNascondi(); if (!L.on) accendi(true); chip.focus({ preventScroll: true }); });
+  document.addEventListener('click', (e) => { if (!e.target.closest('#chip-lente, #lente-alt')) altNascondi(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') altNascondi(); });
   if (new URLSearchParams(location.search).get('lente') === '1') { const via = () => accendi(true); m.loaded() ? via() : m.once('load', via); }
 }
 if (window.AtlantePNRR) avvia(); else document.addEventListener('atlante-pronto', avvia, { once: true });

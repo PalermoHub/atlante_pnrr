@@ -6,7 +6,7 @@
   const embed = document.documentElement.hasAttribute('data-embed');
 
   /* ---------- pannelli dei chip: se ne apre uno alla volta ---------- */
-  const chip = { 'chip-terr': 'pan-terr', 'chip-ind': 'pan-ind', 'chip-mappa': 'pan-mappa', 'chip-lente': 'pan-lente' };
+  const chip = { 'chip-terr': 'pan-terr', 'chip-ind': 'pan-ind', 'chip-mappa': 'pan-mappa' };
   function chiudiPannelli(salvo) {
     for (const [c, p] of Object.entries(chip)) if (p !== salvo) { $('#' + p).hidden = true; $('#' + c).setAttribute('aria-expanded', 'false'); }
   }
@@ -117,9 +117,9 @@
     const i = ORDINE.indexOf(foglio.dataset.stato);
     if (e.key === 'ArrowUp') { e.preventDefault(); stato(ORDINE[Math.min(2, i + 1)]); } else if (e.key === 'ArrowDown') { e.preventDefault(); stato(ORDINE[Math.max(0, i - 1)]); }
   });
-  /* chi sceglie un territorio sulla mappa o da un elenco vuole leggerne la scheda */
+  /* chi sceglie un territorio sulla mappa o da un elenco vuole leggerne la scheda (non con la lente accesa, cioè sul telefono: il foglio si apre solo al tocco sulla maniglia) */
   let prima = location.hash.split('?')[0];
-  addEventListener('hashchange', () => { const ora = location.hash.split('?')[0]; if (ora !== prima && mobile.matches && foglio.dataset.stato === 'chiuso') stato('medio'); prima = ora; });
+  addEventListener('hashchange', () => { const ora = location.hash.split('?')[0]; if (ora !== prima && mobile.matches && foglio.dataset.stato === 'chiuso' && !window.AtlantePNRR?.S.lente) stato('medio'); prima = ora; });
   stato(mobile.matches ? 'chiuso' : 'aperto');
 
   /* ---------- modalità incorporata: schermo intero ---------- */
