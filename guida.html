@@ -50,7 +50,7 @@
   <p class="intro">L'Atlante del PNRR mette sulla mappa i 291.398 progetti del Piano Nazionale di Ripresa e Resilienza. Questa guida spiega a cosa serve, come si usa e che cosa i dati permettono di dire (e di non dire). Le immagini si ingrandiscono con un clic e si sfogliano come una galleria.</p>
 
   <nav class="indice" aria-label="In questa pagina">
-    <a href="#a-cosa-serve">A cosa serve</a><a href="#orientarsi">Orientarsi</a><a href="#cercare">Cercare un comune</a><a href="#scheda">La scheda</a><a href="#mappa">Colorare la mappa</a><a href="#filtri">Filtrare</a><a href="#altre-pagine">Statistiche e relazione</a><a href="#telefono">Da telefono</a><a href="#strumenti">Info, tema, condividi</a><a href="#parole">Le parole dei dati</a><a href="#limiti">Cosa i dati non dicono</a>
+    <a href="#a-cosa-serve">A cosa serve</a><a href="#orientarsi">Orientarsi</a><a href="#cercare">Cercare un comune</a><a href="#scheda">La scheda</a><a href="#mappa">Colorare la mappa</a><a href="#lente">La lente</a><a href="#filtri">Filtrare</a><a href="#altre-pagine">Statistiche e relazione</a><a href="#telefono">Da telefono</a><a href="#strumenti">Info, tema, condividi</a><a href="#parole">Le parole dei dati</a><a href="#limiti">Cosa i dati non dicono</a>
   </nav>
 
   <section class="capitolo" id="a-cosa-serve" aria-labelledby="t-serve"><h2 id="t-serve">A cosa serve</h2>
@@ -76,6 +76,7 @@
       <dt>Colora per</dt><dd>Sceglie l'indicatore che dà il colore ai comuni: finanziamento per abitante o totale, quota pagata, quota conclusa, ritardi.</dd>
       <dt>Opzioni della mappa</dt><dd>L'icona con i cursori: scala colore, tipo di classi, colori invertiti, scala calcolata sul territorio o su tutta Italia.</dd>
       <dt>Legenda e «Nel riquadro…»</dt><dd>Sulla mappa: la legenda spiega le fasce di colore (un clic su una fascia evidenzia i comuni di quella fascia); «Nel riquadro» riassume i progetti dei comuni visibili in questo momento.</dd>
+      <dt>Lente</dt><dd>Il pulsante «Grafici in mappa · Lente», accanto alle opzioni: accende una raggiera di progetti sopra la mappa (vedi il capitolo «La lente»).</dd>
       <dt>La scheda</dt><dd>La colonna di destra: cifre, grafici e elenco dei progetti del territorio scelto. Cambia quando cambi territorio o filtro.</dd>
     </dl>
   </section>
@@ -154,6 +155,62 @@
       <li><b>Scala sul territorio</b> (attiva di default): i colori si adattano ai comuni della regione o provincia scelta. Disattivandola si usa la scala di tutta Italia e i confronti tra territori diversi sono diretti.</li>
       <li>I comuni senza progetti sono in grigio.</li>
     </ul>
+  </section>
+
+  <section class="capitolo" id="lente" aria-labelledby="t-lente"><h2 id="t-lente">La lente: i progetti di un comune sulla mappa</h2>
+    <p>La lente è una <b>modalità della mappa</b>: invece di leggere i progetti in un elenco, li vedi disegnati attorno a un comune, come una raggiera. È pensata per cogliere a colpo d'occhio <b>quanti progetti ci sono, di che missione sono, quanto valgono e a che punto sono</b>, senza lasciare la mappa. Non cambia i colori della mappa né i filtri dell'app: è una vista in più, sopra a quella di sempre.</p>
+
+    <h3>Accenderla e spegnerla</h3>
+    <ul class="elenco">
+      <li><b>Accendere</b>: clic sul pulsante <b>«Grafici in mappa · Lente»</b> (icona con la lente e i raggi), accanto al pulsante delle opzioni della mappa. Quando è accesa il bordo si ispessisce e la scritta diventa <b>«Lente accesa»</b>. Se la mappa è molto lontana, la lente la avvicina da sola al comune scelto (o all'area di Palermo, se non ne hai ancora scelto uno).</li>
+      <li><b>Spegnere</b>: stesso pulsante, un altro clic; la scritta torna <b>«Lente spenta»</b> e la raggiera scompare. Anche il tasto <kbd>Esc</kbd> chiude il riquadro di un progetto aperto.</li>
+      <li><b>Da link</b>: la lente accesa si riconosce dall'indirizzo, che contiene <code>?lente=1</code>. «Condividi» copia l'indirizzo giusto, così chi lo apre trova la lente già accesa.</li>
+      <li><b>Due modalità</b> (solo da computer). <b>Libera</b>, la modalità iniziale: la mappa resta ferma e la lente si <i>trascina</i> dove vuoi, oppure si porta con un clic su un punto della mappa. <b>Al centro</b>: la lente resta ferma al centro e si <i>sposta la mappa</i> sotto di essa. Per cambiare, tieni premuto per mezzo secondo sul pulsante (o clic con il tasto destro, o freccia giù da tastiera): sotto compare il pulsante della modalità alternativa. Su telefono la lente è sempre al centro e non ha impostazioni.</li>
+    </ul>
+    <figure class="figura">
+      <a class="gal" href="img/guida/15-lente-modalita.png" data-gal="guida" data-w="1440" data-h="860" data-tit="Cambiare modalità della lente" data-descr="Con la lente accesa, un clic prolungato sul pulsante fa comparire sotto di esso la modalità alternativa («Al centro» o «Libera»).">
+        <img src="img/guida/15-lente-modalita.png" width="1440" height="860" loading="lazy" alt="La pagina con la lente accesa su Palermo; sotto il pulsante «Lente accesa» è comparso il pulsante «Modalità: Al centro».">
+      </a>
+      <figcaption>Clic prolungato: compare l'altra modalità. <span class="zoom">Clic per ingrandire</span></figcaption>
+    </figure>
+
+    <h3>Che cosa si vede</h3>
+    <p>La lente lavora sul <b>comune che si trova sotto la sua croce</b>: il nome è scritto sull'anello e la scheda a destra si aggiorna a spostamento finito. Servono un po' di zoom: se la mappa è troppo lontana compare l'invito «Avvicina la mappa per usare la lente».</p>
+    <figure class="figura">
+      <a class="gal" href="img/guida/13-lente-accesa.png" data-gal="guida" data-w="1440" data-h="860" data-tit="La lente accesa su Palermo" data-descr="Una raggiera per missione attorno al nome del comune: ogni raggio è un progetto, lungo quanto l'importo, più pieno quanto più è avanzato.">
+        <img src="img/guida/13-lente-accesa.png" width="1440" height="860" loading="lazy" alt="La lente accesa su Palermo: sette settori colorati per missione con i raggi dei progetti, l'anello con gli stadi al centro e la scheda del comune a destra.">
+      </a>
+      <figcaption>La lente accesa su Palermo. <span class="zoom">Clic per ingrandire</span></figcaption>
+    </figure>
+    <dl class="parti">
+      <dt>Un raggio = un progetto</dt><dd>La <b>lunghezza</b> è l'importo finanziato, su una scala logaritmica: i cerchi tratteggiati segnano 1 mila €, 10 mila €, 100 mila €, 1 mln € e così via, e ogni cerchio vale dieci volte il precedente. Un raggio che arriva al terzo cerchio vale dunque cento volte uno che arriva al primo. Per ogni missione si disegnano al massimo i 90 progetti più grandi.</dd>
+      <dt>I sette settori</dt><dd>Il colore è quello della missione (M1 digitale e cultura, M2 transizione verde, M3 mobilità, M4 istruzione, M5 inclusione, M6 salute, M7 REPowerEU). Sul nastro esterno c'è il numero dei progetti della missione. Un clic sul nastro <b>nasconde o mostra</b> quella missione.</dd>
+      <dt>Il tono del colore</dt><dd>Più il raggio è <b>pieno</b>, più il progetto è avanzato: pallido se è da attivare, scuro se è concluso.</dd>
+      <dt>L'anello degli stadi</dt><dd>Nell'anello attorno alla croce ci sono i cinque stadi (da attivare, in corso, gara, lavori, fine) con il numero di progetti. Un clic su uno stadio <b>attenua gli altri raggi</b> e lascia in evidenza solo quelli; un secondo clic toglie l'evidenza.</dd>
+      <dt>Il nome del comune</dt><dd>Un clic sul nome scritto sull'anello apre la scheda completa del comune.</dd>
+    </dl>
+    <p class="nota-guida"><b>Attenzione.</b> Missioni e stadi scelti sulla lente valgono solo per la lente: non cambiano i filtri dell'app né la scheda a destra. I progetti che coinvolgono più comuni sono contati con la quota assegnata a ciascuno (lo dice il riquadro del progetto).</p>
+
+    <h3>Dal raggio alla scheda ufficiale su OpenCUP</h3>
+    <p>Ogni raggio porta fino alla <b>scheda ufficiale del progetto</b> su OpenCUP, il registro pubblico dei progetti di investimento (con soggetto titolare e descrizione). Si fa in tre passi:</p>
+    <ol class="elenco">
+      <li><b>Passa il puntatore</b> su un raggio (da telefono: toccalo): compare un riquadro con titolo, missione, stadio, importo finanziato e pagato, tipo di intervento, attuatore e CUP, il codice del progetto.</li>
+      <li><b>Clicca il raggio</b> per fissare il riquadro: resta aperto anche se sposti il puntatore, e in fondo compare il pulsante <b>«Apri su OpenCUP ↗»</b>.</li>
+      <li><b>Clicca il pulsante</b>: la scheda del CUP si apre in una nuova scheda del browser. Per chiudere il riquadro clicca di nuovo lo stesso raggio, un punto vuoto della mappa, oppure premi <kbd>Esc</kbd>.</li>
+    </ol>
+    <figure class="figura">
+      <a class="gal" href="img/guida/14-lente-opencup.png" data-gal="guida" data-w="1440" data-h="860" data-tit="Aprire un progetto su OpenCUP" data-descr="Il clic su un raggio fissa il riquadro del progetto, con titolo, stadio, importi, attuatore, CUP e il pulsante «Apri su OpenCUP».">
+        <img src="img/guida/14-lente-opencup.png" width="1440" height="860" loading="lazy" alt="Il riquadro di un progetto della Missione 4 fissato sulla lente, con stadio, importi, attuatore, CUP e il pulsante «Apri su OpenCUP».">
+      </a>
+      <figcaption>Il riquadro fissato: il pulsante porta alla scheda su OpenCUP. <span class="zoom">Clic per ingrandire</span></figcaption>
+    </figure>
+    <p>Se il CUP non è un codice valido (per esempio un segnaposto come «N/A») il riquadro lo dice e il pulsante non compare. Alcuni progetti sono incentivi a imprese o persone: il titolo e l'attuatore sono riservati e il riquadro lo segnala. Lo stesso link a OpenCUP è disponibile anche nell'elenco dei progetti della scheda, cliccando il CUP, e nel CSV scaricabile.</p>
+    <figure class="figura figura-mobile">
+      <a class="gal" href="img/guida/16-lente-mobile.png" data-gal="guida" data-w="390" data-h="800" data-tit="La lente su telefono" data-descr="Su telefono la lente è sempre al centro: si sposta la mappa, e la scheda del comune sale dal foglio inferiore.">
+        <img src="img/guida/16-lente-mobile.png" width="390" height="800" loading="lazy" alt="La lente accesa su telefono: la raggiera di Palermo al centro della mappa e il foglio inferiore con la scheda del comune.">
+      </a>
+      <figcaption>Su telefono: lente sempre al centro. <span class="zoom">Clic per ingrandire</span></figcaption>
+    </figure>
   </section>
 
   <section class="capitolo" id="filtri" aria-labelledby="t-filtri"><h2 id="t-filtri">Filtrare: tutto è cliccabile</h2>
