@@ -212,3 +212,19 @@ th[aria-sort="none"]::after { content: " ↕"; font-size: .7em; opacity: .4; }
 .consenso-az { display: flex; gap: .5rem; flex-wrap: wrap; }
 .consenso-az button { min-height: 44px; padding: .5rem 1rem; font-weight: 600; border-radius: 8px; flex: 1 1 10rem; }
 .consenso-si { background: var(--acc); color: var(--surface); border-color: var(--acc); }
+
+/* Testata fissa anche nelle pagine che scorrono (statistiche, relazione, privacy): la home ha già il suo guscio */
+body:not(.home) .top { position: sticky; top: 0; z-index: 30; }
+body:not(.home) { scroll-padding-top: var(--top-h, 4rem); }
+body:not(.home) th { top: calc(var(--top-h, 0px) - 1px); }
+@media (max-width: 720px) {
+  body:not(.home) .top { padding: .35rem .75rem; gap: .2rem .5rem; }
+  body:not(.home) .brand { flex: 1; min-width: 0; }
+  body:not(.home) .brand img { width: 32px; height: 32px; }
+  body:not(.home) .brand strong { font-size: .95rem; white-space: nowrap; }
+  body:not(.home) #crumbs { display: none; }
+  body:not(.home) .nav { order: 3; flex: 1 0 100%; margin: 0; gap: 1.25rem; overflow-x: auto; scrollbar-width: none; }
+  body:not(.home) .nav a { min-height: 32px; display: inline-flex; align-items: center; white-space: nowrap; }
+  body:not(.home) .tools { gap: .3rem; }
+  body:not(.home) .tools select { width: 6.2rem; padding-left: .4rem; }
+}

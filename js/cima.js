@@ -1,5 +1,8 @@
 /* Pulsante «Porta in cima»: compare dopo un po' di scorrimento, sulla colonna delle schede (desktop) o sulla pagina (mobile, statistiche). */
 (function () {
+  /* altezza della testata fissa: serve ai salti d'ancora e alle intestazioni di tabella */
+  const top = document.querySelector(".top");
+  if (top) { const m = () => document.documentElement.style.setProperty("--top-h", top.offsetHeight + "px"); m(); if (window.ResizeObserver) new ResizeObserver(m).observe(top); else addEventListener("resize", m); }
   const scheda = document.getElementById("scheda");
   const b = document.createElement("button");
   b.type = "button"; b.className = "in-cima"; b.hidden = true;
