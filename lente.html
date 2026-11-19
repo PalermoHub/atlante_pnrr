@@ -9,7 +9,7 @@
 <link rel="icon" href="img/favicon.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <link rel="stylesheet" href="css/atlante.css?v=48">
-<link rel="stylesheet" href="css/lente.css?v=7">
+<link rel="stylesheet" href="css/lente.css?v=8">
 <script>try{if(self!==top||/[?&]embed=1/.test(location.search))document.documentElement.setAttribute("data-embed","")}catch(e){document.documentElement.setAttribute("data-embed","")}</script>
 </head>
 <body class="lente-pag">
@@ -27,7 +27,9 @@
 <main class="lente-main">
   <div class="lente-barra">
     <label class="cerca-c">Comune <input id="cerca" type="search" list="elenco" placeholder="Cerca un comune…" autocomplete="off" aria-label="Cerca un comune"></label><datalist id="elenco"></datalist>
+    <div class="seg" role="group" aria-label="Modalità della lente"><button type="button" data-modo="centro" aria-pressed="false" title="La lente resta al centro e si sposta la mappa">Lente al centro</button><button type="button" data-modo="libera" aria-pressed="true" title="La mappa resta ferma e si trascina la lente">Lente libera</button></div>
     <button id="azzera" type="button">Azzera</button>
+    <span id="sintesi" class="sintesi" aria-live="polite"></span>
   </div>
   <div class="lente-corpo">
     <section class="lente-mappa" aria-label="Mappa con la lente">
@@ -35,12 +37,11 @@
       <svg id="lente" class="lente-svg" aria-label="Raggiera dei progetti del comune al centro, per missione e stadio"></svg>
       <div id="tip" class="lente-tip" hidden></div>
     </section>
-    <aside id="lente-testo" class="lente-testo" aria-live="polite" aria-label="Dati del comune"></aside>
   </div>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pmtiles@4.3.0/dist/pmtiles.js"></script>
 <script src="js/tema.js?v=3"></script>
-<script src="js/lente.js?v=9"></script>
+<script src="js/lente.js?v=11"></script>
 </body>
 </html>

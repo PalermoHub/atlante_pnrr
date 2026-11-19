@@ -26,7 +26,7 @@ const OPAC = [0.3, 0.46, 0.64, 0.82, 1]; /* stadio più avanzato = colore più p
 const NM = MIS.length, NSTA = STADI.length, NC = NM * NSTA, MAXRAGGI = 90;
 const VISTA = { centro: [13.4, 38.0], zoom: 9.2 };
 
-const S = { stadio: null, hidM: new Set(), ids: [], nome: [], lon: null, lat: null, pop: null, F: null, idx: new Map(), meta: null, cur: null, prog: null, dati: null, map: null, rid: 0, quotaComuni: 0, cache: new Map() };
+const S = { stadio: null, libera: !matchMedia('(max-width: 640px)').matches, pos: null, hidM: new Set(), ids: [], nome: [], lon: null, lat: null, pop: null, F: null, idx: new Map(), meta: null, cur: null, prog: null, dati: null, map: null, rid: 0, quotaComuni: 0, cache: new Map() };
 
 /* ---------- dati ---------- */
 const get = (u) => { if (!S.cache.has(u)) S.cache.set(u, fetch(u).then((r) => { if (!r.ok) throw new Error(u + ' ' + r.status); return r.json(); })); return S.cache.get(u); };
@@ -62,8 +62,14 @@ function leggi(d) {
 /* ---------- raggiera ---------- */
 const el = (n, a = {}, t) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); if (t != null) e.textContent = t; return e; };
 const stadioOk = (p) => S.stadio == null || p.st === S.stadio;
+/* centro della lente: al centro della mappa, oppure dove l'hai trascinata (modalità libera) */
+function centroLente() {
+  const svg = $('#lente'), W = svg.clientWidth, H = svg.clientHeight;
+  if (!S.libera || !S.pos) return [W / 2, H / 2];
+  return [Math.max(40, Math.min(W - 40, S.pos[0])), Math.max(40, Math.min(H - 40, S.pos[1]))];
+}
 function disegna() {
-  const svg = $('#lente'), W = svg.clientWidth, H = svg.clientHeight, cx = W / 2, cy = H / 2;
+  const svg = $('#lente'), W = svg.clientWidth, H = svg.clientHeight, [cx, cy] = centroLente();
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.replaceChildren();
   const avail = (Math.min(W, H) / 2 - 34) * (W < 640 ? 0.68 : 0.56), Rin = Math.max(32, Math.min(64, avail * 0.27)), Rout = Rin + 24, rb = Rout + 5, Hm = Math.max(36, avail - Rout - 5), Rl = rb + Hm + 14;
   const P = (r, a) => [cx + r * Math.sin(a * Math.PI / 180), cy - r * Math.cos(a * Math.PI / 180)];
@@ -103,11 +109,22 @@ function disegna() {
     nastro.append(el('title', {}, `${m} ${NOMI_MIS[m]} · ${conteggi[m].n} progetti${nasconde ? ` (mostrati i ${MAXRAGGI} più grandi)` : ''} · clic per ${nasc ? 'mostrarla' : 'nasconderla'}`));
     g.append(nastro); defs.append(el('path', { id, d: basso ? arc(Rl, aS + SET - 2, aS + 2) : arc(Rl, aS + 2, aS + SET - 2), fill: 'none' }));
     const tx = el('text', { class: 'nastrot' + (m === 'M7' ? ' chiaro' : ''), dy: 4, 'text-anchor': 'middle' }); tx.append(el('textPath', { href: `#${id}`, startOffset: '50%' }, `${m}${lungo > 190 ? ' · ' + CORTI[m] : ''} · ${conteggi[m].n}`)); g.append(tx);
-    const fn = () => { S.hidM.has(m) ? S.hidM.delete(m) : S.hidM.add(m); tip(null); disegna(); testo(); };
+    const fn = () => { S.hidM.has(m) ? S.hidM.delete(m) : S.hidM.add(m); tip(null); disegna(); sintesi(); };
     nastro.addEventListener('click', fn); nastro.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } });
   });
   /* anello della lente */
   g.append(el('path', { d: `M${cx - Rout} ${cy} a${Rout} ${Rout} 0 1 0 ${2 * Rout} 0 a${Rout} ${Rout} 0 1 0 ${-2 * Rout} 0 M${cx - Rin} ${cy} a${Rin} ${Rin} 0 1 1 ${2 * Rin} 0 a${Rin} ${Rin} 0 1 1 ${-2 * Rin} 0`, 'fill-rule': 'evenodd', class: 'anello' }), el('circle', { cx, cy, r: Rin, fill: 'none', class: 'lente-bordo' }), el('path', { d: `M${cx - 6} ${cy} h12 M${cx} ${cy - 6} v12`, class: 'croce' }));
+  if (S.libera) {
+    const grab = el('circle', { cx, cy, r: Rin, fill: 'transparent', class: 'presa', 'aria-hidden': 'true' });
+    grab.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); const r = svg.getBoundingClientRect();
+      /* il disegno viene rifatto a ogni spostamento: i gesti si seguono sulla finestra, non sull'elemento */
+      const mv = (ev) => { S.pos = [ev.clientX - r.left, ev.clientY - r.top]; pianifica(); };
+      const su = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', su); removeEventListener('pointercancel', su); };
+      addEventListener('pointermove', mv); addEventListener('pointerup', su); addEventListener('pointercancel', su);
+    });
+    g.append(grab);
+  }
   defs.append(el('path', { id: 'arco-nome', d: arc(Rin + 7.5, -62, 62), fill: 'none' }));
   const fs = Math.max(8.5, Math.min(14, ((Rin + 7.5) * 124 * Math.PI / 180) / (Math.max(6, nome.length) * 0.58))), tn = el('text', { class: 'nome', 'text-anchor': 'middle', style: `font-size:${fs}px` }); tn.append(el('textPath', { href: '#arco-nome', startOffset: '50%' }, nome)); g.append(tn);
   /* stadi: numero di progetti e filtro */
@@ -119,7 +136,7 @@ function disegna() {
     const gs = el('g', { class: 'segm', role: 'button', tabindex: '0', 'aria-pressed': String(on), 'aria-label': `Stadio ${lungo}: ${nst[s]} progetti` });
     gs.append(el('path', { d: arc(Rout - 12, sa, sb), fill: 'none', stroke: 'transparent', 'stroke-width': 24 }));
     const t = el('text', { class: 'stadio' + (on ? ' on' : ''), 'text-anchor': 'middle' }); t.append(el('textPath', { href: `#${idn}`, startOffset: '50%' }, Rin < 60 ? breve : `${breve} ${nst[s]}`)); gs.append(t, el('title', {}, `${lungo}: ${nst[s]} progetti · clic per ${on ? 'tornare a tutti gli stadi' : 'evidenziare solo questo stadio'}`));
-    const fn = () => { S.stadio = on ? null : s; colora(); disegna(); testo(); };
+    const fn = () => { S.stadio = on ? null : s; colora(); disegna(); sintesi(); };
     gs.addEventListener('click', fn); gs.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } });
     g.append(gs);
   });
@@ -135,33 +152,14 @@ function tip(p, xy) {
   const x = Math.max(6, Math.min(m.width - w - 6, xy[0] - w / 2)), y0 = xy[1] > m.height / 2 ? xy[1] - h - 14 : xy[1] + 14;
   t.style.left = x + 'px'; t.style.top = Math.max(6, Math.min(m.height - h - 6, y0)) + 'px';
 }
-/* pannello: scheda, tabella missione × stadio, tipi di intervento, attuatori */
-function testo() {
-  const box = $('#lente-testo'), d = S.dati, prog = S.prog;
-  const chips = MIS.map((m) => `<button type="button" class="chip-m${S.hidM.has(m) ? ' off' : ''}" data-m="${m}" aria-pressed="${!S.hidM.has(m)}" title="${NOMI_MIS[m]}"><i style="background:${COL_MIS[m]}"></i>${m}<span>${NOMI_MIS[m]}</span></button>`).join('');
-  if (!d || !prog) { box.innerHTML = `<div class="chips" role="group" aria-label="Missioni">${chips}</div><p class="vuoto">${S.cur ? 'Carico i dati del comune…' : 'Sposta la mappa: la lente analizza il comune sotto la croce.'}</p>`; legami(box); return; }
-  const M = MIS.map(() => STADI.map(() => ({ n: 0, f: 0 })));
-  prog.forEach((p) => { const c = M[p.m][p.st]; c.n++; c.f += p.fin; });
-  const rig = MIS.map((m, a) => { const tn = M[a].reduce((t, c) => t + c.n, 0), tf = M[a].reduce((t, c) => t + c.f, 0); if (!tn) return ''; return `<tr class="${S.hidM.has(m) ? 'off' : ''}"><th scope="row"><i style="background:${COL_MIS[m]}"></i>${m}</th>${M[a].map((c, s) => `<td class="${S.stadio === s ? 'sel' : ''}">${c.n ? `${c.n}<small>${eur(c.f)}</small>` : '·'}</td>`).join('')}<td class="tot">${tn}<small>${eur(tf)}</small></td></tr>`; }).join('');
-  const colt = STADI.map((_, s) => { const n = prog.reduce((t, p) => t + (p.st === s), 0), f = prog.reduce((t, p) => t + (p.st === s ? p.fin : 0), 0); return `<td class="${S.stadio === s ? 'sel' : ''}">${n}<small>${eur(f)}</small></td>`; }).join('');
-  const natr = d.nat.map((v, i) => [S.meta.nature[i], v]).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).map(([n, v]) => `<li><span>${esc(n.charAt(0) + n.slice(1).toLowerCase())}</span><b>${eur(v)}</b></li>`).join('');
-  const att = (d.conc?.top || []).map(([n, v, k]) => `<li><span>${esc(n)}</span><b>${eur(v)}</b> <small>${k} progetti</small></li>`).join('');
-  const lent = prog.filter((p) => p.icc === 1).length, rit = prog.filter((p) => p.stato === 'In Corso' && p.fine && p.fine < '2026-06-13').length;
-  box.innerHTML = `<h2>${esc(d.nome)} <small>(${esc(d.sigla)})</small></h2>
-  <p class="num"><b>${nf.format(d.n)}</b> progetti · <b>${eur(d.fin)}</b> finanziati dal PNRR · <b>${eur(d.pag)}</b> pagati (${pc(d.pag, d.fin)}) · ${nf.format(d.pop)} abitanti · <b>${nf.format(Math.round(d.fin / d.pop))} €</b> per abitante</p>
-  <div class="chips" role="group" aria-label="Missioni">${chips}</div>
-  <div class="tabw"><table class="tab"><caption>Progetti e importi per missione e stadio</caption><thead><tr><th></th>${STADI.map(([, c], s) => `<th class="${S.stadio === s ? 'sel' : ''}">${c}</th>`).join('')}<th>Totale</th></tr></thead><tbody>${rig}</tbody><tfoot><tr><th scope="row">Tutte</th>${colt}<td class="tot">${nf.format(d.n)}<small>${eur(d.fin)}</small></td></tr></tfoot></table></div>
-  ${lent || rit ? `<p class="avv">${rit ? `<b>${rit}</b> progetti in ritardo sulla fine prevista` : ''}${rit && lent ? ' · ' : ''}${lent ? `<b>${lent}</b> con iter concluso ma stato «in corso»` : ''}.</p>` : ''}
-  <h3>Tipo di intervento</h3><ul class="el">${natr}</ul>
-  <h3>Soggetti attuatori principali</h3><ul class="el">${att}</ul>
-  <p><small>Raggi: uno per progetto (al massimo i ${MAXRAGGI} più grandi di ogni missione), lunghi in scala logaritmica come l'importo finanziato; più il colore è pieno, più lo stadio è avanzato. Anello in basso: stadi, con il numero di progetti. Importi dei progetti su più comuni divisi pro quota. Colore dei comuni: € PNRR per abitante in sette classi; qui solo i fondi localizzati su un comune (circa ${Math.round(100 * S.quotaComuni)} % del PNRR).</small></p>`;
-  legami(box);
+/* riga di sintesi nella barra in alto (la scheda completa è quella dell'Atlante) */
+function sintesi() {
+  const s = $('#sintesi'), d = S.dati;
+  s.textContent = !S.cur ? 'Porta la lente su un comune' : !d ? 'Carico i dati del comune…' : `${d.nome} (${d.sigla}) · ${nf.format(d.n)} progetti · ${eur(d.fin)} finanziati · ${pc(d.pag, d.fin)} pagato · ${nf.format(Math.round(d.fin / d.pop))} € per abitante`;
 }
-function legami(box) { box.querySelectorAll('.chip-m').forEach((b) => b.addEventListener('click', () => { const m = b.dataset.m; S.hidM.has(m) ? S.hidM.delete(m) : S.hidM.add(m); disegna(); testo(); })); }
-
 /* ---------- mappa ---------- */
 function comuneSotto() {
-  const m = S.map, svg = $('#lente'), cx = svg.clientWidth / 2, cy = svg.clientHeight / 2;
+  const m = S.map, [cx, cy] = centroLente();
   const f = m.getLayer('com') ? m.queryRenderedFeatures([cx, cy], { layers: ['com'] }) : [];
   const id = f.length ? f[0].properties.pro_com_t : null; if (id && S.idx.has(id)) return id;
   let best = null, bd = Infinity; const c = m.unproject([cx, cy]);
@@ -172,10 +170,10 @@ function ricalcola() {
   S.rid = 0; const id = comuneSotto(), m = S.map;
   if (id !== S.cur) {
     S.cur = id; S.prog = null; S.dati = null; tip(null);
-    if (id) get(`data/comuni/${id}.json`).then((d) => { if (S.cur === id) { S.dati = d; S.prog = leggi(d); disegna(); testo(); } }).catch(() => { if (S.cur === id) { S.dati = null; S.prog = []; disegna(); testo(); } });
+    if (id) get(`data/comuni/${id}.json`).then((d) => { if (S.cur === id) { S.dati = d; S.prog = leggi(d); disegna(); sintesi(); } }).catch(() => { if (S.cur === id) { S.dati = null; S.prog = []; disegna(); sintesi(); } });
     if (m.getLayer('qui')) m.setFilter('qui', ['==', ['get', 'pro_com_t'], id || '__nessuno__']);
   }
-  disegna(); testo();
+  disegna(); sintesi();
 }
 const pianifica = () => { if (!S.rid) S.rid = requestAnimationFrame(ricalcola); };
 const STILI = { light: 'https://tiles.openfreemap.org/styles/positron', dark: 'https://tiles.openfreemap.org/styles/dark' };
@@ -197,8 +195,12 @@ function avvia() {
   m.on('move', pianifica); m.on('moveend', pianifica); m.on('resize', pianifica);
   S.tono = tono();
   document.addEventListener('tema-cambia', () => { if (tono() !== S.tono) { S.tono = tono(); m.setStyle(STILI[S.tono], { diff: false }); } else { colora(); } });
-  $('#azzera').addEventListener('click', () => { S.hidM.clear(); S.stadio = null; colora(); m.easeTo({ center: VISTA.centro, zoom: VISTA.zoom, duration: 500 }); });
+  const modo = () => { document.querySelectorAll('[data-modo]').forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.modo === 'libera') === S.libera))); };
+  document.querySelectorAll('[data-modo]').forEach((b) => b.addEventListener('click', () => { const lib = b.dataset.modo === 'libera'; if (lib === S.libera) return; S.libera = lib; S.pos = lib ? centroLente() : null; modo(); pianifica(); }));
+  modo();
+  m.on('click', (e) => { if (S.libera) { S.pos = [e.point.x, e.point.y]; pianifica(); } });
+  $('#azzera').addEventListener('click', () => { S.hidM.clear(); S.stadio = null; S.pos = null; colora(); m.easeTo({ center: VISTA.centro, zoom: VISTA.zoom, duration: 500 }); });
   $('#cerca').addEventListener('change', (e) => { const i = S.nome.findIndex((n) => n.toLowerCase() === e.target.value.trim().toLowerCase()); if (i >= 0) { m.easeTo({ center: [S.lon[i], S.lat[i]], zoom: Math.max(m.getZoom(), 10.5), duration: 700 }); e.target.blur(); } });
 }
-carica().then(avvia).catch((e) => { $('#lente-testo').textContent = 'Errore nel caricamento dei dati: ' + e.message; console.error(e); });
+carica().then(avvia).catch((e) => { $('#sintesi').textContent = 'Errore nel caricamento dei dati: ' + e.message; console.error(e); });
 })();
