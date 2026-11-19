@@ -1,12 +1,12 @@
 /* Menù da mobile (≤720px): un pulsante ☰ apre un pannello laterale con sezioni, Info, tema e crediti.
    Sulla home il pulsante sta nella barra di ricerca e la testata sparisce (la mappa prende tutto lo schermo);
-   nelle altre pagine sta nella testata, che resta di una riga. Sul desktop non cambia nulla:
+   nelle altre pagine sta nella testata, che resta di una riga. Vale anche in modalità incorporata (iframe di atlante_pnrr.html, ?embed=1). Sul desktop non cambia nulla:
    .nav e .tools vengono spostati nel pannello solo su mobile e tornano al loro posto sopra i 720px. */
 (() => {
   const mobile = matchMedia('(max-width: 720px)');
   const top = document.querySelector('header.top');
   const nav = document.querySelector('header.top .nav');
-  if (!top || !nav || document.documentElement.hasAttribute('data-embed')) return;
+  if (!top || !nav) return;
   const tools = top.querySelector('.tools');
   const home = document.body.classList.contains('home');
   const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x) e.textContent = x; return e; };
