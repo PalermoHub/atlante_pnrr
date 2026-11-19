@@ -133,8 +133,9 @@ function disegna() {
   STADI.forEach(([lungo, , breve], s) => {
     const on = S.stadio === s, c0 = 180 - (s - 2) * (span * 2 / 5), sa = c0 + span / 5 - 0.5, sb = c0 - span / 5 + 0.5, idn = `st${s}`;
     defs.append(el('path', { id: idn, d: arc(Rout - 6.5, sa, sb), fill: 'none' }));
+    const settore = `${arc(Rout, sa, sb)} L${P(Rin, sb).join(' ')} ${arc(Rin, sb, sa).replace('M', 'L')} Z`;
     const gs = el('g', { class: 'segm', role: 'button', tabindex: '0', 'aria-pressed': String(on), 'aria-label': `Stadio ${lungo}: ${nst[s]} progetti` });
-    gs.append(el('path', { d: arc(Rout - 12, sa, sb), fill: 'none', stroke: 'transparent', 'stroke-width': 24 }));
+    gs.append(el('path', { d: settore, class: 'sfondo' }));
     const t = el('text', { class: 'stadio' + (on ? ' on' : ''), 'text-anchor': 'middle' }); t.append(el('textPath', { href: `#${idn}`, startOffset: '50%' }, Rin < 60 ? breve : `${breve} ${nst[s]}`)); gs.append(t, el('title', {}, `${lungo}: ${nst[s]} progetti · clic per ${on ? 'tornare a tutti gli stadi' : 'evidenziare solo questo stadio'}`));
     const fn = () => { S.stadio = on ? null : s; colora(); disegna(); sintesi(); };
     gs.addEventListener('click', fn); gs.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } });

@@ -168,3 +168,18 @@ body.lente-pag .lente-testo { flex: 1 1 45%; max-height: none; min-height: 0; ov
 .lente-svg .segm:focus-visible .stadio { fill: var(--ink); font-weight: 700; text-decoration: underline; }
 .lente-svg .nastro:focus-visible { stroke-width: 20; }
 .lente-svg { -webkit-tap-highlight-color: transparent; }
+
+/* stadi più leggibili; selezionato = sfondo pieno, non rettangolo */
+.lente-svg .stadio { font-size: 11.5px; font-weight: 700; fill: var(--ink); }
+.lente-svg .stadio.on { fill: var(--surface); }
+.lente-svg .sfondo { fill: var(--accbg); stroke: var(--line); stroke-width: .8; transition: fill .15s; }
+.lente-svg .segm:hover .sfondo { fill: var(--acc); fill-opacity: .35; }
+.lente-svg .segm[aria-pressed="true"] .sfondo { fill: var(--acc); fill-opacity: 1; stroke: var(--acc); }
+.lente-svg .segm:focus-visible .stadio { text-decoration: none; }
+.lente-svg .segm:focus-visible .sfondo { stroke: var(--ink); stroke-width: 2; }
+
+/* pulsanti modalità: solo icone */
+.lente-barra .seg button { width: 2.4rem; height: 2.2rem; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.lente-barra .seg svg { width: 1.3rem; height: 1.3rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.lente-svg .segm, .lente-svg .segm * { outline: none !important; }
+.lente-svg .stadio { stroke: none !important; }
