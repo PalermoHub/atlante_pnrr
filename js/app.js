@@ -160,7 +160,8 @@ function ambitoEtichetta() {
   if (liv === 'r') return `i comuni della regione ${S.reg[id]?.nome}`;
   return `i comuni della provincia di ${S.prov[liv === 'c' ? S.com[id].pv : id]?.nome}`;
 }
-const testaLegenda = (I) => `<div>${esc(I.nome)}</div><div class="leg-terr">Territorio: <b>${esc(terrEtichetta())}</b><br>Fasce calcolate su: ${esc(ambitoEtichetta())}</div>`;
+/* legenda chiudibile: il titolo (indicatore) resta nel <summary>, il resto nel corpo */
+const setLegenda = (I, corpo) => { $('#leg-t').textContent = I.nome; $('#leg-c').innerHTML = `<div class="leg-terr">Territorio: <b>${esc(terrEtichetta())}</b><br>Fasce calcolate su: ${esc(ambitoEtichetta())}</div>` + corpo; };
 function aggiornaMappa() {
   if (!S.map || !S.map.getLayer('comuni') || !S.cur || !S.cube.c) return;
   const { liv, id, F } = S.cur; S.vals = valoriComuni(F); const I = INDIC[S.indic];
@@ -178,9 +179,9 @@ function aggiornaMappa() {
   expr.push(nessuno); S.map.setPaintProperty('comuni', 'fill-color', cnt ? expr : nessuno);
   const lim = (i) => `${I.fmt(i === 0 ? v[0] : S.breaks[i - 1])} – ${I.fmt(i === nc - 1 ? v[v.length - 1] : S.breaks[i])}`;
   const mio = S.cur.liv === 'c' ? S.clsMap[S.cur.id] : undefined, cn = S.cur.liv === 'c' ? S.com[S.cur.id].nm : '';
-  $('#legenda').innerHTML = testaLegenda(I) + (v.length ? `<ul class="cat">${cont.map((n, i) => `<li><button type="button" data-k="${i}" class="${S.cls?.has(i) ? 'on' : ''}" aria-pressed="${!!S.cls?.has(i)}" title="Mostra solo i comuni di questa classe"><i style="background:${r[Math.min(i, k - 1)]}"></i>${esc(lim(i))}${mio === i ? `<em class="qui">◀ ${esc(cn)}</em>` : ''}<small>${nf.format(n)} comuni</small></button></li>`).join('')}</ul>` : '')
+  setLegenda(I, (v.length ? `<ul class="cat">${cont.map((n, i) => `<li><button type="button" data-k="${i}" class="${S.cls?.has(i) ? 'on' : ''}${mio === i ? ' qui' : ''}" aria-pressed="${!!S.cls?.has(i)}" title="Mostra solo i comuni di questa classe"><i style="background:${r[Math.min(i, k - 1)]}"></i>${esc(lim(i))}<small>${nf.format(n)} comuni</small></button></li>`).join('')}</ul>` : '')
     + (mio !== undefined ? `<div class="leg-fascia"><b>${esc(cn)}</b>: ${esc(I.fmt(I.f(S.vals[S.cur.id])))} → fascia ${mio + 1} di ${nc}</div>` : S.cur.liv === 'c' ? `<div class="leg-fascia"><b>${esc(cn)}</b>: nessun progetto, resta grigio</div>` : '')
-    + `<div class="nota-leg">${S.cls ? '<button type="button" data-k="tutte" class="tutte">Mostra tutte le classi</button> · ' : 'Clic su una classe per isolarla · '}${S.adatta ? 'scala adattata al territorio' : 'scala su tutta Italia'}${nFiltri(F) ? ' · con i filtri attivi' : ''}. Grigio: nessun progetto${S.cls ? ' o classe esclusa' : ''}.</div>`;
+    + `<div class="nota-leg">${S.cls ? '<button type="button" data-k="tutte" class="tutte">Mostra tutte le classi</button> · ' : 'Clic su una classe per isolarla · '}${S.adatta ? 'scala adattata al territorio' : 'scala su tutta Italia'}${nFiltri(F) ? ' · con i filtri attivi' : ''}. Grigio: nessun progetto${S.cls ? ' o classe esclusa' : ''}.</div>`);
   aggiornaQuadro();
 }
 /* Modo «missione prevalente»: colore = missione con più importo nel comune, trasparenza = importo (più pieno = più finanziato) */
@@ -195,8 +196,8 @@ function mappaCategorie(I, F) {
   S.map.setPaintProperty('comuni', 'fill-opacity', ord.length ? opac : 0.85);
   const tot = {}; ord.forEach(([k]) => { const d = S.vals[k].dom; tot[d] = (tot[d] || 0) + 1; });
   const dom = S.cur.liv === 'c' && S.vals[S.cur.id]?.fin > 0 ? S.vals[S.cur.id].dom : null, cn = S.cur.liv === 'c' ? S.com[S.cur.id].nm : '';
-  $('#legenda').innerHTML = testaLegenda(I) + `<ul class="cat">${S.meta.missioni.map((k) => `<li><button type="button" data-f="mis" data-v="${k}" class="${F.mis === k ? 'on' : ''}" aria-pressed="${F.mis === k}" title="Filtra per ${esc(NOMI_MIS[k])}"><i style="background:${COL_MIS[k]}"></i>${esc(NOMI_MIS[k])}${dom === k ? `<em class="qui">◀ ${esc(cn)}</em>` : ''}<small>${nf.format(tot[k] || 0)} comuni</small></button></li>`).join('')}</ul>
-   <div class="nota-leg">Trasparenza: più il colore è pieno, più il comune ha finanziamento${nFiltri(F) ? ' · con i filtri attivi' : ''}. Grigio: nessun progetto.</div>`;
+  setLegenda(I, `<ul class="cat">${S.meta.missioni.map((k) => `<li><button type="button" data-f="mis" data-v="${k}" class="${F.mis === k ? 'on' : ''}${dom === k ? ' qui' : ''}" aria-pressed="${F.mis === k}" title="Filtra per ${esc(NOMI_MIS[k])}"><i style="background:${COL_MIS[k]}"></i>${esc(NOMI_MIS[k])}<small>${nf.format(tot[k] || 0)} comuni</small></button></li>`).join('')}</ul>
+   <div class="nota-leg">Trasparenza: più il colore è pieno, più il comune ha finanziamento${nFiltri(F) ? ' · con i filtri attivi' : ''}. Grigio: nessun progetto.</div>`);
 }
 /* Contatori sul riquadro visibile: comuni, progetti, importo e quota per missione (clic = filtro) */
 function aggiornaQuadro() {
