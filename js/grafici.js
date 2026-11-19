@@ -219,9 +219,13 @@
     };
     nodo.addEventListener('pointermove', (e) => mostra(e.clientX, e.clientY));
     nodo.addEventListener('pointerleave', () => { if (tip) tip.hidden = true; });
-    nodo.addEventListener('focus', () => { const b = nodo.getBoundingClientRect(); mostra(b.left + b.width / 2, b.top + b.height / 2); });
+    nodo.addEventListener('focus', () => { if (!nodo.matches(':focus-visible')) return; const b = nodo.getBoundingClientRect(); mostra(b.left + b.width / 2, b.top + b.height / 2); });
     nodo.addEventListener('blur', () => { if (tip) tip.hidden = true; });
+    /* tocco: dopo il rilascio il tooltip non resta; Esc e scorrimento lo chiudono */
+    nodo.addEventListener('pointerup', (e) => { if (e.pointerType !== 'mouse' && tip) tip.hidden = true; });
   }
+  const chiudi = () => { if (tip) tip.hidden = true; };
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') chiudi(); }); addEventListener('scroll', chiudi, { passive: true });
 
   window.GraficiPNRR = { conTip, ciambella, barre, colonne, calore, dispersione, lorenz, imbuto };
 })();

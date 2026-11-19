@@ -283,15 +283,23 @@ function creaMappa() {
   m.on('moveend', scriviVista);
   m.on('idle', () => aggiornaQuadro());
   const tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true; $('#map').append(tip);
+  /* il tooltip è solo per chi ha un puntatore che passa sopra (mouse): sul tocco non esiste «mouseleave», resterebbe aperto per sempre */
+  const senzaHover = matchMedia('(hover: none)');
+  const chiudiTip = () => { tip.hidden = true; m.getCanvas().style.cursor = ''; };
   m.on('mousemove', 'comuni', (e) => {
-    const f = e.features[0]; if (!f || !S.vals) return; const id = f.properties.pro_com_t; const c = S.vals[id]; if (!c) return;
+    if (senzaHover.matches) return chiudiTip();
+    const f = e.features[0]; if (!f || !S.vals) return chiudiTip(); const id = f.properties.pro_com_t; const c = S.vals[id]; if (!c) return;
     m.getCanvas().style.cursor = 'pointer'; tip.hidden = false; tip.style.left = e.point.x + 12 + 'px'; tip.style.top = e.point.y + 12 + 'px';
     const v = INDIC[S.indic].f(c), cm = S.com[id];
     const mis = Object.entries(analisi(cells('c', id), S.cur.F).mis).filter(([, t]) => t.fin > 0).sort((a, b) => b[1].fin - a[1].fin);
     tip.innerHTML = `<b class="tip-nome">${esc(cm.nm)}</b><br><span class="tip-geo">${esc(S.prov[cm.pv]?.nome || '')} · ${esc(S.reg[cm.rg]?.nome || '')}</span><br><span class="tip-ind">${esc(INDIC[S.indic].nome.replace(/ \(.*/, ''))}: ${v == null ? 'nessun progetto' : INDIC[S.indic].fmt(v)}</span>`
       + (mis.length ? `<table class="tip-mis"><caption>Finanziato per missione</caption>${mis.map(([k, t]) => `<tr><td>${esc(NOMI_MIS[k] || k)}</td><td>${eur(t.fin)}</td></tr>`).join('')}</table>` : '');
   });
-  m.on('mouseleave', 'comuni', () => { tip.hidden = true; m.getCanvas().style.cursor = ''; });
+  m.on('mouseleave', 'comuni', chiudiTip);
+  /* uscita rapida dalla tela, spostamenti/zoom della mappa, Esc, finestra che perde il fuoco: il tooltip si chiude sempre */
+  m.getCanvas().addEventListener('pointerleave', chiudiTip);
+  m.on('movestart', chiudiTip); m.on('zoomstart', chiudiTip);
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') chiudiTip(); }); addEventListener('blur', chiudiTip);
   m.on('click', 'comuni', (e) => { const f = e.features[0]; if (f && S.com[f.properties.pro_com_t]) go('c', f.properties.pro_com_t, S.cur?.F); });
 }
 

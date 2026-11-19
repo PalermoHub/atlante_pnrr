@@ -162,14 +162,17 @@
         });
         map.touchZoomRotate.disableRotation(); map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
         map.on('style.load', livelli);
+        const senzaHover = matchMedia('(hover: none)'); const chiudiTip = () => { tip.hidden = true; };
         map.on('mousemove', 'comuni', (e) => {
-          const f = e.features && e.features[0]; if (!f) return;
+          if (senzaHover.matches) return chiudiTip();
+          const f = e.features && e.features[0]; if (!f) return chiudiTip();
           const cid = f.properties.pro_com_t, id = st.liv === 'c' ? cid : st.liv === 'p' ? cid.slice(0, 3) : String(f.properties.cod_reg);
           const v = vals[id]; tip.hidden = false;
           tip.replaceChildren(H('b', { text: NOME[st.liv](id) || id }), H('span', { text: v == null ? 'nessun dato' : `${IND[st.ind].nome}: ${IND[st.ind].fmt(v)}` }));
           tip.style.left = Math.min(e.point.x + 12, tela.clientWidth - 230) + 'px'; tip.style.top = Math.max(4, e.point.y - 8) + 'px';
         });
-        map.on('mouseleave', 'comuni', () => { tip.hidden = true; });
+        map.on('mouseleave', 'comuni', chiudiTip); map.getCanvas().addEventListener('pointerleave', chiudiTip); map.on('movestart', chiudiTip);
+        addEventListener('keydown', (e) => { if (e.key === 'Escape') chiudiTip(); });
         map.on('error', (e) => { if (e && e.error && /pmtiles|404|Failed/i.test(String(e.error.message))) console.warn('mappa:', e.error.message); });
       }
       colora();

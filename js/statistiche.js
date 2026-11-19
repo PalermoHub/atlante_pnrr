@@ -25,9 +25,11 @@
     };
     nodo.addEventListener('pointermove', (e) => mostra(e.clientX, e.clientY));
     nodo.addEventListener('pointerleave', () => { tip.hidden = true; });
-    nodo.addEventListener('focus', () => { const b = nodo.getBoundingClientRect(); mostra(b.left + b.width / 2, b.top + b.height / 2); });
+    nodo.addEventListener('focus', () => { if (!nodo.matches(':focus-visible')) return; const b = nodo.getBoundingClientRect(); mostra(b.left + b.width / 2, b.top + b.height / 2); });
     nodo.addEventListener('blur', () => { tip.hidden = true; });
+    nodo.addEventListener('pointerup', (e) => { if (e.pointerType !== 'mouse') tip.hidden = true; });
   }
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') tip.hidden = true; }); addEventListener('scroll', () => { tip.hidden = true; }, { passive: true });
   const cap = (id, titolo, corpo, opz = {}) => {
     const s = H('figure', { class: 'grafico' + (opz.largo ? ' largo' : '') }, [H('figcaption', {}, [H('b', { text: titolo }), opz.sub ? H('small', { text: opz.sub }) : null])]);
     el(id).append(s); corpo(s); if (opz.nota) s.append(H('p', { class: 'grafico-nota', text: opz.nota })); return s;
