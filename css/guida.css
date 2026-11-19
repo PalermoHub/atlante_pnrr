@@ -1,6 +1,6 @@
 /* Pagina Guida e galleria (lightbox): usa le variabili dei temi di atlante.css */
-.guida { max-width: 980px; }
-.guida p, .guida li, .guida dd { max-width: 72ch; }
+.guida { max-width: 1180px; }
+.guida p, .guida li, .guida dd, .guida .intro { max-width: none; }
 .guida h3 { font-size: 1.05rem; margin: 1.4rem 0 .3rem; }
 .guida kbd { font: inherit; font-size: .82em; padding: .05rem .4rem; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; background: var(--surface); }
 .guida code { font-size: .9em; background: var(--accbg); padding: .05rem .3rem; border-radius: 4px; }
