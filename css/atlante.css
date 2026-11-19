@@ -40,7 +40,7 @@ button:hover { border-color: var(--acc); }
 #crumbs { flex: 1; display: flex; gap: .3rem; flex-wrap: wrap; font-size: .9rem; min-width: 0; }
 #crumbs a { color: var(--acc); text-decoration: none; } #crumbs a:hover { text-decoration: underline; }
 #crumbs .sep { color: var(--ink3); } #crumbs .cur { font-weight: 600; }
-.tools { display: flex; gap: .4rem; }
+.tools { display: flex; gap: .4rem; margin-left: auto; }
 main { flex: 1; display: grid; grid-template-columns: minmax(300px, 46%) 1fr; min-height: 0; }
 .mapcol { position: relative; border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
 .mapbar { padding: .5rem .75rem; display: flex; gap: .5rem; align-items: center; background: var(--surface); border-bottom: 1px solid var(--line); font-size: .85rem; flex-wrap: wrap; }
