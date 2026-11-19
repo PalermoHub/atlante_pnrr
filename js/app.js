@@ -491,8 +491,8 @@ function tabProg(L, A, F, dotOn) {
 /* sagoma del territorio accanto al titolo (data/sagome, generata da scrpits/sagome.py) */
 async function disegnaSagoma(liv, id, n) {
   try {
-    const f = liv === 'c' ? `data/sagome/c/${n.pv ?? id.slice(0, 3)}.json` : `data/sagome/${liv}.json`;
-    const sg = (await get(f))[id]; const host = $('#sagoma');
+    const f = !liv ? 'data/sagome/i.json' : liv === 'c' ? `data/sagome/c/${n.pv ?? id.slice(0, 3)}.json` : `data/sagome/${liv}.json`;
+    const sg = (await get(f))[id ?? 'it']; const host = $('#sagoma');
     if (!sg || !host || S.cur.liv !== liv || S.cur.id !== id) return;
     host.innerHTML = `<svg viewBox="-2 -2 ${sg.w + 4} ${sg.h + 4}" role="img" aria-label="Sagoma del territorio"><path d="${sg.d}" fill-rule="evenodd"/></svg>`;
   } catch (e) { /* la sagoma è un abbellimento: senza, la scheda funziona uguale */ }
@@ -502,7 +502,7 @@ function disegnaScheda(liv, id, n, nome, F) {
   const livNome = { null: 'Italia', r: 'Regione', p: 'Provincia', c: 'Comune' }[liv];
   const sp = nome + (liv === 'c' ? ` (${S.prov[n.pv]?.sigla ?? ''})` : liv === 'p' ? ` (${n.sigla ?? ''})` : '');
   const base = A.fase[0];
-  let h = `<div class="testa"><div><h1>${esc(sp)}</h1><p class="sotto">${livNome} · ${n.pop ? nf.format(n.pop) + ' abitanti (ISTAT 1/1/2026)' : ''} · estrazione del 13/06/2026</p></div>${liv ? '<div class="sagoma" id="sagoma" aria-hidden="true"></div>' : ''}</div>${chips(F)}`;
+  let h = `<div class="testa"><div><h1>${esc(sp)}</h1><p class="sotto">${livNome} · ${n.pop ? nf.format(n.pop) + ' abitanti (ISTAT 1/1/2026)' : ''} · estrazione del 13/06/2026</p></div><div class="sagoma" id="sagoma" aria-hidden="true"></div></div>${chips(F)}`;
   h += `<div class="kpi">
    <div><b>${eur(T.fin)}</b><span>Finanziamento PNRR${nfil ? ' (filtrato)' : ' dei progetti'}</span><em>${nf.format(T.n)} progetti</em></div>
    <div><b>${n.pop ? eurAb(T.fin, n.pop) : '–'}</b><span>per abitante</span></div>
@@ -553,7 +553,7 @@ function disegnaScheda(liv, id, n, nome, F) {
   if (liv === 'c') h += `<h2>Progetti nel comune <small id="p-cnt"></small></h2><div class="filtri"><input id="p-q" type="search" placeholder="Cerca titolo o soggetto attuatore" aria-label="Cerca nei progetti"><button id="p-csv" type="button">Scarica CSV (filtrati)</button><button id="p-csv-tutti" type="button">Scarica tutti i dati del comune</button></div><p class="filtri-hint" id="p-nota"></p><div id="tab-prog"></div>`;
   h += `<p class="nota" style="margin-top:2rem">Fonte: Italia Domani, Catalogo Open Data (CC-BY 4.0), estrazione del 13/06/2026 · confini comunali ISTAT/ANNCSU. Importi in euro correnti. <a href="#" id="l-metodo">Metodo e limiti</a> · <a href="#" id="l-fonti">Fonti</a>.</p>`;
   $('#scheda').innerHTML = h;
-  if (liv) disegnaSagoma(liv, id, n);
+  disegnaSagoma(liv, id, n);
   $('#scheda').querySelectorAll('details[data-det]').forEach((d) => d.querySelector('summary').addEventListener('click', () => { S.det[d.dataset.det] = !d.open; }));
   $('#l-metodo').addEventListener('click', (e) => { e.preventDefault(); apriInfo('metodo'); });
   $('#l-fonti').addEventListener('click', (e) => { e.preventDefault(); apriInfo('fonti'); });
