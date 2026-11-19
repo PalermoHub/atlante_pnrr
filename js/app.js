@@ -229,10 +229,19 @@ const tono = () => (document.documentElement.getAttribute('data-tone') === 'dark
 const limiti = () => { const [w, s, e, n] = ITALIA, dx = (e - w) * 0.3, dy = (n - s) * 0.3; return [[w - dx, s - dy], [e + dx, n + dy]]; };
 /* Il limite deve contenere sempre la vista che inquadra tutta l'Italia: su schermi grandi (32" e oltre) quella vista è più larga
    dei limiti fissi e MapLibre la sposta fuori centro. Si unisce quindi il limite fisso all'area visibile a «tutta Italia». */
+/* Su telefono la scheda (foglio) copre la parte bassa della mappa: «tutta Italia» si inquadra nella parte libera sopra il foglio
+   (sotto i comandi in alto), e il limite di zoom lascia spazio anche per il foglio a mezza altezza, così il Sud non resta nascosto. */
+const telefono = matchMedia('(max-width: 720px)');
+function padItalia(m, frac) {
+  if (!telefono.matches) return 30;
+  const c = m.getContainer(), bar = document.querySelector('.mapbar'), f = document.getElementById('foglio');
+  const sotto = frac != null ? c.clientHeight * frac : (f ? f.offsetHeight : 184);
+  return { top: (bar ? bar.offsetHeight : 110) + 10, bottom: Math.round(sotto) + 10, left: 20, right: 20 };
+}
 function limitiPer(m) {
   const [[w, s], [e, n]] = limiti();
   try {
-    const cam = m.cameraForBounds([[ITALIA[0], ITALIA[1]], [ITALIA[2], ITALIA[3]]], { padding: 30 }), c = m.getContainer();
+    const cam = m.cameraForBounds([[ITALIA[0], ITALIA[1]], [ITALIA[2], ITALIA[3]]], { padding: padItalia(m, 0.55) }), c = m.getContainer();
     if (!cam || !c.clientWidth || !c.clientHeight) return [[w, s], [e, n]];
     const sc = 512 * Math.pow(2, cam.zoom), mc = maplibregl.MercatorCoordinate.fromLngLat(cam.center), hx = c.clientWidth / 2 / sc, hy = c.clientHeight / 2 / sc;
     const a = new maplibregl.MercatorCoordinate(mc.x - hx, mc.y + hy, 0).toLngLat(), b = new maplibregl.MercatorCoordinate(mc.x + hx, mc.y - hy, 0).toLngLat();
@@ -243,7 +252,7 @@ class HomeControl {
   onAdd(m) {
     this.m = m; const d = this.d = document.createElement('div'); d.className = 'maplibregl-ctrl maplibregl-ctrl-group';
     d.innerHTML = '<button type="button" class="ctrl-home" title="Tutta Italia" aria-label="Zoom su tutta Italia"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5M5.5 10v10h4.5v-6h4v6h4.5V10" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
-    d.firstChild.addEventListener('click', () => m.fitBounds([[ITALIA[0], ITALIA[1]], [ITALIA[2], ITALIA[3]]], { padding: 30, duration: 600 }));
+    d.firstChild.addEventListener('click', () => m.fitBounds([[ITALIA[0], ITALIA[1]], [ITALIA[2], ITALIA[3]]], { padding: padItalia(m), duration: 600 }));
     return d;
   }
   onRemove() { this.d.remove(); }
@@ -278,7 +287,7 @@ function creaMappa() {
   const url = new URL('data/geo/comuni.pmtiles', location.href).href;
   /* «style.load» scatta al primo caricamento e a ogni cambio di stile (tema chiaro/scuro): i livelli si riaggiungono sempre */
   m.on('style.load', () => {
-    if (!S.avviata) { S.avviata = true; m.resize(); m.setMaxBounds(limitiPer(m)); m.on('resize', () => m.setMaxBounds(limitiPer(m))); if (S.vista0) m.jumpTo({ zoom: S.vista0[0], center: [S.vista0[2], S.vista0[1]] }); else m.fitBounds([[ITALIA[0], ITALIA[1]], [ITALIA[2], ITALIA[3]]], { padding: 30, duration: 0 }); S.vista0 = null; }
+    if (!S.avviata) { S.avviata = true; m.resize(); m.setMaxBounds(limitiPer(m)); m.on('resize', () => m.setMaxBounds(limitiPer(m))); if (S.vista0) m.jumpTo({ zoom: S.vista0[0], center: [S.vista0[2], S.vista0[1]] }); else m.fitBounds([[ITALIA[0], ITALIA[1]], [ITALIA[2], ITALIA[3]]], { padding: padItalia(m), duration: 0 }); S.vista0 = null; }
     aggiungiLivelli(m, url);
     if (S.cur) { evidenzia(S.cur.liv, S.cur.id, true); aggiornaMappa(); }
   });

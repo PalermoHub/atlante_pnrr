@@ -81,8 +81,13 @@
   /* ---------- foglio inferiore: tre altezze, trascinabile o a tocchi ---------- */
   const foglio = $('#foglio'), man = $('#maniglia'), ORDINE = ['chiuso', 'medio', 'aperto'];
   const etich = { chiuso: 'Apri la scheda', medio: 'Allarga la scheda', aperto: 'Riduci la scheda' };
+  /* altezza massima: sotto la barra dei comandi (ricerca e filtri), che altrimenti coprirebbe la maniglia */
+  const tetto = () => { const b = document.querySelector('.mapbar'); return (b ? b.offsetHeight : 100) + 8; };
+  const aggTetto = () => foglio.parentElement.style.setProperty('--tetto', tetto() + 'px');
+  addEventListener('resize', aggTetto);
   function stato(s) {
     if (!mobile.matches) s = 'aperto';
+    aggTetto();
     foglio.dataset.stato = s; foglio.style.removeProperty('height');
     man.setAttribute('aria-expanded', String(s !== 'chiuso')); man.setAttribute('aria-label', etich[s] || 'Scheda');
     document.body.dataset.foglio = s;
@@ -91,7 +96,7 @@
   let drag = null;
   man.addEventListener('pointerdown', (e) => {
     if (!mobile.matches) return;
-    const r = foglio.getBoundingClientRect(); drag = { y0: e.clientY, h0: r.height, mosso: false, max: foglio.parentElement.clientHeight - 56, id: e.pointerId };
+    const r = foglio.getBoundingClientRect(); drag = { y0: e.clientY, h0: r.height, mosso: false, max: foglio.parentElement.clientHeight - tetto(), id: e.pointerId };
     man.setPointerCapture(e.pointerId);
   });
   man.addEventListener('pointermove', (e) => {
