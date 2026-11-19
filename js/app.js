@@ -225,6 +225,18 @@ const STILI = { light: 'https://tiles.openfreemap.org/styles/positron', dark: 'h
 const tono = () => (document.documentElement.getAttribute('data-tone') === 'dark' ? 'dark' : 'light');
 /* Limite di spostamento automatico: l'estensione dell'Italia allargata del 30% per lato, così si vede anche un po' di mare e di confine. */
 const limiti = () => { const [w, s, e, n] = ITALIA, dx = (e - w) * 0.3, dy = (n - s) * 0.3; return [[w - dx, s - dy], [e + dx, n + dy]]; };
+/* Il limite deve contenere sempre la vista che inquadra tutta l'Italia: su schermi grandi (32" e oltre) quella vista è più larga
+   dei limiti fissi e MapLibre la sposta fuori centro. Si unisce quindi il limite fisso all'area visibile a «tutta Italia». */
+function limitiPer(m) {
+  const [[w, s], [e, n]] = limiti();
+  try {
+    const cam = m.cameraForBounds([[ITALIA[0], ITALIA[1]], [ITALIA[2], ITALIA[3]]], { padding: 30 }), c = m.getContainer();
+    if (!cam || !c.clientWidth || !c.clientHeight) return [[w, s], [e, n]];
+    const sc = 512 * Math.pow(2, cam.zoom), mc = maplibregl.MercatorCoordinate.fromLngLat(cam.center), hx = c.clientWidth / 2 / sc, hy = c.clientHeight / 2 / sc;
+    const a = new maplibregl.MercatorCoordinate(mc.x - hx, mc.y + hy, 0).toLngLat(), b = new maplibregl.MercatorCoordinate(mc.x + hx, mc.y - hy, 0).toLngLat();
+    return [[Math.min(w, a.lng), Math.max(Math.min(s, a.lat), -85)], [Math.max(e, b.lng), Math.min(Math.max(n, b.lat), 85)]];
+  } catch (_) { return [[w, s], [e, n]]; }
+}
 class HomeControl {
   onAdd(m) {
     this.m = m; const d = this.d = document.createElement('div'); d.className = 'maplibregl-ctrl maplibregl-ctrl-group';
@@ -255,7 +267,7 @@ function aggiungiLivelli(m, url) {
 function creaMappa() {
   const proto = new pmtiles.Protocol(); maplibregl.addProtocol('pmtiles', proto.tile);
   S.tonoMappa = tono();
-  const m = new maplibregl.Map({ container: 'map', style: STILI[S.tonoMappa], bounds: [[ITALIA[0], ITALIA[1]], [ITALIA[2], ITALIA[3]]], maxBounds: limiti(), attributionControl: { compact: true }, dragRotate: false, pitchWithRotate: false, maxPitch: 0, pitch: 0, bearing: 0 });
+  const m = new maplibregl.Map({ container: 'map', style: STILI[S.tonoMappa], bounds: [[ITALIA[0], ITALIA[1]], [ITALIA[2], ITALIA[3]]], attributionControl: { compact: true }, dragRotate: false, pitchWithRotate: false, maxPitch: 0, pitch: 0, bearing: 0 });
   m.touchZoomRotate.disableRotation(); m.touchPitch.disable(); m.keyboard.disableRotation();
   S.map = m; m.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right'); m.addControl(new HomeControl(), 'top-right'); m.addControl(new LogoControl(), 'bottom-right');
   /* le info sulla mappa (attribuzioni) partono chiuse: si apre solo con l'icona i */
@@ -264,7 +276,7 @@ function creaMappa() {
   const url = new URL('data/geo/comuni.pmtiles', location.href).href;
   /* «style.load» scatta al primo caricamento e a ogni cambio di stile (tema chiaro/scuro): i livelli si riaggiungono sempre */
   m.on('style.load', () => {
-    if (!S.avviata) { S.avviata = true; m.resize(); if (S.vista0) m.jumpTo({ zoom: S.vista0[0], center: [S.vista0[2], S.vista0[1]] }); else m.fitBounds([[ITALIA[0], ITALIA[1]], [ITALIA[2], ITALIA[3]]], { padding: 30, duration: 0 }); S.vista0 = null; }
+    if (!S.avviata) { S.avviata = true; m.resize(); m.setMaxBounds(limitiPer(m)); m.on('resize', () => m.setMaxBounds(limitiPer(m))); if (S.vista0) m.jumpTo({ zoom: S.vista0[0], center: [S.vista0[2], S.vista0[1]] }); else m.fitBounds([[ITALIA[0], ITALIA[1]], [ITALIA[2], ITALIA[3]]], { padding: 30, duration: 0 }); S.vista0 = null; }
     aggiungiLivelli(m, url);
     if (S.cur) { evidenzia(S.cur.liv, S.cur.id, true); aggiornaMappa(); }
   });
