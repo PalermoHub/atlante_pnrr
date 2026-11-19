@@ -27,6 +27,8 @@
   pan.setAttribute('role', 'dialog'); pan.setAttribute('aria-modal', 'true'); pan.setAttribute('aria-label', 'Menù');
   const testa = el('div', 'menu-testa');
   const marchio = top.querySelector('.brand').cloneNode(true); marchio.classList.add('menu-marchio'); marchio.removeAttribute('id');
+  const mst = marchio.querySelector('strong'); if (mst) mst.textContent += ' Italia';
+  const msp = marchio.querySelector('span'); if (msp) msp.innerHTML = msp.textContent.split(' · ').join('<br>'); /* data su due righe */
   const chiudiBtn = el('button', 'menu-x'); chiudiBtn.type = 'button'; chiudiBtn.setAttribute('aria-label', 'Chiudi il menù');
   chiudiBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>';
   testa.append(marchio, chiudiBtn);
@@ -43,12 +45,12 @@
   }
   const ods = el('p', 'menu-ods');
   ods.innerHTML = '<a href="https://opendatasicilia.it/" target="_blank" rel="noopener"><img src="img/opendatasicilia.png" width="26" height="30" alt="OpenDataSicilia"></a><span><strong>Atlante del PNRR</strong> è un progetto di OpenDataSicilia · © 2026</span>';
-  piede.append(lnk, ods);
+  piede.append(ods);
   pan.append(testa, corpo, piede);
   document.body.append(vela, pan);
 
   function sistema() {
-    if (mobile.matches) { corpo.append(nav); if (tools) corpo.append(tools); }
+    if (mobile.matches) { corpo.append(nav); if (tools) corpo.append(tools); corpo.append(lnk); }
     else { posNav.after(nav); if (tools && posTools) posTools.after(tools); chiudi(false); }
   }
   let ritorno = null;

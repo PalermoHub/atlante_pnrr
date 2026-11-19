@@ -279,7 +279,7 @@ body.home .scheda { overflow-x: hidden; }
   .menu-pan .tools { flex-direction: column; align-items: stretch; gap: .5rem; margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--line); }
   .menu-pan .tools button, .menu-pan .tools select { width: 100%; min-height: 48px; padding: 0 .85rem; font-size: 1rem; text-align: left; }
   .menu-piede { padding: .5rem .75rem calc(.75rem + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); font-size: .8125rem; color: var(--ink2); }
-  .menu-lnk { display: flex; gap: 1.25rem; }
+  .menu-lnk { display: flex; gap: 1.25rem; margin-top: .75rem; padding-top: .5rem; border-top: 1px solid var(--line); font-size: .8125rem; }
   .menu-lnk a, .menu-lnk button { display: inline-flex; align-items: center; min-height: 44px; padding: 0; border: 0; background: none; color: var(--ink2); text-decoration: underline; text-underline-offset: 2px; font: inherit; }
   .menu-ods { display: flex; align-items: center; gap: .6rem; margin: .25rem 0 0; color: var(--ink3); }
   .menu-ods img { height: 30px; width: auto; flex: none; }
