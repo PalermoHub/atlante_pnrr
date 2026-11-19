@@ -199,8 +199,8 @@ function aggiornaMappa() {
   /* le classi scelte nella legenda valgono finché indicatore, scala, classi, territorio e filtri restano gli stessi */
   const chiave = [S.indic, S.adatta, S.classi, liv, id, fStr(F)].join('|'); if (chiave !== S.clsKey) { S.clsKey = chiave; S.cls = null; }
   const nessuno = getComputedStyle(document.documentElement).getPropertyValue('--line').trim() || '#ccc';
-  const r = ramp(), expr = ['match', ['get', 'pro_com_t']], cont = new Array(nc).fill(0); S.clsMap = {}; let cnt = 0;
-  for (const [cid, c] of Object.entries(S.vals)) { const i = cls(I.f(c)); if (i < 0) continue; S.clsMap[cid] = i; cont[i]++; expr.push(cid, !S.cls || S.cls.has(i) ? r[Math.min(i, k - 1)] : nessuno); cnt++; }
+  const r = ramp(), expr = ['match', ['get', 'pro_com_t']], cont = new Array(nc).fill(0); S.clsMap = {}; let cnt = 0; const inTerr = new Set(ambito(liv, id));
+  for (const [cid, c] of Object.entries(S.vals)) { const i = cls(I.f(c)); if (i < 0) continue; S.clsMap[cid] = i; if (inTerr.has(cid)) cont[i]++; expr.push(cid, !S.cls || S.cls.has(i) ? r[Math.min(i, k - 1)] : nessuno); cnt++; }
   expr.push(nessuno); S.map.setPaintProperty('comuni', 'fill-color', cnt ? expr : nessuno);
   const lim = (i) => `${I.fmt(i === 0 ? v[0] : S.breaks[i - 1])} – ${I.fmt(i === nc - 1 ? v[v.length - 1] : S.breaks[i])}`;
   S.legTip = { cat: false, voci: cont.map((n, i) => ({ col: r[Math.min(i, k - 1)], txt: lim(i), n })), tot: nc };
