@@ -307,3 +307,11 @@ body.home .scheda { overflow-x: hidden; }
 
 /* In un iframe la linguetta ☰ della testata PalermoHub sta fissa in alto a sinistra (~50 px): logo e titolo si spostano a destra */
 html[data-iframe] header.top, html[data-iframe] body:not(.home) .top, html[data-iframe] body.home > header.top { padding-left: 5.65rem; }
+
+/* tooltip: fascia di colore del comune (solo sul telefono, dove la legenda sulla mappa è nascosta) */
+.tip-leg { margin-top: .4rem; font-size: .74rem; }
+.tip-rampa { display: flex; gap: 2px; margin-bottom: .2rem; }
+.tip-rampa i { flex: 1; height: 10px; border-radius: 2px; }
+.tip-rampa i.qui { outline: 2px solid var(--ink); outline-offset: 1px; }
+/* senza mouse: legenda e conteggi del riquadro si leggono nel tooltip, non sulla mappa */
+@media (hover: none) { .sovra { display: none; } }

@@ -178,6 +178,7 @@ function aggiornaMappa() {
   for (const [cid, c] of Object.entries(S.vals)) { const i = cls(I.f(c)); if (i < 0) continue; S.clsMap[cid] = i; cont[i]++; expr.push(cid, !S.cls || S.cls.has(i) ? r[Math.min(i, k - 1)] : nessuno); cnt++; }
   expr.push(nessuno); S.map.setPaintProperty('comuni', 'fill-color', cnt ? expr : nessuno);
   const lim = (i) => `${I.fmt(i === 0 ? v[0] : S.breaks[i - 1])} – ${I.fmt(i === nc - 1 ? v[v.length - 1] : S.breaks[i])}`;
+  S.legTip = { cat: false, voci: cont.map((n, i) => ({ col: r[Math.min(i, k - 1)], txt: lim(i), n })), tot: nc };
   const mio = S.cur.liv === 'c' ? S.clsMap[S.cur.id] : undefined, cn = S.cur.liv === 'c' ? S.com[S.cur.id].nm : '';
   setLegenda(I, (v.length ? `<ul class="cat">${cont.map((n, i) => `<li><button type="button" data-k="${i}" class="${S.cls?.has(i) ? 'on' : ''}${mio === i ? ' qui' : ''}" aria-pressed="${!!S.cls?.has(i)}" title="Mostra solo i comuni di questa classe"><i style="background:${r[Math.min(i, k - 1)]}"></i>${esc(lim(i))}<small>${nf.format(n)} comuni</small></button></li>`).join('')}</ul>` : '')
     + (mio !== undefined ? `<div class="leg-fascia"><b>${esc(cn)}</b>: ${esc(I.fmt(I.f(S.vals[S.cur.id])))} → fascia ${mio + 1} di ${nc}</div>` : S.cur.liv === 'c' ? `<div class="leg-fascia"><b>${esc(cn)}</b>: nessun progetto, resta grigio</div>` : '')
@@ -195,6 +196,7 @@ function mappaCategorie(I, F) {
   S.map.setPaintProperty('comuni', 'fill-color', ord.length ? colori : nessuno);
   S.map.setPaintProperty('comuni', 'fill-opacity', ord.length ? opac : 0.85);
   const tot = {}; ord.forEach(([k]) => { const d = S.vals[k].dom; tot[d] = (tot[d] || 0) + 1; });
+  S.legTip = { cat: true, voci: S.meta.missioni.map((k) => ({ k, col: COL_MIS[k], txt: NOMI_MIS[k] || k, n: tot[k] || 0 })), tot: S.meta.missioni.length };
   const dom = S.cur.liv === 'c' && S.vals[S.cur.id]?.fin > 0 ? S.vals[S.cur.id].dom : null, cn = S.cur.liv === 'c' ? S.com[S.cur.id].nm : '';
   setLegenda(I, `<ul class="cat">${S.meta.missioni.map((k) => `<li><button type="button" data-f="mis" data-v="${k}" class="${F.mis === k ? 'on' : ''}${dom === k ? ' qui' : ''}" aria-pressed="${F.mis === k}" title="Filtra per ${esc(NOMI_MIS[k])}"><i style="background:${COL_MIS[k]}"></i>${esc(NOMI_MIS[k])}<small>${nf.format(tot[k] || 0)} comuni</small></button></li>`).join('')}</ul>
    <div class="nota-leg">Trasparenza: più il colore è pieno, più il comune ha finanziamento${nFiltri(F) ? ' · con i filtri attivi' : ''}. Grigio: nessun progetto.</div>`);
@@ -283,6 +285,7 @@ function creaMappa() {
   m.on('moveend', scriviVista);
   m.on('idle', () => aggiornaQuadro());
   const tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true; $('#map').append(tip);
+  const senzaHover = matchMedia('(hover: none)');
   /* contenuto del tooltip; false se il comune non ha dati */
   const riempiTip = (id) => {
     const c = S.vals?.[id]; if (!c) return false;
@@ -290,16 +293,22 @@ function creaMappa() {
     const mis = Object.entries(analisi(cells('c', id), S.cur.F).mis).filter(([, t]) => t.fin > 0).sort((a, b) => b[1].fin - a[1].fin);
     tip.innerHTML = `<b class="tip-nome">${esc(cm.nm)}</b><br><span class="tip-geo">${esc(S.prov[cm.pv]?.nome || '')} · ${esc(S.reg[cm.rg]?.nome || '')}</span><br><span class="tip-ind">${esc(INDIC[S.indic].nome.replace(/ \(.*/, ''))}: ${v == null ? 'nessun progetto' : INDIC[S.indic].fmt(v)}</span>`
       + (mis.length ? `<table class="tip-mis"><caption>Finanziato per missione</caption>${mis.map(([k, t]) => `<tr><td>${esc(NOMI_MIS[k] || k)}</td><td>${eur(t.fin)}</td></tr>`).join('')}</table>` : '');
+    /* sul telefono la legenda non sta più sulla mappa: la fascia di colore del comune sta qui, in forma compatta */
+    if (senzaHover.matches && S.legTip) {
+      const L = S.legTip, mio = L.cat ? L.voci.findIndex((x) => x.k === c.dom) : S.clsMap?.[id];
+      const chip = L.voci.map((x, i) => `<i class="${i === mio ? 'qui' : ''}" style="background:${x.col}"></i>`).join('');
+      const cap = mio == null || mio < 0 ? 'Nessun progetto: resta grigio' : L.cat ? `Missione prevalente: ${esc(L.voci[mio].txt)}` : `Fascia ${mio + 1} di ${L.tot}: ${esc(L.voci[mio].txt)}`;
+      tip.insertAdjacentHTML('beforeend', `<div class="tip-leg"><div class="tip-rampa">${chip}</div><span>${cap}</span></div>`);
+    }
     return true;
   };
   /* mouse: segue il puntatore. Tocco: non esiste «mouseleave», quindi il tooltip compare al tap, in alto a sinistra, e si chiude da solo */
-  const senzaHover = matchMedia('(hover: none)');
   let tipTocco = null, timerTocco = 0;
   const chiudiTip = () => { tip.hidden = true; tipTocco = null; clearTimeout(timerTocco); m.getCanvas().style.cursor = ''; };
   const mostraTocco = () => {
     if (!tipTocco || !riempiTip(tipTocco)) return chiudiTip();
     tip.style.left = '8px'; tip.style.top = '112px'; tip.hidden = false; /* sotto la barra di ricerca e filtri */
-    clearTimeout(timerTocco); timerTocco = setTimeout(chiudiTip, 6000);
+    clearTimeout(timerTocco); timerTocco = setTimeout(chiudiTip, 9000);
   };
   m.on('mousemove', 'comuni', (e) => {
     if (senzaHover.matches) return;
