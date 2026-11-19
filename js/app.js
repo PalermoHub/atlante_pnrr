@@ -220,7 +220,7 @@ function mappaCategorie(I, F) {
   colori.push(nessuno); opac.push(0.85);
   S.map.setPaintProperty('comuni', 'fill-color', ord.length ? colori : nessuno);
   S.map.setPaintProperty('comuni', 'fill-opacity', ord.length ? opac : 0.85);
-  const tot = {}; ord.forEach(([k]) => { const d = S.vals[k].dom; tot[d] = (tot[d] || 0) + 1; });
+  const tot = {}, inTerr = new Set(ambito(S.cur.liv, S.cur.id)); ord.forEach(([k]) => { if (!inTerr.has(k)) return; const d = S.vals[k].dom; tot[d] = (tot[d] || 0) + 1; });
   S.legTip = { cat: true, voci: S.meta.missioni.map((k) => ({ k, col: COL_MIS[k], txt: NOMI_MIS[k] || k, n: tot[k] || 0 })), tot: S.meta.missioni.length };
   const dom = S.cur.liv === 'c' && S.vals[S.cur.id]?.fin > 0 ? S.vals[S.cur.id].dom : null, cn = S.cur.liv === 'c' ? S.com[S.cur.id].nm : '';
   setLegenda(I, `<ul class="cat">${S.meta.missioni.map((k) => `<li><button type="button" data-f="mis" data-v="${k}" class="${F.mis === k ? 'on' : ''}${dom === k ? ' qui' : ''}" aria-pressed="${F.mis === k}" title="Filtra per ${esc(NOMI_MIS[k])}"><i style="background:${COL_MIS[k]}"></i>${esc(NOMI_MIS[k])}<small>${nf.format(tot[k] || 0)} comuni</small></button></li>`).join('')}</ul>
