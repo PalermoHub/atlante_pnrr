@@ -33,6 +33,8 @@ button { background: var(--surface); border: 1px solid var(--line); border-radiu
 button:hover { border-color: var(--acc); }
 :focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
 .top { display: flex; align-items: center; gap: 1rem; padding: .55rem 1rem; background: var(--surface); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: .6rem; color: inherit; text-decoration: none; }
+.brand img { width: 40px; height: 40px; flex: none; }
 .brand strong { font-size: 1.05rem; display: block; line-height: 1.1; }
 .brand span { font-size: .75rem; color: var(--ink3); }
 #crumbs { flex: 1; display: flex; gap: .3rem; flex-wrap: wrap; font-size: .9rem; min-width: 0; }
