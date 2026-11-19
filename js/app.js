@@ -283,26 +283,43 @@ function creaMappa() {
   m.on('moveend', scriviVista);
   m.on('idle', () => aggiornaQuadro());
   const tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true; $('#map').append(tip);
-  /* il tooltip è solo per chi ha un puntatore che passa sopra (mouse): sul tocco non esiste «mouseleave», resterebbe aperto per sempre */
-  const senzaHover = matchMedia('(hover: none)');
-  const chiudiTip = () => { tip.hidden = true; m.getCanvas().style.cursor = ''; };
-  m.on('mousemove', 'comuni', (e) => {
-    if (senzaHover.matches) return chiudiTip();
-    const f = e.features[0]; if (!f || !S.vals) return chiudiTip(); const id = f.properties.pro_com_t;
-    /* con un comune selezionato il tooltip compare solo su quello: sugli altri cambierebbe a ogni movimento del mouse */
-    if (S.cur?.liv === 'c' && S.cur.id !== id) return chiudiTip(); const c = S.vals[id]; if (!c) return;
-    m.getCanvas().style.cursor = 'pointer'; tip.hidden = false; tip.style.left = e.point.x + 12 + 'px'; tip.style.top = e.point.y + 12 + 'px';
+  /* contenuto del tooltip; false se il comune non ha dati */
+  const riempiTip = (id) => {
+    const c = S.vals?.[id]; if (!c) return false;
     const v = INDIC[S.indic].f(c), cm = S.com[id];
     const mis = Object.entries(analisi(cells('c', id), S.cur.F).mis).filter(([, t]) => t.fin > 0).sort((a, b) => b[1].fin - a[1].fin);
     tip.innerHTML = `<b class="tip-nome">${esc(cm.nm)}</b><br><span class="tip-geo">${esc(S.prov[cm.pv]?.nome || '')} · ${esc(S.reg[cm.rg]?.nome || '')}</span><br><span class="tip-ind">${esc(INDIC[S.indic].nome.replace(/ \(.*/, ''))}: ${v == null ? 'nessun progetto' : INDIC[S.indic].fmt(v)}</span>`
       + (mis.length ? `<table class="tip-mis"><caption>Finanziato per missione</caption>${mis.map(([k, t]) => `<tr><td>${esc(NOMI_MIS[k] || k)}</td><td>${eur(t.fin)}</td></tr>`).join('')}</table>` : '');
+    return true;
+  };
+  /* mouse: segue il puntatore. Tocco: non esiste «mouseleave», quindi il tooltip compare al tap, in alto a sinistra, e si chiude da solo */
+  const senzaHover = matchMedia('(hover: none)');
+  let tipTocco = null, timerTocco = 0;
+  const chiudiTip = () => { tip.hidden = true; tipTocco = null; clearTimeout(timerTocco); m.getCanvas().style.cursor = ''; };
+  const mostraTocco = () => {
+    if (!tipTocco || !riempiTip(tipTocco)) return chiudiTip();
+    tip.style.left = '8px'; tip.style.top = '112px'; tip.hidden = false; /* sotto la barra di ricerca e filtri */
+    clearTimeout(timerTocco); timerTocco = setTimeout(chiudiTip, 6000);
+  };
+  m.on('mousemove', 'comuni', (e) => {
+    if (senzaHover.matches) return;
+    const f = e.features[0]; if (!f || !S.vals) return chiudiTip(); const id = f.properties.pro_com_t;
+    /* con un comune selezionato il tooltip compare solo su quello: sugli altri cambierebbe a ogni movimento del mouse */
+    if (S.cur?.liv === 'c' && S.cur.id !== id) return chiudiTip();
+    if (!riempiTip(id)) return;
+    m.getCanvas().style.cursor = 'pointer'; tip.hidden = false; tip.style.left = e.point.x + 12 + 'px'; tip.style.top = e.point.y + 12 + 'px';
   });
-  m.on('mouseleave', 'comuni', chiudiTip);
-  /* uscita rapida dalla tela, spostamenti/zoom della mappa, Esc, finestra che perde il fuoco: il tooltip si chiude sempre */
-  m.getCanvas().addEventListener('pointerleave', chiudiTip);
-  m.on('movestart', chiudiTip); m.on('zoomstart', chiudiTip);
+  m.on('mouseleave', 'comuni', () => { if (!senzaHover.matches) chiudiTip(); });
+  /* uscita dalla tela, spostamenti fatti dall'utente, Esc, finestra che perde il fuoco: il tooltip si chiude sempre */
+  m.getCanvas().addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') chiudiTip(); });
+  m.on('movestart', (e) => { if (e.originalEvent || !tipTocco) chiudiTip(); });
+  m.on('moveend', () => { if (tipTocco) mostraTocco(); });
   addEventListener('keydown', (e) => { if (e.key === 'Escape') chiudiTip(); }); addEventListener('blur', chiudiTip);
-  m.on('click', 'comuni', (e) => { const f = e.features[0]; if (f && S.com[f.properties.pro_com_t]) go('c', f.properties.pro_com_t, S.cur?.F); });
+  m.on('click', (e) => { if (!m.queryRenderedFeatures(e.point, { layers: ['comuni'] }).length) chiudiTip(); });
+  m.on('click', 'comuni', (e) => {
+    const f = e.features[0]; const id = f && f.properties.pro_com_t; if (!id || !S.com[id]) return;
+    if (senzaHover.matches) { tipTocco = id; go('c', id, S.cur?.F); mostraTocco(); } else go('c', id, S.cur?.F);
+  });
 }
 
 /* ---------- filtri territoriali (a cascata e interconnessi) ---------- */
