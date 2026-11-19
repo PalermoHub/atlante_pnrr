@@ -122,3 +122,10 @@ html[data-embed] body.home .brand span { display: none; }
 @media (pointer: coarse) {
   body.home .quadro li button, body.home .legenda .cat button { min-height: 40px; }
 }
+
+/* ---------- mobile: la home è solo mappa. Testata e piede stanno nel menù (js/menu.js).
+   In embed (data-embed) resta tutto com'era: menu.js non parte e testata e piede restano visibili. ---------- */
+@media (max-width: 720px) {
+  html:not([data-embed]) body.home > header.top, html:not([data-embed]) body.home > .piede { display: none; }
+  html:not([data-embed]) body.home .cerca-riga .menu-btn { box-shadow: 0 2px 8px rgb(0 0 0 / .16); }
+}

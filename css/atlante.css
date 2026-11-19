@@ -255,3 +255,43 @@ body:not(.home) { padding-bottom: var(--piede-h, 3.5rem); }
 .in-cima { bottom: calc(var(--piede-h, 0px) + .75rem); z-index: 26; }
 body.home .scheda { overflow-x: hidden; }
 .consenso { bottom: calc(var(--piede-h, 0px) + .75rem); }
+
+/* Menù da mobile (js/menu.js): su desktop pulsante e pannello non esistono */
+.menu-btn, .menu-vela, .menu-pan { display: none; }
+@media (max-width: 720px) {
+  .menu-btn { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 44px; height: 44px; padding: 0; border-radius: 10px; }
+  .menu-btn svg, .menu-x svg { width: 1.4rem; height: 1.4rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  .menu-vela { display: block; position: fixed; inset: 0; z-index: 40; background: rgb(0 0 0 / .45); opacity: 0; transition: opacity .2s; }
+  .menu-vela[hidden], .menu-pan[hidden] { display: none; }
+  .menu-vela.aperto { opacity: 1; }
+  .menu-pan { display: flex; flex-direction: column; position: fixed; z-index: 41; top: 0; bottom: 0; width: min(86vw, 340px); background: var(--surface); box-shadow: 0 0 28px rgb(0 0 0 / .3); transition: transform .2s cubic-bezier(.2, .8, .2, 1); }
+  .menu-pan[data-lato="sx"] { left: 0; transform: translateX(-100%); border-radius: 0 18px 18px 0; }
+  .menu-pan[data-lato="dx"] { right: 0; transform: translateX(100%); border-radius: 18px 0 0 18px; }
+  .menu-pan.aperto { transform: none; }
+  .menu-testa { display: flex; align-items: center; gap: .5rem; padding: .6rem .75rem; border-bottom: 1px solid var(--line); }
+  .menu-testa .menu-marchio { flex: 1; min-width: 0; }
+  .menu-testa .menu-marchio span { display: block; font-size: .72rem; }
+  .menu-x { flex: none; width: 44px; height: 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border: 0; background: none; }
+  .menu-corpo { flex: 1; overflow-y: auto; padding: .5rem .75rem 1rem; }
+  .menu-pan .nav { display: flex; flex-direction: column; gap: .15rem; margin: 0; overflow: visible; font-size: 1.1rem; }
+  .menu-pan .nav a { display: flex; align-items: center; min-height: 52px; padding: 0 .85rem; border: 0; border-radius: 10px; color: var(--ink); }
+  .menu-pan .nav a[aria-current] { background: var(--accbg); color: var(--acc); font-weight: 600; }
+  .menu-pan .tools { flex-direction: column; align-items: stretch; gap: .5rem; margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--line); }
+  .menu-pan .tools button, .menu-pan .tools select { width: 100%; min-height: 48px; padding: 0 .85rem; font-size: 1rem; text-align: left; }
+  .menu-piede { padding: .5rem .75rem calc(.75rem + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); font-size: .8125rem; color: var(--ink2); }
+  .menu-lnk { display: flex; gap: 1.25rem; }
+  .menu-lnk a, .menu-lnk button { display: inline-flex; align-items: center; min-height: 44px; padding: 0; border: 0; background: none; color: var(--ink2); text-decoration: underline; text-underline-offset: 2px; font: inherit; }
+  .menu-ods { display: flex; align-items: center; gap: .6rem; margin: .25rem 0 0; color: var(--ink3); }
+  .menu-ods img { height: 30px; width: auto; flex: none; }
+  .menu-ods strong { color: var(--ink); }
+  /* nelle pagine che scorrono la testata resta di una riga: marchio + ☰ */
+  body:not(.home) .brand span { display: none; }
+  .menu-pan .cond > button { width: 100%; min-height: 48px; padding: 0 .85rem; justify-content: flex-start; gap: .6rem; font-size: 1rem; }
+  .menu-pan .cond > button::after { content: "Condividi"; }
+  .menu-pan .cond-menu { position: static; margin-top: .35rem; box-shadow: none; }
+  .menu-pan .cond-menu a, .menu-pan .cond-menu button { min-height: 44px; display: flex; align-items: center; font-size: .95rem; }
+  body .menu-pan .tools { align-items: stretch; }
+  html body .menu-pan .tools > *, html body .menu-pan .tools select { width: 100%; }
+  body .menu-pan .tools select { padding-left: .85rem; }
+  @media (prefers-reduced-motion: reduce) { .menu-vela, .menu-pan { transition: none; } }
+}

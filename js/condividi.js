@@ -8,10 +8,18 @@
     + '<ul id="cond-menu" class="cond-menu" hidden></ul>';
   tools.prepend(box);
   const btn = box.querySelector('button'), menu = box.querySelector('ul');
+  /* Sulla home (anche incorporata) il link parte dall'indirizzo pubblico della pagina che ospita l'atlante; territorio, filtri
+     e vista restano nel suffisso. Le altre pagine condividono il proprio indirizzo. */
+  const BASE = 'https://palermohub.opendatasicilia.it/atlante_pnrr.html';
+  const indirizzo = () => {
+    if (!document.body.classList.contains('home')) return location.href;
+    const q = new URLSearchParams(location.search); q.delete('embed');
+    return BASE + (q.toString() ? '?' + q : '') + location.hash;
+  };
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const chiudi = () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); };
   const apri = () => {
-    const url = location.href, titolo = document.title, testo = titolo + ' – dove vanno i fondi del PNRR, per comune';
+    const url = indirizzo(), titolo = document.title, testo = titolo + ' – dove vanno i fondi del PNRR, per comune';
     const u = encodeURIComponent(url), t = encodeURIComponent(testo);
     const voci = [
       ['WhatsApp', `https://wa.me/?text=${t}%20${u}`], ['Telegram', `https://t.me/share/url?url=${u}&text=${t}`],
@@ -27,8 +35,8 @@
   menu.addEventListener('click', async (e) => {
     if (e.target.closest('a')) { chiudi(); return; }
     const b = e.target.closest('button[data-az]'); if (!b) return;
-    if (b.dataset.az === 'nativo') { try { await navigator.share({ title: document.title, url: location.href }); } catch (err) { /* annullato */ } chiudi(); return; }
-    try { await navigator.clipboard.writeText(location.href); b.textContent = 'Link copiato'; } catch (err) { prompt('Copia il link:', location.href); chiudi(); return; }
+    if (b.dataset.az === 'nativo') { try { await navigator.share({ title: document.title, url: indirizzo() }); } catch (err) { /* annullato */ } chiudi(); return; }
+    try { await navigator.clipboard.writeText(indirizzo()); b.textContent = 'Link copiato'; } catch (err) { prompt('Copia il link:', indirizzo()); chiudi(); return; }
     setTimeout(chiudi, 900);
   });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menu.hidden) { chiudi(); btn.focus(); } });
