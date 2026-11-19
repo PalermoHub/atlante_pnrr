@@ -1,0 +1,35 @@
+/* La lente (prototipo): pagina autonoma, riusa variabili e font di atlante.css */
+.lente-pag { height: 100dvh; }
+.lente-main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.lente-barra { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; padding: .45rem .75rem; background: var(--surface); border-bottom: 1px solid var(--line); }
+.lente-barra .seg { display: inline-flex; }
+.lente-barra .seg button { border-radius: 0; }
+.lente-barra .seg button:first-child { border-radius: 6px 0 0 6px; }
+.lente-barra .seg button:last-child { border-radius: 0 6px 6px 0; border-left: 0; }
+.lente-barra .seg button[aria-pressed="true"] { background: var(--acc); border-color: var(--acc); color: #fff; }
+.lente-barra .raggio { display: flex; gap: .4rem; align-items: center; color: var(--ink2); }
+.lente-barra .raggio input { width: 8rem; accent-color: var(--acc); }
+.lente-mappa { position: relative; flex: 1; min-height: 320px; }
+#map { position: absolute; inset: 0; }
+.lente-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.lente-svg .barra, .lente-svg .manico { pointer-events: all; cursor: pointer; }
+.lente-svg .manico { cursor: ew-resize; touch-action: none; }
+.lente-svg text { font-family: inherit; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 3px; stroke-linejoin: round; }
+.lente-svg .piccolo { font-size: 10.5px; fill: var(--ink2); }
+.lente-svg .cod { font-size: 12px; font-weight: 700; }
+.lente-svg .barra:focus-visible { outline: none; }
+.lente-svg .barra:focus-visible rect.bar { stroke: var(--ink); stroke-width: 2; }
+.lente-svg .spento rect.bar { fill: var(--line) !important; }
+.lente-svg .spento text { fill: var(--ink3); }
+.lente-svg .centro-n { font-size: 22px; font-weight: 700; }
+.lente-svg .centro-s { font-size: 11.5px; fill: var(--ink2); }
+.lente-nota { position: absolute; left: .5rem; bottom: 1.6rem; max-width: 22rem; margin: 0; padding: .35rem .6rem; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; font-size: .82rem; color: var(--ink2); }
+.lente-testo { background: var(--surface); border-top: 1px solid var(--line); padding: .5rem .75rem; font-size: .9rem; color: var(--ink2); max-height: 30vh; overflow: auto; }
+.lente-testo strong { color: var(--ink); }
+.lente-testo ul { margin: .25rem 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .15rem .9rem; }
+.lente-testo li { display: flex; gap: .4rem; align-items: baseline; }
+.lente-testo i { width: .7rem; height: .7rem; border-radius: 2px; flex: none; }
+@media (max-width: 640px) {
+  .lente-testo { max-height: 34vh; }
+  .lente-barra .raggio input { width: 6rem; }
+}

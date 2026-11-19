@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PNRR Italia · La lente</title>
+<meta name="description" content="Sposta la mappa sotto la lente: missioni e stadi di avanzamento dei progetti PNRR dei comuni che ci stanno dentro, a confronto con la media italiana.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="img/favicon.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<link rel="stylesheet" href="css/atlante.css?v=48">
+<link rel="stylesheet" href="css/lente.css?v=1">
+<script>try{if(self!==top||/[?&]embed=1/.test(location.search))document.documentElement.setAttribute("data-embed","")}catch(e){document.documentElement.setAttribute("data-embed","")}</script>
+</head>
+<body class="lente-pag">
+<header class="top">
+  <a class="brand" href="index.html" aria-label="Atlante del PNRR, pagina iniziale"><img src="img/logo-pnrr.svg" width="40" height="40" alt=""><div><strong>Atlante del PNRR</strong><span>la lente · prototipo · dati al 13 giugno 2026</span></div></a>
+  <nav class="nav" aria-label="Sezioni"><a href="index.html">Mappa e schede</a><a href="lente.html" aria-current="page">La lente</a><a href="statistiche.html">Statistiche</a></nav>
+  <div class="tools">
+    <label class="sr" for="sel-tema" style="position:absolute;left:-9999px">Tema</label>
+    <select id="sel-tema" aria-label="Tema dell'interfaccia">
+      <option value="auto">Sistema</option><option value="chiaro">Chiaro</option><option value="scuro">Scuro</option>
+      <option value="contrasto">Alto contrasto</option>
+    </select>
+  </div>
+</header>
+<main class="lente-main">
+  <div class="lente-barra">
+    <div class="seg" role="group" aria-label="Misura">
+      <button type="button" data-misura="fin" aria-pressed="true">Importo</button>
+      <button type="button" data-misura="n" aria-pressed="false">Progetti</button>
+    </div>
+    <label class="raggio">Lente <input id="raggio" type="range" min="50" max="220" value="100" aria-label="Raggio della lente"></label>
+    <button id="azzera" type="button">Azzera</button>
+  </div>
+  <section class="lente-mappa" aria-label="Mappa con la lente">
+    <div id="map" role="img" aria-label="Mappa dei comuni italiani; la lente al centro conta i progetti PNRR sotto di sé"></div>
+    <svg id="lente" class="lente-svg" aria-label="Missioni e stadi dei comuni sotto la lente"></svg>
+    <p id="nota-map" class="lente-nota" hidden></p>
+  </section>
+  <section id="lente-testo" class="lente-testo" aria-live="polite"></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pmtiles@4.3.0/dist/pmtiles.js"></script>
+<script src="js/tema.js?v=3"></script>
+<script src="js/lente.js?v=1"></script>
+</body>
+</html>
