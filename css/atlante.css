@@ -70,6 +70,11 @@ main { flex: 1; display: grid; grid-template-columns: minmax(300px, 46%) 1fr; mi
 .legenda .rampa { display: flex; height: 10px; margin: .3rem 0 .15rem; gap: 2px; } .legenda .rampa i { flex: 1; border-radius: 2px; }
 .legenda .estr { display: flex; justify-content: space-between; color: var(--ink2); }
 .scheda { overflow-y: auto; padding: 1rem 1.25rem 3rem; min-width: 0; }
+.scheda .testa { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.scheda .testa > div:first-child { min-width: 0; }
+.sagoma { flex: none; width: 84px; height: 84px; margin-top: .1rem; }
+.sagoma svg { width: 100%; height: 100%; display: block; }
+.sagoma path { fill: var(--accent, #2f6fdb); fill-opacity: .22; stroke: var(--accent, #2f6fdb); stroke-width: 1.2; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .scheda h1 { font-size: 1.6rem; margin: 0; line-height: 1.15; }
 .scheda .sotto { color: var(--ink2); margin: .15rem 0 1rem; font-size: .9rem; }
 .scheda h2 { font-size: 1rem; margin: 1.6rem 0 .5rem; padding-bottom: .25rem; border-bottom: 1px solid var(--line); }
