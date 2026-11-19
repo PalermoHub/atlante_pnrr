@@ -35,7 +35,7 @@
 <!-- /SOCIAL -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <script>try{if(self!==top||/[?&]embed=1/.test(location.search))document.documentElement.setAttribute("data-embed","")}catch(e){document.documentElement.setAttribute("data-embed","")}</script>
-<link rel="stylesheet" href="css/atlante.css?v=48">
+<link rel="stylesheet" href="css/atlante.css?v=49">
 <link rel="stylesheet" href="css/guscio.css?v=13">
 <link rel="stylesheet" href="css/statistiche.css?v=7">
 <link rel="stylesheet" href="css/lente-app.css?v=7">
@@ -70,6 +70,7 @@
       </div>
       <div class="chipbar" role="group" aria-label="Territorio e mappa">
         <button id="chip-terr" class="chip2" type="button" aria-expanded="false" aria-controls="pan-terr"><span class="chip2-k">Territorio</span><span id="chip-terr-t" class="chip2-v">Italia</span></button>
+        <button id="chip-prog" class="chip2" type="button" aria-expanded="false" aria-controls="pan-prog"><span class="chip2-k">Piano</span><span id="chip-prog-t" class="chip2-v">Tutte le missioni</span></button>
         <button id="chip-ind" class="chip2" type="button" aria-expanded="false" aria-controls="pan-ind"><span class="chip2-k">Colora per</span><span id="chip-ind-t" class="chip2-v">…</span></button>
         <button id="chip-mappa" class="chip2 chip2-ico" type="button" aria-expanded="false" aria-controls="pan-mappa" aria-label="Opzioni della mappa"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
         <button id="chip-lente" class="chip2 chip2-lente" type="button" aria-pressed="false" aria-label="Lente sui progetti" title="Lente spenta · tieni premuto per cambiare modalità"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><path d="m15.6 15.6 6 6"/><path class="rag" d="M10 10V4.6M10 10l4.4-3.1M10 10l3.6 3.4M10 10l-3.2 3.8M10 10l-4.5-2.2"/><circle class="rag" cx="10" cy="10" r="1.1"/></svg><span class="lente-txt"><span class="chip2-k">Grafici in mappa</span><span class="chip2-v">Lente</span></span></button>
@@ -81,6 +82,15 @@
           <label>Provincia <select id="f-prov"></select></label>
           <label>Comune <select id="f-com"></select></label>
         </div>
+      </div>
+      <div id="pan-prog" class="pan" hidden>
+        <div class="terr" role="group" aria-label="Filtro per missione, componente, misura e sub-misura">
+          <label>Missione <select id="f-mis"></select></label>
+          <label>Componente <select id="f-comp"></select></label>
+          <label>Misura <select id="f-msr"></select></label>
+          <label>Sub-misura <select id="f-sub"></select></label>
+        </div>
+        <p class="pan-nota">Missione, Componente, Misura (investimento o riforma) e Sub-misura si scelgono a cascata e valgono per mappa, schede, tabelle ed elenco dei progetti.</p>
       </div>
       <div id="pan-ind" class="pan" hidden>
         <div class="colora"><label for="indic">Colora i comuni per</label><select id="indic"></select></div>
@@ -111,15 +121,15 @@
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pmtiles@4.3.0/dist/pmtiles.js"></script>
 <script src="js/tema.js?v=3"></script>
-<script src="js/guscio.js?v=6" defer></script>
+<script src="js/guscio.js?v=7" defer></script>
 <script src="js/tabelle.js?v=1" defer></script>
 <script src="js/cima.js?v=2" defer></script>
 <script src="js/piede.js?v=1" defer></script>
 <script src="js/menu.js?v=6" defer></script>
-<script src="js/info.js?v=8" defer></script>
+<script src="js/info.js?v=9" defer></script>
 <script src="js/condividi.js?v=2" defer></script>
 <script src="js/grafici.js?v=7"></script>
-<script type="module" src="js/app.js?v=42"></script>
+<script type="module" src="js/app.js?v=44"></script>
 <script src="js/lente-app.js?v=7" defer></script>
 </body>
 </html>

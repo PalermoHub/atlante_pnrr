@@ -35,7 +35,7 @@
     el(id).append(s); corpo(s); if (opz.nota) s.append(H('p', { class: 'grafico-nota', text: opz.nota })); return s;
   };
 
-  const get = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(u + ' ' + r.status); return r.json(); });
+  const get = (u) => fetch(u + "?d=2").then((r) => { if (!r.ok) throw new Error(u + ' ' + r.status); return r.json(); });
 
   Promise.all(['italia', 'regioni', 'province', 'comuni', 'meta', 'cubo_c'].map((n) => get(`data/${n}.json`))).then(([it, reg, prov, com, meta, cubo]) => {
     el('caric').remove();
@@ -94,6 +94,18 @@
       colonne: MIS.map((m) => ({ nome: m, sub: 'concluso', valori: valori((r) => (r.mis[m]?.[1] > 0 ? r.mis[m][5] / r.mis[m][1] : null)), formatta: (v) => pc(v) }))
         .concat([{ nome: 'Tutte', sub: 'concluso', valori: valori((r) => r.fs[4] / r.fin), formatta: (v) => pc(v) }, { nome: 'Pagato', sub: 'tutte', valori: valori((r) => r.pag / r.fin), formatta: (v) => pc(v) }]),
     }), { largo: true, nota: 'Il colore va dal più basso al più alto di ciascuna colonna (scala propria): serve a confrontare le regioni, non le missioni tra loro.' });
+
+    /* ---- per componente (Missione > Componente): stessi due grafici, un livello più in basso ---- */
+    const COMP = Object.keys(it.comp).sort(), nomeC = (c) => meta.nomi[c] || c;
+    cap('g-sud-comp', 'Quota del Mezzogiorno per componente', (h) => {
+      const voci = COMP.map((c) => { const s = sud.reduce((t, r) => t + (r.comp[c]?.[1] || 0), 0), t = regs.reduce((x, r) => x + (r.comp[c]?.[1] || 0), 0); return { nome: c, val: t > 0 ? s / t : 0, sub: `${nomeC(c)} · ${eur(s)} su ${eur(t)}`, col: '--c4' }; });
+      voci.push({ nome: 'Totale', val: sudFin / regFin, sub: 'tutti i componenti', col: '--s7' });
+      G.colonne(h, { voci, formatta: (v) => pc(v), conTip, nome: 'Quota Mezzogiorno per componente', soglia: 0.4, sogliaNome: 'soglia 40%' });
+    }, { sub: 'Sud + Isole, sui fondi localizzati in una regione', nota: 'Ogni componente è una parte di una missione (M1C2 = missione 1, componente 2). La soglia del 40% vale per il PNRR nel suo complesso.' });
+    cap('g-calore-comp', 'Quota di importo concluso, regione per componente', (h) => G.calore(h, {
+      righe, capo: 'Regione',
+      colonne: COMP.map((c) => ({ nome: c, sub: 'concluso', valori: valori((r) => (r.comp[c]?.[1] > 0 ? r.comp[c][5] / r.comp[c][1] : null)), formatta: (v) => pc(v) })),
+    }), { largo: true, nota: 'Il colore va dal più basso al più alto di ciascuna colonna (scala propria): serve a confrontare le regioni, non i componenti tra loro. Celle vuote: nessun progetto del componente in quella regione.' });
 
     /* ---- 9 concentrazione ---- */
     cap('g-conc', 'Quanto sono diseguali i comuni', (h) => G.lorenz(h, {

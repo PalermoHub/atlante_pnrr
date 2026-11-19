@@ -20,23 +20,46 @@ const STADI = ['Da attivare', 'In corso, senza gara né lavori', 'Gara aggiudica
 const FASI = [{ k: 'base', lab: 'Finanziato (con avanzamento rilevato)', set: [0, 1, 2, 3, 4] }, { k: 'agg', lab: 'Gara aggiudicata o oltre', set: [2, 3, 4] }, { k: 'lav', lab: 'Lavori / attività avviati o oltre', set: [3, 4] }, { k: 'fin', lab: 'Concluso (stato ufficiale)', set: [4] }];
 const FL = { 1: 'Iter concluso, stato «in corso»', 2: 'In ritardo sulla fine prevista' };
 const ESTR = '2026-06-13';
+/* Gerarchia del piano: Missione (M1) > Componente (M1C1) > Misura, cioè Investimento o Riforma (M1C1I1.04) > Sub-misura (M1C1I1.04.01).
+   Le celle dei cubi sono indicizzate per sub-misura: gli altri livelli si ricavano dal codice. */
+const LIV = ['mis', 'comp', 'msr', 'sub'];
+const compDi = (c) => (String(c).match(/^M\d+C\d+/) || [''])[0];
+const msrDi = (c) => String(c).replace(/\.[^.]+$/, '');
+const livDi = (c) => (/^M\d$/.test(c) ? 'mis' : /^M\d+C\d+$/.test(c) ? 'comp' : /^M\d+C\d+[IR]\d+\.\d+$/.test(c) ? 'msr' : 'sub');
+const su = (v, L) => (L === 'mis' ? v.slice(0, 2) : L === 'comp' ? compDi(v) : L === 'msr' ? (livDi(v) === 'sub' ? msrDi(v) : v) : v);
+/* «M1C1I1.04.01» -> «Investimento 1.4.1»; la sub-misura «.00» è la misura stessa */
+function etich(c) {
+  const m = String(c).match(/^M\d+C\d+([IR])(\d+)\.(\d+)(?:\.(\w+))?$/); if (!m) return c;
+  const sub = m[4] && !/^0+$/.test(m[4]) ? '.' + (/^\d+$/.test(m[4]) ? +m[4] : m[4]) : '';
+  return `${m[1] === 'I' ? 'Investimento' : 'Riforma'} ${+m[2]}.${+m[3]}${sub}`;
+}
+const nomeProg = (c) => S.meta?.nomi?.[c] || '';
+const labProg = (c) => { const l = livDi(c); return l === 'mis' ? NOMI_MIS[c] || c : l === 'comp' ? `${c} ${nomeProg(c)}` : `${etich(c)} · ${nomeProg(c)}`; };
+const LIV_NOME = { mis: 'Missione', comp: 'Componente', msr: 'Misura', sub: 'Sub-misura' };
 
-const S = { meta: null, it: null, reg: null, prov: null, com: null, bbox: null, cube: {}, map: null, indic: 'fin_pc', adatta: true, scala: 'blu', classi: 'quantili', inverti: false, breaks: [], cache: new Map(), cur: null, vals: null };
-const get = async (u) => { if (!S.cache.has(u)) { S.cache.set(u, fetch(u).then((r) => { if (!r.ok) throw new Error(u + ' ' + r.status); return r.json(); })); } return S.cache.get(u); };
+const S = { meta: null, it: null, reg: null, prov: null, com: null, bbox: null, cube: {}, map: null, indic: 'fin_pc', adatta: true, scala: 'blu', classi: 'quantili', inverti: false, breaks: [], cache: new Map(), cur: null, vals: null, det: {} };
+const get = async (u) => { if (!S.cache.has(u)) { S.cache.set(u, fetch(u + '?d=2').then((r) => { if (!r.ok) throw new Error(u + ' ' + r.status); return r.json(); })); } return S.cache.get(u); };
 
 /* ---------- stato nell'indirizzo ---------- */
-const F0 = () => ({ mis: null, nat: null, st: null, fl: null });
+const F0 = () => ({ mis: null, comp: null, msr: null, sub: null, nat: null, st: null, fl: null });
+/* imposta (o toglie) un livello del piano: i livelli superiori si allineano, quelli inferiori si azzerano */
+function setProg(F, L, v) {
+  const i = LIV.indexOf(L); LIV.forEach((l, j) => { if (j > i) F[l] = null; });
+  if (v) LIV.forEach((l, j) => { if (j <= i) F[l] = su(v, l); }); else F[L] = null;
+  return F;
+}
 function parseHash() {
   const [path, qs = ''] = location.hash.split('?'); const m = path.match(/^#\/(r|p|c)\/(\w+)$/); const F = F0();
   const q = new URLSearchParams(qs);
-  if (q.get('m') && /^M\d$/.test(q.get('m'))) F.mis = q.get('m');
+  const prog = [['m', /^M\d$/, 'mis'], ['c', /^M\d+C\d+$/, 'comp'], ['i', /^M\d+C\d+[IR]\d+\.\d+$/, 'msr'], ['u', /^M\d+C\d+[IR]\d+\.\d+\.\w+$/, 'sub']];
+  for (const [k, re, L] of prog) if (re.test(q.get(k) || '')) setProg(F, L, q.get(k)); /* dal più alto al più basso: il livello più profondo vince */
   if (q.get('n') != null && /^\d+$/.test(q.get('n'))) F.nat = +q.get('n');
   if (q.get('s')) F.st = q.get('s').split('.').map(Number).filter((x) => x >= 0 && x <= 5);
   if (q.get('f') === '1' || q.get('f') === '2') F.fl = +q.get('f');
   return { liv: m ? m[1] : null, id: m ? m[2] : null, F };
 }
 function fStr(F) {
-  const q = new URLSearchParams(); if (F.mis) q.set('m', F.mis); if (F.nat != null) q.set('n', F.nat); if (F.st) q.set('s', F.st.join('.')); if (F.fl) q.set('f', F.fl);
+  const q = new URLSearchParams(); if (F.mis) q.set('m', F.mis); if (F.comp) q.set('c', F.comp); if (F.msr) q.set('i', F.msr); if (F.sub) q.set('u', F.sub); if (F.nat != null) q.set('n', F.nat); if (F.st) q.set('s', F.st.join('.')); if (F.fl) q.set('f', F.fl);
   const s = q.toString(); return s ? '?' + s : '';
 }
 /* Vista della mappa nell'indirizzo: parametro «v=zoom/lat/lon» accanto ai filtri; si scrive con replaceState (nessun nuovo route). */
@@ -49,14 +72,16 @@ function scriviVista() {
 }
 const href = (liv, id, F) => (liv ? `#/${liv}/${id}` : '#/') + fStr(F || S.cur?.F || F0());
 const go = (liv, id, F) => { const h = href(liv, id, F); if (senzaV(location.hash) === h) route(); else location.hash = h; };
-const nFiltri = (F) => (F.mis ? 1 : 0) + (F.nat != null ? 1 : 0) + (F.st ? 1 : 0) + (F.fl ? 1 : 0);
+const nFiltri = (F) => LIV.filter((l) => F[l]).length + (F.nat != null ? 1 : 0) + (F.st ? 1 : 0) + (F.fl ? 1 : 0);
 const sameSet = (a, b) => a && b.length === a.length && b.every((x) => a.includes(x));
 
 /* ---------- cubo ---------- */
-// cella = [missione, natura, stadio, segnalazioni, n, fin, fin_tot, pag, agg] (9 interi consecutivi)
+// cella = [sub-misura, natura, stadio, segnalazioni, n, fin, fin_tot, pag, agg] (9 interi consecutivi)
 const cells = (liv, id) => (liv === null ? S.cube.i.IT : S.cube[liv]?.[id]) || [];
 function ok(c, o, F, ign) {
-  if (F.mis && ign !== 'mis' && S.meta.missioni[c[o]] !== F.mis) return false;
+  /* «ign» = livello del piano da escludere (con i livelli sotto): serve a mostrare i fratelli di quello scelto */
+  const k = LIV.includes(ign) ? LIV.indexOf(ign) : 9;
+  for (let l = 0; l < 4 && l < k; l++) if (F[LIV[l]] && S.sx[LIV[l]][c[o]] !== F[LIV[l]]) return false;
   if (F.nat != null && ign !== 'nat' && c[o + 1] !== F.nat) return false;
   if (F.st && ign !== 'st' && !F.st.includes(c[o + 2])) return false;
   if (F.fl && ign !== 'fl' && !(c[o + 3] & F.fl)) return false;
@@ -66,15 +91,15 @@ const Z = () => ({ n: 0, fin: 0, ft: 0, pag: 0, agg: 0 });
 const add = (t, c, o) => { t.n += c[o + 4]; t.fin += c[o + 5]; t.ft += c[o + 6]; t.pag += c[o + 7]; t.agg += c[o + 8]; };
 function sumCells(c, F, ign) { const t = Z(); for (let o = 0; o < c.length; o += 9) if (ok(c, o, F, ign)) add(t, c, o); return t; }
 function analisi(c, F) {
-  const tot = sumCells(c, F), mis = {}, nat = {}, st = [0, 1, 2, 3, 4, 5].map(Z), fl = { 1: Z(), 2: Z() };
+  const tot = sumCells(c, F), prog = { mis: {}, comp: {}, msr: {}, sub: {} }, nat = {}, st = [0, 1, 2, 3, 4, 5].map(Z), fl = { 1: Z(), 2: Z() };
   for (let o = 0; o < c.length; o += 9) {
-    if (ok(c, o, F, 'mis')) add(mis[S.meta.missioni[c[o]]] ??= Z(), c, o);
+    for (const L of LIV) if (ok(c, o, F, L)) add(prog[L][S.sx[L][c[o]]] ??= Z(), c, o);
     if (ok(c, o, F, 'nat')) add(nat[c[o + 1]] ??= Z(), c, o);
     if (ok(c, o, F, 'st')) add(st[c[o + 2]], c, o);
     if (ok(c, o, F, 'fl')) { if (c[o + 3] & 1) add(fl[1], c, o); if (c[o + 3] & 2) add(fl[2], c, o); }
   }
   const fase = FASI.map((f) => { const t = Z(); f.set.forEach((s) => { for (const k of ['n', 'fin', 'ft', 'pag', 'agg']) t[k] += st[s][k]; }); return t; });
-  return { tot, mis, nat, st, fl, fase };
+  return { tot, mis: prog.mis, comp: prog.comp, msr: prog.msr, sub: prog.sub, nat, st, fl, fase };
 }
 
 /* ---------- indicatori della mappa ---------- */
@@ -84,7 +109,7 @@ function valoriComuni(F) {
     const c = cells('c', id); let n = 0, fin = 0, pag = 0, conc = 0, rit = 0, chi = 0;
     const ms = new Array(S.meta.missioni.length).fill(0), mn = ms.slice();
     for (let o = 0; o < c.length; o += 9) {
-      if (!ok(c, o, F)) continue; n += c[o + 4]; fin += c[o + 5]; pag += c[o + 7]; ms[c[o]] += c[o + 5]; mn[c[o]] += c[o + 4];
+      if (!ok(c, o, F)) continue; n += c[o + 4]; fin += c[o + 5]; pag += c[o + 7]; const mi = S.sx.mi[c[o]]; ms[mi] += c[o + 5]; mn[mi] += c[o + 4];
       if (c[o + 2] === 4) conc += c[o + 5]; if (c[o + 3] & 2) rit += c[o + 5]; if (c[o + 3] & 1) chi += c[o + 5];
     }
     let dom = null, best = 0; ms.forEach((v, i) => { if (v > best) { best = v; dom = S.meta.missioni[i]; } });
@@ -359,7 +384,25 @@ function riempiFiltri(liv, id) {
   $('#f-prov').innerHTML = opt('', reg ? 'Tutte le province' : 'Tutte le province', !prov) + Object.entries(S.prov).filter(([, v]) => !reg || v.reg === reg).map(([k, v]) => [k, `${v.nome} (${v.sigla})`]).sort(byName).map(([k, n]) => opt(k, n, k === prov)).join('');
   $('#f-com').innerHTML = opt('', 'Tutti i comuni', !com) + Object.entries(S.com).filter(([, v]) => (!prov || v.pv === prov) && (!reg || v.rg === reg)).map(([k, v]) => [k, v.nm]).sort(byName).map(([k, n]) => opt(k, n, k === com)).join('');
 }
+/* Piano: Missione > Componente > Misura > Sub-misura. Ogni menu elenca solo le voci sotto quella scelta sopra (con i dati presenti). */
+function riempiProg(F) {
+  const opt = (v, t, sel) => `<option value="${esc(v)}"${sel ? ' selected' : ''}>${esc(t)}</option>`;
+  const tutti = S.meta.sub, sotto = (L) => { const i = LIV.indexOf(L); return tutti.filter((c) => LIV.every((l, j) => j >= i || !F[l] || su(c, l) === F[l])); };
+  const voci = (L) => [...new Set(sotto(L).map((c) => su(c, L)))].sort();
+  const vuoto = { mis: 'Tutte le missioni', comp: 'Tutti i componenti', msr: 'Tutte le misure', sub: 'Tutte le sub-misure' };
+  for (const L of LIV) {
+    const k = voci(L), padreL = LIV[LIV.indexOf(L) - 1];
+    let h = opt('', vuoto[L], !F[L]);
+    if (L === 'msr' || L === 'sub') { /* molte voci: raggruppate per livello superiore */
+      const gr = new Map(); k.forEach((c) => { const g = su(c, padreL); (gr.get(g) || gr.set(g, []).get(g)).push(c); });
+      h += [...gr].map(([g, v]) => `<optgroup label="${esc(labProg(g))}">${v.map((c) => opt(c, labProg(c), c === F[L])).join('')}</optgroup>`).join('');
+    } else h += k.map((c) => opt(c, labProg(c), c === F[L])).join('');
+    $('#f-' + L).innerHTML = h;
+  }
+  const f = F.sub || F.msr || F.comp || F.mis; $('#chip-prog-t').textContent = !f ? 'Tutte le missioni' : livDi(f) === 'mis' ? f : livDi(f) === 'comp' ? f : etich(f);
+}
 function filtriInit() {
+  for (const L of LIV) $('#f-' + L).addEventListener('change', (e) => { S.det = {}; go(S.cur.liv, S.cur.id, setProg({ ...S.cur.F }, L, e.target.value || null)); });
   $('#f-reg').addEventListener('change', (e) => go(e.target.value ? 'r' : null, e.target.value || null, S.cur.F));
   $('#f-prov').addEventListener('change', (e) => { const v = e.target.value; const reg = $('#f-reg').value; go(v ? 'p' : reg ? 'r' : null, v || reg || null, S.cur.F); });
   $('#f-com').addEventListener('change', (e) => { const v = e.target.value; const prov = $('#f-prov').value, reg = $('#f-reg').value; go(v ? 'c' : prov ? 'p' : reg ? 'r' : null, v || prov || reg || null, S.cur.F); });
@@ -394,7 +437,7 @@ async function route() {
   const g = liv ? genitori(liv, id) : [];
   $('#crumbs').innerHTML = g.map((x) => `<a href="${href(x.liv, x.id, F)}">${esc(x.nome)}</a><span class="sep">›</span>`).join('') + `<span class="cur">${esc(liv ? nome : 'Italia')}</span>`;
   document.title = (liv ? nome + ' · ' : '') + 'Atlante del PNRR';
-  riempiFiltri(liv, id); $('#f-reset').disabled = !liv && !nFiltri(F);
+  riempiFiltri(liv, id); riempiProg(F); $('#f-reset').disabled = !liv && !nFiltri(F);
   evidenzia(liv, id); aggiornaMappa();
   let det = n; if (liv === 'c') det = { ...n, ...(await get(`data/comuni/${id}.json`).catch(() => ({}))) };
   if (S.cur.liv !== liv || S.cur.id !== id) return;
@@ -405,9 +448,10 @@ async function route() {
 const nomiNat = () => S.meta.nature.map((n) => n.charAt(0) + n.slice(1).toLowerCase());
 function chips(F) {
   const l = [];
-  if (F.mis) l.push(['mis', NOMI_MIS[F.mis] || F.mis]); if (F.nat != null) l.push(['nat', nomiNat()[F.nat]]);
+  for (const L of LIV) if (F[L]) l.push([L, labProg(F[L])]);
+  if (F.nat != null) l.push(['nat', nomiNat()[F.nat]]);
   if (F.st) l.push(['st', FASI.find((f) => sameSet(F.st, f.set))?.lab || F.st.map((s) => STADI[s]).join(' + ')]); if (F.fl) l.push(['fl', FL[F.fl]]);
-  if (!l.length) return '<p class="nota filtri-hint">Clic su una missione, uno stadio, un tipo di intervento o un avviso per filtrare tutto (mappa, schede, elenchi) a qualunque scala territoriale.</p>';
+  if (!l.length) return '<p class="nota filtri-hint">Clic su una missione, un componente, una misura, uno stadio, un tipo di intervento o un avviso per filtrare tutto (mappa, schede, elenchi) a qualunque scala territoriale.</p>';
   return `<div class="chips" role="group" aria-label="Filtri attivi">${l.map(([k, t]) => `<button type="button" class="chip" data-x="${k}" title="Rimuovi il filtro">${esc(t)} <span aria-hidden="true">×</span></button>`).join('')}<button type="button" class="chip azzera" data-x="all">Reset filtri</button></div>`;
 }
 const riga = (lab, n, v, tot, attr, att, extra = '') => `<div class="riga cl${att ? ' on' : ''}" role="button" tabindex="0" aria-pressed="${!!att}" ${attr}><span>${lab}</span><div class="barra"><i style="width:${tot > 0 ? Math.max(0.5, 100 * v / tot) : 0}%"></i></div><span class="v">${extra || eur(v)}${n != null ? ` · ${nf.format(n)}` : ''}</span></div>`;
@@ -425,6 +469,23 @@ function posizione(liv, id, n, F) {
   const ord = lista.map((k) => [k, val(k)]).sort((a, b) => b[1] - a[1]); const pos = ord.findIndex(([k]) => k === id) + 1;
   const amb = liv === 'r' ? 'tra le regioni' : liv === 'p' ? `tra le province di ${S.reg[n.reg]?.nome}` : `tra i comuni della provincia di ${S.prov[n.pv]?.nome}`;
   return `<p class="nota">Per finanziamento per abitante${nFiltri(F) ? ' (con i filtri attivi)' : ''} è al <b>${pos}° posto</b> su ${ord.length} ${amb}.</p>`;
+}
+
+/* Componente, Misura (Investimento o Riforma) e Sub-misura: stesse colonne della tabella per missione, clic = filtro a cascata.
+   Misure e sub-misure stanno in un blocco apribile (sono 122 e 164): si apre da solo quando il livello sopra è filtrato. */
+function tabProg(L, A, F, dotOn) {
+  const agg = A[L], dot = dotOn ? S.dotL[L] : null; const ks = Object.keys(agg); if (F[L] && !agg[F[L]]) ks.push(F[L]);
+  if (!ks.length) return '';
+  ks.sort();
+  const mt = Math.max(1, ...ks.map((k) => Math.max(agg[k]?.fin || 0, dot?.[k] || 0))), w = (v) => Math.max(0, 90 * v / mt).toFixed(1);
+  const bar = (m, k) => { const sp = dot?.[k] ? Math.max(0, dot[k] - m.fin) : 0; return `<span class="tri" role="img" aria-label="pagato ${eur(m.pag)}, su progetti non ancora pagato ${eur(Math.max(0, m.fin - m.pag))}${dot ? `, senza progetto ${eur(sp)}` : ''}"><i class="tp" style="width:${w(m.pag)}px"></i><i class="tf" style="width:${w(Math.max(0, m.fin - m.pag))}px"></i>${dot ? `<i class="ts" style="width:${w(sp)}px"></i>` : ''}</span>`; };
+  const lab = (k) => (L === 'comp' ? `<b>${esc(k)}</b> ${esc(nomeProg(k))}` : `<b>${esc(etich(k))}</b> ${esc(nomeProg(k))} <small class="cod">${esc(k)}</small>`);
+  const corpo = `<table><thead><tr><th>${LIV_NOME[L]}</th><th class="n">Progetti</th>${dot ? '<th class="n" title="Importo del livello nel file «Spesa per misura»">Dotazione</th>' : ''}<th class="n">Finanziamento</th>${dot ? '<th class="n" title="Dotazione non ancora assegnata a progetti">Senza progetto</th>' : ''}<th class="n">Pagato</th><th></th></tr></thead><tbody>${ks.map((k) => { const m = agg[k] || Z(); const d = dot?.[k]; return `<tr class="cl${F[L] === k ? ' on' : ''}" role="button" tabindex="0" aria-pressed="${F[L] === k}" data-f="${L}" data-v="${esc(k)}" title="${esc(k)}"><td>${lab(k)}</td><td class="n" data-v="${m.n}">${nf.format(m.n)}</td>${dot ? `<td class="n" data-v="${d ?? -1}">${d != null ? eur(d) : '–'}</td>` : ''}<td class="n" data-v="${m.fin}">${eur(m.fin)}</td>${dot ? `<td class="n" data-v="${d != null ? d - m.fin : -1e18}">${d != null ? (d >= m.fin ? eur(d - m.fin) : '−' + eur(m.fin - d)) : '–'}</td>` : ''}<td class="n" data-v="${m.fin > 0 ? m.pag / m.fin : -1}">${pct(m.pag, m.fin)}</td><td>${bar(m, k)}</td></tr>`; }).join('')}</tbody></table>`;
+  const nota = L === 'comp' ? `<ul class="leg-tri"><li><i class="tp"></i>Pagato</li><li><i class="tf"></i>Già su progetti, non ancora pagato</li>${dot ? '<li><i class="ts"></i>Senza progetto nei dati</li>' : ''}</ul>` : '';
+  if (L === 'comp') return `<h2>Per componente <small>${nf.format(ks.length)} · clic per filtrare</small></h2>${corpo}${nota}`;
+  const tit = L === 'msr' ? 'Per misura' : 'Per sub-misura', sott = L === 'msr' ? 'investimenti e riforme' : 'le articolazioni più fini';
+  const aperto = S.det[L] ?? !!(L === 'msr' ? F.comp : F.msr);
+  return `<details class="prog-det" data-det="${L}"${aperto ? ' open' : ''}><summary><span>${tit}</span> <small>${sott} · ${nf.format(ks.length)} · clic per filtrare</small></summary>${corpo}</details>`;
 }
 
 function disegnaScheda(liv, id, n, nome, F) {
@@ -457,10 +518,12 @@ function disegnaScheda(liv, id, n, nome, F) {
   /* missioni */
   const mk = S.meta.missioni;
   /* dotazione ufficiale: esiste solo per l'Italia intera, quindi le colonne in più compaiono solo lì e senza filtri */
-  const dot = liv === null && !nfil ? S.ver?.per_missione : null;
+  const dotP = liv === null && F.nat == null && !F.st && !F.fl; /* la dotazione ufficiale è nazionale: si confronta solo senza filtri su territorio, natura, stadio */
+  const dot = dotP ? S.ver?.per_missione : null;
   const mt = Math.max(1, ...mk.map((k) => Math.max(A.mis[k]?.fin || 0, dot?.[k]?.dotazione || 0)));
   const bar = (m, k) => { const w = (v) => Math.max(0, 90 * v / mt).toFixed(1); const sp = dot?.[k] ? Math.max(0, dot[k].dotazione - m.fin) : 0; return `<span class="tri" role="img" aria-label="pagato ${eur(m.pag)}, su progetti non ancora pagato ${eur(Math.max(0, m.fin - m.pag))}${dot ? `, senza progetto ${eur(sp)}` : ''}"><i class="tp" style="width:${w(m.pag)}px"></i><i class="tf" style="width:${w(Math.max(0, m.fin - m.pag))}px"></i>${dot ? `<i class="ts" style="width:${w(sp)}px"></i>` : ''}</span>`; };
   h += `<h2>Per missione <small>clic per filtrare</small></h2><table><thead><tr><th>Missione</th><th class="n">Progetti</th>${dot ? '<th class="n" title="Importo della misura nel file «Spesa per misura»">Dotazione</th>' : ''}<th class="n">Finanziamento</th>${dot ? '<th class="n" title="Dotazione non ancora assegnata a progetti">Senza progetto</th>' : ''}<th class="n">Pagato</th><th></th></tr></thead><tbody>${mk.filter((k) => A.mis[k] || F.mis === k).map((k) => { const m = A.mis[k] || Z(); const d = dot?.[k]; return `<tr class="cl${F.mis === k ? ' on' : ''}" role="button" tabindex="0" aria-pressed="${F.mis === k}" data-f="mis" data-v="${k}"><td>${esc(NOMI_MIS[k] || k)}</td><td class="n" data-v="${m.n}">${nf.format(m.n)}</td>${dot ? `<td class="n" data-v="${d ? d.dotazione : -1}">${d ? eur(d.dotazione) : '–'}</td>` : ''}<td class="n" data-v="${m.fin}">${eur(m.fin)}</td>${dot ? `<td class="n" data-v="${d ? d.dotazione - m.fin : -1e18}">${d ? (d.dotazione >= m.fin ? eur(d.dotazione - m.fin) : '−' + eur(m.fin - d.dotazione)) : '–'}</td>` : ''}<td class="n" data-v="${m.fin > 0 ? m.pag / m.fin : -1}">${pct(m.pag, m.fin)}</td><td>${bar(m, k)}</td></tr>`; }).join('')}</tbody></table><ul class="leg-tri"><li><i class="tp"></i>Pagato</li><li><i class="tf"></i>Già su progetti, non ancora pagato</li>${dot ? '<li><i class="ts"></i>Senza progetto nei dati (dotazione meno finanziamento)</li>' : ''}</ul><p class="nota">${dot ? 'Dotazione al 30/04/2026, progetti al 13/06/2026. «−» = progetti oltre la dotazione. ' : ''}Il motivo del mancato utilizzo non è nei dati ufficiali.</p>`;
+  h += tabProg('comp', A, F, dotP) + tabProg('msr', A, F, dotP) + tabProg('sub', A, F, dotP);
   /* natura */
   const nat = nomiNat().map((nm, i) => [nm, i, A.nat[i] || Z()]).filter((x) => x[2].fin > 0 || F.nat === x[1]).sort((a, b) => b[2].fin - a[2].fin);
   const nt = Math.max(1, ...nat.map((x) => x[2].fin));
@@ -481,6 +544,7 @@ function disegnaScheda(liv, id, n, nome, F) {
   if (liv === 'c') h += `<h2>Progetti nel comune <small id="p-cnt"></small></h2><div class="filtri"><input id="p-q" type="search" placeholder="Cerca titolo o soggetto attuatore" aria-label="Cerca nei progetti"><button id="p-csv" type="button">Scarica CSV (filtrati)</button><button id="p-csv-tutti" type="button">Scarica tutti i dati del comune</button></div><p class="filtri-hint" id="p-nota"></p><div id="tab-prog"></div>`;
   h += `<p class="nota" style="margin-top:2rem">Fonte: Italia Domani, Catalogo Open Data (CC-BY 4.0), estrazione del 13/06/2026 · confini comunali ISTAT/ANNCSU. Importi in euro correnti. <a href="#" id="l-metodo">Metodo e limiti</a> · <a href="#" id="l-fonti">Fonti</a>.</p>`;
   $('#scheda').innerHTML = h;
+  $('#scheda').querySelectorAll('details[data-det]').forEach((d) => d.querySelector('summary').addEventListener('click', () => { S.det[d.dataset.det] = !d.open; }));
   $('#l-metodo').addEventListener('click', (e) => { e.preventDefault(); apriInfo('metodo'); });
   $('#l-fonti').addEventListener('click', (e) => { e.preventDefault(); apriInfo('fonti'); });
   try { analisiScheda(liv, id, n, nome, F, A); evidenziaIndicatore(); } catch (err) { console.error('analisi', err); }
@@ -497,7 +561,7 @@ function metriche(liv, id, pop, F) {
   return { A, pc: pop > 0 && T.n ? T.fin / pop : null, pag: T.fin > 0 ? T.pag / T.fin : null, conc: A.fase[0].fin > 0 ? A.fase[3].fin / A.fase[0].fin : null, rit: T.fin > 0 ? A.fl[2].fin / T.fin : null };
 }
 function valoriC(F) { const k = fStr(F); if (S.vc?.k !== k) S.vc = { k, v: valoriComuni(F) }; return S.vc.v; }
-function concPerMis(c, F) { const o2 = {}; for (let o = 0; o < c.length; o += 9) if (ok(c, o, F, 'mis') && c[o + 2] === 4) o2[S.meta.missioni[c[o]]] = (o2[S.meta.missioni[c[o]]] || 0) + c[o + 5]; return o2; }
+function concPerMis(c, F, L = 'mis') { const o2 = {}; for (let o = 0; o < c.length; o += 9) if (ok(c, o, F, L) && c[o + 2] === 4) { const k = S.sx[L][c[o]]; o2[k] = (o2[k] || 0) + c[o + 5]; } return o2; }
 
 /* grafici della scheda che mostrano lo stesso indicatore del menu «Colora per» */
 const IND_FIG = { 'Euro per abitante': 'fin_pc', 'Per missione': 'fin', 'Quota pagata': 'pag', 'Importo concluso': 'conc', 'Importo dei progetti conclusi': 'conc', 'Importo in ritardo': 'rit' };
@@ -559,11 +623,22 @@ function analisiScheda(liv, id, n, nome, F, A) {
   const bc = blocco('Come è fatto');
   const mk7 = S.meta.missioni.filter((k) => A.mis[k] && A.mis[k].fin > 0);
   fig(bc, 'Per missione', 'importo finanziato', (f) => G.ciambella(f, { voci: mk7.map((k) => ({ nome: k, sub: (NOMI_MIS[k] || k).replace(/^M\d /, ''), val: A.mis[k].fin })).sort((a, b) => b.val - a.val), formatta: eur, conTip: tip, nome: 'Per missione', centro: { valore: eur(T.fin), etichetta: 'PNRR' } }));
+  const kcomp = Object.keys(A.comp).filter((k) => A.comp[k].fin > 0);
+  if (kcomp.length > 1) fig(bc, 'Per componente', 'importo finanziato', (f) => G.ciambella(f, { voci: kcomp.map((k) => ({ nome: k, sub: nomeProg(k), val: A.comp[k].fin })).sort((a, b) => b.val - a.val), formatta: eur, conTip: tip, nome: 'Per componente', centro: { valore: eur(T.fin), etichetta: 'PNRR' } }));
   fig(bc, 'Per stadio di avanzamento', 'importo finanziato', (f) => G.ciambella(f, { voci: STADI.map((s, i) => ({ nome: s, val: A.st[i].fin, sub: nf.format(A.st[i].n) + ' progetti' })).sort((a, b) => b.val - a.val), formatta: eur, conTip: tip, nome: 'Per stadio', centro: { valore: eur(T.fin), etichetta: 'PNRR' } }));
   const cp = concPerMis(cells(liv, id), F);
   const mAll = S.meta.missioni.filter((k) => { const t = A.mis[k]; return t && t.fin > 0; });
   const bm = blocco('Missione per missione');
   fig(bm, 'Quota pagata', 'pagato ÷ finanziato', (f) => G.colonne(f, { voci: mAll.map((k) => ({ nome: k, val: A.mis[k].pag / A.mis[k].fin, sub: NOMI_MIS[k] })), formatta: (v) => q0(v), conTip: tip, nome: 'Quota pagata per missione', soglia: me.pag, sogliaNome: 'tutte ' + q0(me.pag) }));
+  /* un livello più in basso di quello filtrato: componenti, poi misure di un componente, poi sub-misure di una misura */
+  const Lc = F.msr ? 'sub' : F.comp ? 'msr' : 'comp', aggL = A[Lc];
+  const kc = Object.keys(aggL).filter((k) => aggL[k].fin > 0).sort((a, b) => aggL[b].fin - aggL[a].fin).slice(0, 20);
+  if (kc.length > 1) {
+    const cpL = concPerMis(cells(liv, id), F, Lc), cort = (k) => (Lc === 'comp' ? k : etich(k).replace('Investimento', 'Inv.').replace('Riforma', 'Rif.')), nomeL = LIV_NOME[Lc];
+    const bk = blocco(`${nomeL} per ${nomeL.toLowerCase()}`, kc.length < Object.keys(aggL).filter((k) => aggL[k].fin > 0).length ? 'le 20 più grandi per importo' : '');
+    fig(bk, 'Quota pagata', 'pagato ÷ finanziato', (f) => G.colonne(f, { voci: kc.map((k) => ({ nome: cort(k), val: aggL[k].pag / aggL[k].fin, sub: labProg(k) })), formatta: (v) => q0(v), conTip: tip, nome: 'Quota pagata per ' + nomeL.toLowerCase(), soglia: me.pag, sogliaNome: 'tutte ' + q0(me.pag) }));
+    fig(bk, 'Importo dei progetti conclusi', 'concluso ÷ finanziato', (f) => G.colonne(f, { voci: kc.map((k) => ({ nome: cort(k), val: (cpL[k] || 0) / aggL[k].fin, sub: labProg(k), col: '--s3' })), formatta: (v) => q0(v), conTip: tip, nome: 'Quota conclusa per ' + nomeL.toLowerCase(), soglia: T.fin > 0 ? A.fase[3].fin / T.fin : null, sogliaNome: 'tutte ' + q0(A.fase[3].fin / T.fin) }));
+  }
   fig(bm, 'Importo dei progetti conclusi', 'concluso ÷ finanziato', (f) => G.colonne(f, { voci: mAll.map((k) => ({ nome: k, val: (cp[k] || 0) / A.mis[k].fin, sub: NOMI_MIS[k], col: '--s3' })), formatta: (v) => q0(v), conTip: tip, nome: 'Quota conclusa per missione', soglia: T.fin > 0 ? A.fase[3].fin / T.fin : null, sogliaNome: 'tutte ' + q0(A.fase[3].fin / T.fin) }), 'Qui il «concluso» è sul finanziato totale della missione, non solo sui progetti con avanzamento rilevato.');
 
   /* --- posizione nel territorio --- */
@@ -591,14 +666,14 @@ function analisiScheda(liv, id, n, nome, F, A) {
 /* clic / tastiera sui filtri (delegato) */
 function toggle(k, v) {
   const F = { ...S.cur.F };
-  if (k === 'mis') F.mis = F.mis === v ? null : v;
+  if (LIV.includes(k)) { S.det = {}; setProg(F, k, F[k] === v ? null : v); }
   else if (k === 'nat') F.nat = F.nat === +v ? null : +v;
   else if (k === 'fl') F.fl = F.fl === +v ? null : +v;
   else if (k === 'st') { const s = v.split('.').map(Number); F.st = sameSet(F.st, s) ? null : s; }
   go(S.cur.liv, S.cur.id, F);
 }
 function scheda_click(e) {
-  const ch = e.target.closest('.chip'); if (ch) { const F = { ...S.cur.F }; if (ch.dataset.x === 'all') Object.assign(F, F0()); else F[ch.dataset.x] = null; go(S.cur.liv, S.cur.id, F); return; }
+  const ch = e.target.closest('.chip'); if (ch) { const F = { ...S.cur.F }; if (ch.dataset.x === 'all') Object.assign(F, F0()); else if (LIV.includes(ch.dataset.x)) setProg(F, ch.dataset.x, null); else F[ch.dataset.x] = null; go(S.cur.liv, S.cur.id, F); return; }
   const el = e.target.closest('[data-f]'); if (el) toggle(el.dataset.f, el.dataset.v);
 }
 
@@ -622,7 +697,8 @@ const cupHtml = (c) => (cupOk(c) ? `<a href="${opencup(c)}" target="_blank" rel=
 
 /* progetti del comune: stessi filtri della scheda */
 const progOk = (r, F) => {
-  if (F.mis && !r[4].startsWith(F.mis)) return false; if (F.nat != null && r[5] !== F.nat) return false; if (F.st && !F.st.includes(r[7])) return false;
+  if (F.mis && !r[4].startsWith(F.mis)) return false; if (F.comp && compDi(r[4]) !== F.comp) return false; if (F.msr && msrDi(r[4]) !== F.msr) return false; if (F.sub && r[4] !== F.sub) return false;
+  if (F.nat != null && r[5] !== F.nat) return false; if (F.st && !F.st.includes(r[7])) return false;
   if (F.fl) { const rit = r[6] === 'In Corso' && r[12] && r[12] < ESTR; if (F.fl === 1 && !r[13]) return false; if (F.fl === 2 && !rit) return false; }
   return true;
 };
@@ -637,7 +713,7 @@ function iniziaProgetti(n, nome, F) {
     $('#p-cnt').textContent = nf.format(vis.length) + (nFiltri(F) ? ' con i filtri attivi' : '');
     $('#tab-prog').innerHTML = `<table><thead><tr>${th('t', 'Progetto')}${th('m', 'Misura')}${th('s', 'Stadio')}${th('f', 'Finanziamento', 1)}${th('p', 'Pagato', 1)}${th('a', 'Aggiudicato', 1)}</tr></thead><tbody>${vis.slice(P.page * pp, (P.page + 1) * pp).map((r) => {
       const quota = r[11] < 0.999 ? ` <span class="pill" title="Il progetto è localizzato su più territori: importi ripartiti">quota ${(100 * r[11]).toFixed(0)} %</span>` : '';
-      return `<tr><td>${r[2] ? esc(r[2]) : '<i>Incentivo a imprese (titolo non pubblicato)</i>'}${quota}<br><small>${r[3] ? esc(r[3]) : '<i>soggetto non pubblicato</i>'} · CUP ${cupHtml(r[0])}${r[12] ? ' · fine prevista ' + esc(r[12]) : ''}</small></td><td>${esc(r[4])}</td><td><span class="pill ${r[7] === 4 ? 'ok' : r[13] ? 'warn' : ''}">${esc(STADI[r[7]])}${r[13] ? ' · iter concluso' : ''}</span></td><td class="n">${eur(r[8])}</td><td class="n">${eur(r[9])}</td><td class="n">${eur(r[10])}</td></tr>`;
+      return `<tr><td>${r[2] ? esc(r[2]) : '<i>Incentivo a imprese (titolo non pubblicato)</i>'}${quota}<br><small>${r[3] ? esc(r[3]) : '<i>soggetto non pubblicato</i>'} · CUP ${cupHtml(r[0])}${r[12] ? ' · fine prevista ' + esc(r[12]) : ''}</small></td><td title="${esc(nomeProg(r[4]))}"><b>${esc(etich(r[4]))}</b><br><small>${esc(compDi(r[4]))} · ${esc(r[4])}</small></td><td><span class="pill ${r[7] === 4 ? 'ok' : r[13] ? 'warn' : ''}">${esc(STADI[r[7]])}${r[13] ? ' · iter concluso' : ''}</span></td><td class="n">${eur(r[8])}</td><td class="n">${eur(r[9])}</td><td class="n">${eur(r[10])}</td></tr>`;
     }).join('')}</tbody></table><div class="pager"><button id="pg-p" ${P.page ? '' : 'disabled'}>‹</button> pagina ${P.page + 1} di ${pages} (${nf.format(vis.length)} progetti) <button id="pg-n" ${P.page < pages - 1 ? '' : 'disabled'}>›</button></div>`;
     $('#tab-prog').querySelectorAll('th[data-o]').forEach((h) => { const go = () => { const k = h.dataset.o; P.dir = P.sort === k ? -P.dir : (['f', 'p', 'a'].includes(k) ? -1 : 1); P.sort = k; P.page = 0; draw(); $('#tab-prog').querySelector(`th[data-o="${k}"]`)?.focus(); }; h.addEventListener('click', go); h.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }); });
     $('#pg-p').onclick = () => { P.page--; draw(); }; $('#pg-n').onclick = () => { P.page++; draw(); };
@@ -645,8 +721,8 @@ function iniziaProgetti(n, nome, F) {
   $('#p-q').addEventListener('input', (e) => { P.q = e.target.value; P.page = 0; draw(); });
   const scarica = (righe, suffisso) => {
     const c = (v) => '"' + String(v ?? '').replace(/"/g, '""') + '"';
-    const head = ['CUP', 'Codice locale', 'Titolo', 'Soggetto attuatore', 'Sottomisura', 'Natura', 'Stadio', 'Finanziamento PNRR', 'Pagato PNRR', 'Aggiudicato', 'Quota localizzazione', 'Fine prevista', 'OpenCUP'];
-    const lines = righe.map((r) => [r[0], r[1], r[2], r[3], r[4], S.meta.nature[r[5]], STADI[r[7]], r[8], r[9], r[10], r[11], r[12], cupOk(r[0]) ? opencup(r[0]) : ''].map(c).join(';'));
+    const head = ['CUP', 'Codice locale', 'Titolo', 'Soggetto attuatore', 'Missione', 'Componente', 'Misura', 'Sottomisura', 'Nome sottomisura', 'Natura', 'Stadio', 'Finanziamento PNRR', 'Pagato PNRR', 'Aggiudicato', 'Quota localizzazione', 'Fine prevista', 'OpenCUP'];
+    const lines = righe.map((r) => [r[0], r[1], r[2], r[3], r[4].slice(0, 2), compDi(r[4]), msrDi(r[4]), r[4], nomeProg(r[4]), S.meta.nature[r[5]], STADI[r[7]], r[8], r[9], r[10], r[11], r[12], cupOk(r[0]) ? opencup(r[0]) : ''].map(c).join(';'));
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + [head.map(c).join(';'), ...lines].join('\n')], { type: 'text/csv' })); a.download = `pnrr_${nome.replace(/\W+/g, '_')}${suffisso}.csv`; a.click();
   };
   const tutti = n.progetti || [];
@@ -662,6 +738,10 @@ async function init() {
   try {
     const [meta, it, reg, prov, com, bbox, ci, cr, cp, cc, ver, cupc] = await Promise.all(['meta', 'italia', 'regioni', 'province', 'comuni', 'bbox', 'cubo_i', 'cubo_r', 'cubo_p', 'cubo_c', 'verifiche', 'cup_chiusi'].map((n) => get(`data/${n}.json`)));
     Object.assign(S, { meta, it, reg, prov, com, bbox, ver, cupc }); S.cube = { i: ci, r: cr, p: cp, c: cc };
+    /* gerarchia del piano per ogni sub-misura (indice delle celle) e dotazione ufficiale aggregata per livello */
+    S.sx = { mis: meta.sub.map((c) => c.slice(0, 2)), comp: meta.sub.map(compDi), msr: meta.sub.map(msrDi), sub: meta.sub.slice(), mi: meta.sub.map((c) => meta.missioni.indexOf(c.slice(0, 2))) };
+    S.dotL = { comp: {}, msr: {}, sub: {} };
+    for (const [c, v] of Object.entries(meta.dot)) { for (const L of ['comp', 'msr', 'sub']) { const k = su(c, L); S.dotL[L][k] = (S.dotL[L][k] || 0) + v; } }
   } catch (e) { $('#scheda').innerHTML = `<p class="avviso alert">Impossibile caricare i dati: ${esc(e.message)}</p>`; return; }
   filtriInit(); $('#scheda').addEventListener('click', scheda_click);
   $('#scheda').addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-f][role="button"]')) { e.preventDefault(); toggle(e.target.dataset.f, e.target.dataset.v); } });

@@ -29,15 +29,16 @@ const VISTA = { centro: [13.4, 38.0], zoom: 9.2 };
 const S = { stadio: null, libera: !matchMedia('(max-width: 640px)').matches, pos: null, hidM: new Set(), ids: [], nome: [], lon: null, lat: null, pop: null, F: null, idx: new Map(), meta: null, cur: null, prog: null, dati: null, map: null, rid: 0, quotaComuni: 0, cache: new Map() };
 
 /* ---------- dati ---------- */
-const get = (u) => { if (!S.cache.has(u)) S.cache.set(u, fetch(u).then((r) => { if (!r.ok) throw new Error(u + ' ' + r.status); return r.json(); })); return S.cache.get(u); };
+const get = (u) => { if (!S.cache.has(u)) S.cache.set(u, fetch(u + "?d=2").then((r) => { if (!r.ok) throw new Error(u + ' ' + r.status); return r.json(); })); return S.cache.get(u); };
 async function carica() {
   const [com, bbox, cc, it, meta] = await Promise.all(['comuni', 'bbox', 'cubo_c', 'italia', 'meta'].map((n) => get(`data/${n}.json`)));
   const ids = Object.keys(cc).filter((id) => bbox.c[id] && com[id] && com[id].pop > 0), n = ids.length;
   S.meta = meta; S.ids = ids; S.nome = ids.map((id) => com[id].nm); S.lon = new Float64Array(n); S.lat = new Float64Array(n); S.pop = new Float64Array(n);
   S.F = new Float64Array(n * NC);
+  const subMis = meta.sub.map((c) => MIS.indexOf(c.slice(0, 2))); /* le celle dei cubi sono per sub-misura: la lente lavora per missione */
   ids.forEach((id, i) => {
     S.idx.set(id, i); const b = bbox.c[id]; S.lon[i] = (b[0] + b[2]) / 2; S.lat[i] = (b[1] + b[3]) / 2; S.pop[i] = com[id].pop;
-    const c = cc[id]; for (let o = 0; o < c.length; o += 9) { const st = c[o + 2]; if (st <= 4) S.F[i * NC + c[o] * NSTA + st] += c[o + 5]; }
+    const c = cc[id]; for (let o = 0; o < c.length; o += 9) { const st = c[o + 2]; if (st <= 4) S.F[i * NC + subMis[c[o]] * NSTA + st] += c[o + 5]; }
   });
   S.quotaComuni = it.liv[0] / (it.liv[0] + it.liv[1] + it.liv[2] + it.liv[3]);
   $('#elenco').innerHTML = S.nome.map((nm) => `<option value="${esc(nm)}"></option>`).join('');

@@ -6,7 +6,7 @@
   const embed = document.documentElement.hasAttribute('data-embed');
 
   /* ---------- pannelli dei chip: se ne apre uno alla volta ---------- */
-  const chip = { 'chip-terr': 'pan-terr', 'chip-ind': 'pan-ind', 'chip-mappa': 'pan-mappa' };
+  const chip = { 'chip-terr': 'pan-terr', 'chip-prog': 'pan-prog', 'chip-ind': 'pan-ind', 'chip-mappa': 'pan-mappa' };
   function chiudiPannelli(salvo) {
     for (const [c, p] of Object.entries(chip)) if (p !== salvo) { $('#' + p).hidden = true; $('#' + c).setAttribute('aria-expanded', 'false'); }
   }

@@ -315,3 +315,14 @@ html[data-iframe] header.top, html[data-iframe] body:not(.home) .top, html[data-
 .tip-rampa i.qui { outline: 2px solid var(--ink); outline-offset: 1px; }
 /* senza mouse: legenda e conteggi del riquadro si leggono nel tooltip, non sulla mappa */
 @media (hover: none) { .sovra { display: none; } }
+
+/* Piano: Componente, Misura, Sub-misura */
+.pan-nota { margin: .6rem 0 0; font-size: .78rem; color: var(--ink2); }
+.prog-det { margin: 1.4rem 0 0; }
+.prog-det > summary { cursor: pointer; list-style: none; font-size: 1rem; font-weight: 700; padding-bottom: .25rem; border-bottom: 1px solid var(--line); margin-bottom: .5rem; }
+.prog-det > summary::-webkit-details-marker { display: none; }
+.prog-det > summary::before { content: '▸'; display: inline-block; width: 1rem; color: var(--ink3); }
+.prog-det[open] > summary::before { content: '▾'; }
+.prog-det > summary small { font-weight: 400; color: var(--ink3); margin-left: .4rem; }
+.scheda td small.cod { display: block; color: var(--ink3); font-size: .72rem; }
+.scheda td b { font-weight: 650; }

@@ -27,7 +27,7 @@
 <meta name="twitter:description" content="Guida illustrata all'Atlante del PNRR: a cosa serve, come cercare un comune, leggere la scheda, colorare la mappa e filtrare i progetti.">
 <meta name="twitter:image" content="https://palermohub.github.io/atlante_pnrr/img/social-card.png">
 <!-- /SOCIAL -->
-<link rel="stylesheet" href="css/atlante.css?v=47">
+<link rel="stylesheet" href="css/atlante.css?v=49">
 <link rel="stylesheet" href="css/statistiche.css?v=7">
 <link rel="stylesheet" href="css/guida.css?v=3">
 <script src="js/consenso.js?v=1" defer></script>
@@ -215,6 +215,15 @@
 
   <section class="capitolo" id="filtri" aria-labelledby="t-filtri"><h2 id="t-filtri">Filtrare: tutto è cliccabile</h2>
     <p>Quasi ogni riga delle schede si può cliccare. Un clic su una missione, su uno stadio, su un tipo di intervento o su un avviso (in ritardo, fermo, chiusura da formalizzare) <b>filtra insieme mappa, grafici ed elenco dei progetti</b>, a qualunque livello territoriale. I filtri si combinano e restano attivi quando cambi territorio. Per toglierli: «Azzera».</p>
+    <h3>Missione, Componente, Misura e Sub-misura</h3>
+    <p>Il Piano è articolato in quattro livelli, uno dentro l'altro, e l'atlante li distingue tutti. Si scelgono a cascata dal pulsante <b>Piano</b> sopra la mappa, oppure con un clic sulle tabelle «Per missione», «Per componente», «Per misura» e «Per sub-misura» della scheda:</p>
+    <ol>
+      <li><b>Missione</b> (M1–M7): per esempio M2 «Rivoluzione verde e transizione ecologica».</li>
+      <li><b>Componente</b> (M2C1, M2C2…): la parte di una missione, per esempio M2C4 «Tutela del territorio e della risorsa idrica».</li>
+      <li><b>Misura</b>: un <b>Investimento</b> o una <b>Riforma</b>, per esempio «Investimento 4.1» (M2C4I4.04, nei dati).</li>
+      <li><b>Sub-misura</b>: le articolazioni più fini, per esempio «Investimento 1.4.1» (M1C1I1.04.01). Quando una misura non si divide, la sub-misura coincide con la misura.</li>
+    </ol>
+    <p>Scegliere un livello allinea quelli sopra e azzera quelli sotto. I filtri valgono per mappa, scheda, grafici ed elenco dei progetti, a ogni scala territoriale; nell'elenco ogni progetto riporta Misura, Componente e codice della sub-misura, e il CSV scaricato li ha in colonne separate. Le tabelle di misure e sub-misure sono in un blocco che si apre da solo quando scegli il livello sopra. Senza filtri, a livello Italia, accanto a ogni riga compare la dotazione ufficiale e quanto non è ancora su progetti.</p>
     <p>Ogni vista, filtri compresi, ha il proprio indirizzo: il pulsante «Condividi» in alto (icona con i tre punti uniti) lo copia, e chi lo apre vede esattamente ciò che vedi tu.</p>
     <p class="nota-guida"><b>Esempio.</b> Per sapere quanti progetti della Missione 4 (Istruzione e ricerca) sono in ritardo a Palermo: cerca «Palermo», clicca <b>M4</b> nella tabella «Per missione» e poi la riga <b>In ritardo sulla fine prevista</b> tra i progetti a rischio. L'elenco in fondo alla scheda mostra solo quei progetti.</p>
   </section>
@@ -266,6 +275,9 @@
     <dl class="parti">
       <dt>CUP</dt><dd>Codice Unico di Progetto: l'identificativo di un investimento pubblico. Nell'atlante il progetto è la coppia CUP + Codice Locale Progetto, perché un CUP può comparire su più progetti.</dd>
       <dt>Missione (M1–M7)</dt><dd>Le sette grandi aree del Piano, per esempio M2 «Rivoluzione verde e transizione ecologica» o M4 «Istruzione e ricerca».</dd>
+      <dt>Componente (M1C1…)</dt><dd>La sotto-articolazione di una missione: sono 17 nei dati, per esempio M1C2 «Digitalizzazione, innovazione e competitività nel sistema produttivo».</dd>
+      <dt>Misura</dt><dd>Un Investimento o una Riforma del Piano (per esempio Investimento 1.4). Nei dati ha un codice come M1C1I1.04.</dd>
+      <dt>Sub-misura</dt><dd>L'articolazione più fine di una misura (per esempio 1.4.1, in codice M1C1I1.04.01). I progetti sono collegati a una sub-misura.</dd>
       <dt>Importo ripartito</dt><dd>Un progetto che interessa più comuni è diviso secondo la percentuale di localizzazione dichiarata. Così la somma dei comuni, delle province e delle regioni torna al totale nazionale.</dd>
       <dt>Aggiudicato</dt><dd>Somma degli importi di aggiudicazione delle gare collegate al progetto. Comprende tutte le fonti di finanziamento dell'appalto, non solo il PNRR.</dd>
       <dt>In ritardo</dt><dd>Progetto ancora «in corso» con fine prevista anteriore al 13/06/2026, data dell'estrazione dei dati.</dd>
@@ -288,7 +300,7 @@
 <script src="js/cima.js?v=2" defer></script>
 <script src="js/piede.js?v=1" defer></script>
 <script src="js/menu.js?v=6" defer></script>
-<script src="js/info.js?v=8" defer></script>
+<script src="js/info.js?v=9" defer></script>
 <script src="js/galleria.js?v=1" defer></script>
 </body>
 </html>

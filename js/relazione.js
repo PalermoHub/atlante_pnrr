@@ -17,7 +17,7 @@
   const ORD_RIP = ['Nord-ovest', 'Nord-est', 'Centro', 'Sud', 'Isole'];
   const NOMI_MIS = { M1: 'Digitale, innovazione, cultura', M2: 'Transizione verde', M3: 'Infrastrutture e mobilità', M4: 'Istruzione e ricerca', M5: 'Inclusione e coesione', M6: 'Salute', M7: 'REPowerEU (energia)' };
   const conTip = G.conTip;
-  const get = (n) => fetch(`data/${n}.json`).then((r) => { if (!r.ok) throw new Error(n + ' ' + r.status); return r.json(); });
+  const get = (n) => fetch(`data/${n}.json?d=2`).then((r) => { if (!r.ok) throw new Error(n + ' ' + r.status); return r.json(); });
 
   const art = el('rel');
   const sez = (id, n, titolo) => { const s = H('section', { class: 'rsez', id }, [H('h2', { id: id + '-t', 'data-n': n, text: titolo })]); s.setAttribute('aria-labelledby', id + '-t'); art.append(s); return s; };
@@ -43,7 +43,8 @@
 
     /* ================= calcoli di base ================= */
     const fin = it.fin, pag = it.pag, NA = it.fs[5];
-    const celle = (c) => { const r = []; for (let o = 0; o < c.length; o += 9) r.push({ m: c[o], na: c[o + 1], s: c[o + 2], f: c[o + 3], n: c[o + 4], fin: c[o + 5], pag: c[o + 7] }); return r; };
+    const subMis = meta.sub.map((c) => meta.missioni.indexOf(c.slice(0, 2))); /* le celle dei cubi sono per sub-misura: qui serve la missione */
+    const celle = (c) => { const r = []; for (let o = 0; o < c.length; o += 9) r.push({ m: subMis[c[o]], na: c[o + 1], s: c[o + 2], f: c[o + 3], n: c[o + 4], fin: c[o + 5], pag: c[o + 7] }); return r; };
     const cellaI = celle(ci.IT);
     const stg = Array.from({ length: 6 }, () => ({ n: 0, fin: 0, pag: 0 }));
     let icc3 = { n: 0, fin: 0 };
