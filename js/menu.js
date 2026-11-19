@@ -19,7 +19,12 @@
   btn.setAttribute('aria-label', 'Apri il menù'); btn.setAttribute('aria-haspopup', 'dialog'); btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', 'menu-pan');
   btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
   const riga = document.querySelector('.cerca-riga');
-  if (home && riga) { if (embed) riga.append(btn); else riga.prepend(btn); } else top.append(btn);
+  if (home && riga) { if (embed) riga.append(btn); else riga.prepend(btn); } else {
+    /* pagine che scorrono (Statistiche, Cosa dicono i dati, Privacy): × per chiuderle e tornare alla mappa */
+    const x = el('a', 'menu-chiudi-pag'); x.href = 'index.html'; x.setAttribute('aria-label', 'Chiudi la pagina e torna alla mappa'); x.title = 'Chiudi e torna alla mappa';
+    x.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>';
+    top.append(x, btn);
+  }
 
   /* pannello */
   const vela = el('div', 'menu-vela'); vela.hidden = true;
