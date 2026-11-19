@@ -150,3 +150,5 @@ body.lente-pag .lente-testo { flex: 1 1 45%; max-height: none; min-height: 0; ov
 .lente-tip dd { margin: 0; text-align: right; word-break: break-word; }
 .lente-tip small { display: block; margin-top: .3rem; color: var(--ink3); }
 .lente-svg .rag { pointer-events: all; cursor: pointer; }
+
+.lente-svg .velo { fill: var(--surface); fill-opacity: .78; pointer-events: none; }

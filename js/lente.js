@@ -65,12 +65,14 @@ const stadioOk = (p) => S.stadio == null || p.st === S.stadio;
 function disegna() {
   const svg = $('#lente'), W = svg.clientWidth, H = svg.clientHeight, cx = W / 2, cy = H / 2;
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.replaceChildren();
-  const avail = (Math.min(W, H) / 2 - 34) * (W < 640 ? 0.8 : 0.68), Rin = Math.max(34, Math.min(70, avail * 0.27)), Rout = Rin + 24, rb = Rout + 5, Hm = Math.max(36, avail - Rout - 5), Rl = rb + Hm + 14;
+  const avail = (Math.min(W, H) / 2 - 34) * (W < 640 ? 0.68 : 0.56), Rin = Math.max(32, Math.min(64, avail * 0.27)), Rout = Rin + 24, rb = Rout + 5, Hm = Math.max(36, avail - Rout - 5), Rl = rb + Hm + 14;
   const P = (r, a) => [cx + r * Math.sin(a * Math.PI / 180), cy - r * Math.cos(a * Math.PI / 180)];
   const arc = (r, a0, a1) => { const [x0, y0] = P(r, a0), [x1, y1] = P(r, a1), cw = a1 > a0; return `M${x0} ${y0} A${r} ${r} 0 ${Math.abs(a1 - a0) > 180 ? 1 : 0} ${cw ? 1 : 0} ${x1} ${y1}`; };
   const defs = el('defs'); svg.append(defs); const g = el('g'); svg.append(g);
   const prog = S.prog, nome = S.cur != null ? S.nome[S.idx.get(S.cur)] : null;
   if (!nome) { g.append(el('text', { x: cx, y: cy, 'text-anchor': 'middle', class: 'nome' }, 'Sposta la mappa su un comune')); return; }
+  /* velo semitrasparente dietro la raggiera: nasconde i poligoni sotto, lascia vedere la mappa dentro la lente */
+  const Rv = Rl + 13; g.append(el('path', { d: `M${cx - Rv} ${cy} a${Rv} ${Rv} 0 1 0 ${2 * Rv} 0 a${Rv} ${Rv} 0 1 0 ${-2 * Rv} 0 M${cx - Rin} ${cy} a${Rin} ${Rin} 0 1 1 ${2 * Rin} 0 a${Rin} ${Rin} 0 1 1 ${-2 * Rin} 0`, 'fill-rule': 'evenodd', class: 'velo' }));
   /* scala logaritmica sull'importo dei progetti */
   const vals = (prog || []).map((p) => p.fin).filter((v) => v > 0), lo = vals.length ? Math.pow(10, Math.floor(Math.log10(Math.min(...vals)))) : 1e3;
   let hi = vals.length ? Math.pow(10, Math.ceil(Math.log10(Math.max(...vals)))) : 1e6; if (hi <= lo) hi = lo * 10;
