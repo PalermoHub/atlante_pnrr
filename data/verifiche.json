@@ -92,5 +92,14 @@
       "pagato": 2799877041,
       "concluso": 1886615119
     }
+  },
+  "stati_progetti": {
+    "in_corso": 169179,
+    "concluso": 122199,
+    "da_attivare": 18
+  },
+  "cup_chiuso_in_corso": {
+    "n": 1667,
+    "mln": 152.2
   }
 }

@@ -374,6 +374,17 @@
       limiti(s, ['La data di fine prevista è dichiarata dagli enti e può essere stata spostata. Il programma si è chiuso il 30 giugno 2026: una parte di questi progetti sarà stata chiusa nelle ultime settimane.', 'Un progetto in ritardo nei dati non è per forza un progetto bloccato.']);
     }
 
+    /* ================= 8 bis. Cosa non dicono ================= */
+    {
+      const s = sezione('nondicono', 'Cosa non dicono');
+      const sp = ver.stati_progetti, cc = ver.cup_chiuso_in_corso;
+      P(s, `Una domanda naturale è: quanti progetti non sono stati realizzati, e quanti soldi si sono persi? <b>I dati pubblici non permettono di rispondere.</b> Nel sistema ufficiale lo stato di un progetto ha solo tre valori: «in corso» (${nf(sp.in_corso)}), «concluso» (${nf(sp.concluso)}) e «da attivare» (${nf(sp.da_attivare)}). Non esistono «revocato», «definanziato» o «non realizzato»: un progetto abbandonato o tolto dal piano non lascia traccia con un suo stato.`);
+      P(s, `Non si può nemmeno dire quanto «spettava» a una regione o a un comune. La dotazione ufficiale è fissata per misura, a livello nazionale: i ${mld(ver.senza_progetto)} senza progetto del capitolo sui conti non hanno un territorio. Per questo il confronto tra dotazione, finanziato e pagato c'è per l'Italia e per missione, ma non per regioni, province e comuni.`);
+      P(s, `Ci sono solo indizi, da non scambiare per perdite. ${nf(cc.n)} progetti hanno il codice CUP «chiuso» ma risultano ancora «in corso», per ${nf(cc.mln, 0)} milioni di euro: forse sono stati interrotti, forse è solo una chiusura amministrativa. In più, ${nf(it.rit[0])} progetti sono «in ritardo» (${mld(it.rit[1])}, capitolo precedente) e ${nf(it.icc[0])} hanno l'iter concluso ma non sono ancora segnati come conclusi (${mld(it.icc[1])}). Sono soldi fermi o in attesa di una formalità, non soldi persi.`);
+      calc(s, `Stati = campo «Stato Avanzamento Progetto» del file Progetti (estrazione del ${meta.estrazione}). CUP chiuso ma in corso = «Stato CUP» uguale a «Chiuso» e stato avanzamento «In Corso». Cifre raccolte in <code>data/verifiche.json</code> da <code>scrpits/verifiche_missioni.py</code>.`);
+      limiti(s, ['Per sapere quanti fondi sono stati davvero persi servono fonti esterne: le relazioni della Ragioneria generale dello Stato, le decisioni del Consiglio dell’Unione europea sulle modifiche al Piano e i decreti di definanziamento. Di solito parlano di misure, non di comuni.']);
+    }
+
     /* ================= 9. Chiusura ================= */
     {
       const s = sezione('conclusione', 'Che cosa possiamo dire, e che cosa no');
