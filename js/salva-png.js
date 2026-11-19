@@ -3,7 +3,7 @@
    (onclone) si aggiungono testata con il logo dell'app e piede con fonte e data, così l'originale in pagina non cambia. */
 (() => {
   'use strict';
-  const SITO = 'palermohub.github.io/atlante_pnrr';
+  const SITO = 'https://palermohub.opendatasicilia.it/ps_palermo.html';
   const FONTE = 'Dati: Italia Domani, Catalogo Open Data (CC-BY 4.0), estrazione del 13 giugno 2026. Non è un prodotto ufficiale del Governo né di Italia Domani.';
   const fData = new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', day: '2-digit', month: '2-digit', year: 'numeric' });
   const ICONA = '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 20h14"/></svg>';
@@ -17,10 +17,11 @@
   }));
 
   /* Il logo entra come data URL: l'immagine è già decodificata quando html2canvas la legge e il canvas non si «sporca». */
-  let logo = null;
-  const caricaLogo = () => logo || (logo = fetch('img/logo-pnrr.png').then((r) => r.blob()).then((b) => new Promise((ok, ko) => {
+  const daUrl = (src) => fetch(src).then((r) => r.blob()).then((b) => new Promise((ok, ko) => {
     const f = new FileReader(); f.onload = () => ok(f.result); f.onerror = ko; f.readAsDataURL(b);
-  })).catch(() => { logo = null; return ''; }));
+  })).catch(() => '');
+  let logo = null;
+  const caricaLogo = () => logo || (logo = Promise.all([daUrl('img/logo-pnrr.png'), daUrl('img/opendatasicilia.png')]));
 
   const nodo = (doc, tag, stile, testo) => { const e = doc.createElement(tag); if (stile) e.style.cssText = stile; if (testo != null) e.textContent = testo; return e; };
 
@@ -49,7 +50,7 @@
   async function salva(fig, btn) {
     const etichetta = btn.innerHTML; btn.disabled = true; btn.textContent = 'Preparo l’immagine…';
     try {
-      const [html2canvas, logoUrl] = await Promise.all([carica(), caricaLogo()]);
+      const [html2canvas, [logoUrl, odsUrl]] = await Promise.all([carica(), caricaLogo()]);
       if (document.fonts?.ready) await document.fonts.ready;
       const titolo = fig.querySelector('figcaption b')?.textContent?.trim() || 'Grafico';
       const canvas = await html2canvas(fig, {
@@ -65,8 +66,11 @@
           t.append(nodo(doc, 'strong', 'font-size:1rem', 'Atlante del PNRR'), nodo(doc, 'small', 'font-size:.74rem;color:var(--ink3)', 'un progetto di OpenDataSicilia'));
           testata.append(t);
           el.insertBefore(testata, el.firstChild);
-          const piede = nodo(doc, 'div', 'margin-top:.8rem;padding-top:.5rem;border-top:1px solid var(--line);font-size:.68rem;line-height:1.4;color:var(--ink3)');
-          piede.append(nodo(doc, 'div', null, FONTE), nodo(doc, 'div', 'font-weight:700;color:var(--ink2);margin-top:.15rem', `${SITO} · immagine creata il ${fData.format(new Date())}`));
+          const piede = nodo(doc, 'div', 'display:flex;align-items:center;gap:.7rem;margin-top:.8rem;padding-top:.5rem;border-top:1px solid var(--line);font-size:.68rem;line-height:1.4;color:var(--ink3)');
+          if (odsUrl) { const i = doc.createElement('img'); i.src = odsUrl; i.width = 30; i.height = 35; i.style.cssText = 'display:block;flex:none'; piede.append(i); }
+          const tx = nodo(doc, 'div', 'min-width:0');
+          tx.append(nodo(doc, 'div', null, FONTE), nodo(doc, 'div', 'font-weight:700;color:var(--ink2);margin-top:.15rem', `${SITO} · immagine creata il ${fData.format(new Date())}`));
+          piede.append(tx);
           el.append(piede);
         },
       });
