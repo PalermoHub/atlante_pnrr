@@ -146,6 +146,21 @@ const ambito = (liv, id) => {
   const prov = liv === 'c' ? S.com[id].pv : liv === 'p' ? id : null;
   return Object.entries(S.com).filter(([, v]) => (liv === 'r' ? v.rg === id : v.pv === prov)).map(([k]) => k);
 };
+/* Etichetta del territorio selezionato e dell'insieme su cui è calcolata la scala dei colori */
+function terrEtichetta() {
+  const { liv, id } = S.cur || {};
+  if (liv === 'c') return `Comune di ${S.com[id].nm} (${S.prov[S.com[id].pv]?.sigla ?? ''})`;
+  if (liv === 'p') return `Provincia di ${S.prov[id]?.nome}`;
+  if (liv === 'r') return `Regione ${S.reg[id]?.nome}`;
+  return 'Italia';
+}
+function ambitoEtichetta() {
+  const { liv, id } = S.cur || {};
+  if (!S.adatta || !liv) return 'tutti i comuni d’Italia';
+  if (liv === 'r') return `i comuni della regione ${S.reg[id]?.nome}`;
+  return `i comuni della provincia di ${S.prov[liv === 'c' ? S.com[id].pv : id]?.nome}`;
+}
+const testaLegenda = (I) => `<div>${esc(I.nome)}</div><div class="leg-terr">Territorio: <b>${esc(terrEtichetta())}</b><br>Fasce calcolate su: ${esc(ambitoEtichetta())}</div>`;
 function aggiornaMappa() {
   if (!S.map || !S.map.getLayer('comuni') || !S.cur || !S.cube.c) return;
   const { liv, id, F } = S.cur; S.vals = valoriComuni(F); const I = INDIC[S.indic];
@@ -162,7 +177,9 @@ function aggiornaMappa() {
   for (const [cid, c] of Object.entries(S.vals)) { const i = cls(I.f(c)); if (i < 0) continue; S.clsMap[cid] = i; cont[i]++; expr.push(cid, !S.cls || S.cls.has(i) ? r[Math.min(i, k - 1)] : nessuno); cnt++; }
   expr.push(nessuno); S.map.setPaintProperty('comuni', 'fill-color', cnt ? expr : nessuno);
   const lim = (i) => `${I.fmt(i === 0 ? v[0] : S.breaks[i - 1])} – ${I.fmt(i === nc - 1 ? v[v.length - 1] : S.breaks[i])}`;
-  $('#legenda').innerHTML = `<div>${esc(I.nome)}</div>` + (v.length ? `<ul class="cat">${cont.map((n, i) => `<li><button type="button" data-k="${i}" class="${S.cls?.has(i) ? 'on' : ''}" aria-pressed="${!!S.cls?.has(i)}" title="Mostra solo i comuni di questa classe"><i style="background:${r[Math.min(i, k - 1)]}"></i>${esc(lim(i))}<small>${nf.format(n)} comuni</small></button></li>`).join('')}</ul>` : '')
+  const mio = S.cur.liv === 'c' ? S.clsMap[S.cur.id] : undefined, cn = S.cur.liv === 'c' ? S.com[S.cur.id].nm : '';
+  $('#legenda').innerHTML = testaLegenda(I) + (v.length ? `<ul class="cat">${cont.map((n, i) => `<li><button type="button" data-k="${i}" class="${S.cls?.has(i) ? 'on' : ''}" aria-pressed="${!!S.cls?.has(i)}" title="Mostra solo i comuni di questa classe"><i style="background:${r[Math.min(i, k - 1)]}"></i>${esc(lim(i))}${mio === i ? `<em class="qui">◀ ${esc(cn)}</em>` : ''}<small>${nf.format(n)} comuni</small></button></li>`).join('')}</ul>` : '')
+    + (mio !== undefined ? `<div class="leg-fascia"><b>${esc(cn)}</b>: ${esc(I.fmt(I.f(S.vals[S.cur.id])))} → fascia ${mio + 1} di ${nc}</div>` : S.cur.liv === 'c' ? `<div class="leg-fascia"><b>${esc(cn)}</b>: nessun progetto, resta grigio</div>` : '')
     + `<div class="nota-leg">${S.cls ? '<button type="button" data-k="tutte" class="tutte">Mostra tutte le classi</button> · ' : 'Clic su una classe per isolarla · '}${S.adatta ? 'scala adattata al territorio' : 'scala su tutta Italia'}${nFiltri(F) ? ' · con i filtri attivi' : ''}. Grigio: nessun progetto${S.cls ? ' o classe esclusa' : ''}.</div>`;
   aggiornaQuadro();
 }
@@ -177,7 +194,8 @@ function mappaCategorie(I, F) {
   S.map.setPaintProperty('comuni', 'fill-color', ord.length ? colori : nessuno);
   S.map.setPaintProperty('comuni', 'fill-opacity', ord.length ? opac : 0.85);
   const tot = {}; ord.forEach(([k]) => { const d = S.vals[k].dom; tot[d] = (tot[d] || 0) + 1; });
-  $('#legenda').innerHTML = `<div>${esc(I.nome)}</div><ul class="cat">${S.meta.missioni.map((k) => `<li><button type="button" data-f="mis" data-v="${k}" class="${F.mis === k ? 'on' : ''}" aria-pressed="${F.mis === k}" title="Filtra per ${esc(NOMI_MIS[k])}"><i style="background:${COL_MIS[k]}"></i>${esc(NOMI_MIS[k])}<small>${nf.format(tot[k] || 0)} comuni</small></button></li>`).join('')}</ul>
+  const dom = S.cur.liv === 'c' && S.vals[S.cur.id]?.fin > 0 ? S.vals[S.cur.id].dom : null, cn = S.cur.liv === 'c' ? S.com[S.cur.id].nm : '';
+  $('#legenda').innerHTML = testaLegenda(I) + `<ul class="cat">${S.meta.missioni.map((k) => `<li><button type="button" data-f="mis" data-v="${k}" class="${F.mis === k ? 'on' : ''}" aria-pressed="${F.mis === k}" title="Filtra per ${esc(NOMI_MIS[k])}"><i style="background:${COL_MIS[k]}"></i>${esc(NOMI_MIS[k])}${dom === k ? `<em class="qui">◀ ${esc(cn)}</em>` : ''}<small>${nf.format(tot[k] || 0)} comuni</small></button></li>`).join('')}</ul>
    <div class="nota-leg">Trasparenza: più il colore è pieno, più il comune ha finanziamento${nFiltri(F) ? ' · con i filtri attivi' : ''}. Grigio: nessun progetto.</div>`;
 }
 /* Contatori sul riquadro visibile: comuni, progetti, importo e quota per missione (clic = filtro) */
@@ -186,7 +204,7 @@ function aggiornaQuadro() {
   const ids = new Set(); for (const f of m.queryRenderedFeatures({ layers: ['comuni'] })) { const i = f.properties.pro_com_t; if (S.vals[i] && (!S.cls || S.cls.has(S.clsMap?.[i]))) ids.add(i); }
   let n = 0, fin = 0, nc = 0; const ms = new Array(S.meta.missioni.length).fill(0);
   ids.forEach((i) => { const c = S.vals[i]; if (c.n) { nc++; n += c.n; fin += c.fin; c.ms.forEach((v, j) => { ms[j] += v; }); } });
-  $('#q-t').innerHTML = `Nel riquadro: <b>${nf.format(nc)}</b> comuni · <b>${nf.format(n)}</b> progetti · <b>${eur(fin)}</b>`;
+  $('#q-t').innerHTML = `<span class="q-terr">${esc(terrEtichetta())}</span> · nel riquadro: <b>${nf.format(nc)}</b> comuni · <b>${nf.format(n)}</b> progetti · <b>${eur(fin)}</b>`;
   const F = S.cur?.F || F0();
   $('#q-l').innerHTML = fin > 0 ? S.meta.missioni.map((mk, j) => [mk, ms[j]]).filter(([, v]) => v > 0).sort((a, b2) => b2[1] - a[1]).map(([mk, v]) => `<li><button type="button" data-f="mis" data-v="${mk}" class="${F.mis === mk ? 'on' : ''}" aria-pressed="${F.mis === mk}" title="Filtra per ${esc(NOMI_MIS[mk])}"><span class="qn"><i style="background:${COL_MIS[mk]}"></i>${esc(mk)}</span><span class="qb"><span style="width:${(100 * v / fin).toFixed(1)}%;background:${COL_MIS[mk]}"></span></span><span class="qv">${pct(v, fin)}</span></button></li>`).join('') : '<li class="vuoto">Nessun progetto nel riquadro.</li>';
 }

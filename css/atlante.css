@@ -176,3 +176,8 @@ tr.cl.on td { outline: none; background: var(--accbg); box-shadow: inset 0 1px 0
 .cr-logo { margin: 1rem 0 .4rem; } .cr-logo img { height: 48px; width: auto; }
 .tools button#btn-info { white-space: nowrap; }
 @media (max-width: 1000px) { .brand span { display: none; } }
+
+.legenda .leg-terr { font-size: .72rem; color: var(--ink2, var(--ink3)); margin: .15rem 0 .3rem; line-height: 1.35; }
+.legenda .qui { font-style: normal; font-weight: 700; font-size: .68rem; margin-left: .35rem; }
+.legenda .leg-fascia { margin-top: .3rem; font-size: .72rem; }
+.quadro .q-terr { font-weight: 700; }
