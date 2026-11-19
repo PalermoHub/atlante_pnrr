@@ -1,0 +1,152 @@
+:root {
+  --bg:#f4f4f1; --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --ink3:#6e6d68; --line:#dcdbd5; --acc:#256abf; --accbg:#e4eefb;
+  --s1:#cde2fb; --s2:#9ec5f4; --s3:#6da7ec; --s4:#3987e5; --s5:#256abf; --s6:#184f95; --s7:#0d366b;
+  --ok:#0f7b3f; --warn:#b36b00; --bad:#b3261e; --bar:#2a78d6; --bar2:#9ec5f4; --dim:rgba(244,244,241,.72);
+}
+:root[data-theme="dark"] {
+  --bg:#121211; --surface:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7; --ink3:#97968c; --line:#34332f; --acc:#6da7ec; --accbg:#17263a;
+  --s1:#0d366b; --s2:#104281; --s3:#184f95; --s4:#2a78d6; --s5:#5598e7; --s6:#86b6ef; --s7:#cde2fb;
+  --ok:#4cc27a; --warn:#e0a13a; --bad:#ef7b73; --bar:#3987e5; --bar2:#184f95; --dim:rgba(18,18,17,.72); color-scheme: dark;
+}
+/* Temi aggiuntivi: seppia e alto contrasto (chiari), oceano (scuro). Il tono (data-tone) lo imposta js/tema.js. */
+:root[data-theme="sepia"] {
+  --bg:#f1e8d4; --surface:#faf3e3; --ink:#2b2214; --ink2:#5a4b32; --ink3:#7d6b4d; --line:#d8c9a6; --acc:#8a4b12; --accbg:#f0dfbf;
+  --ok:#2f6b2a; --warn:#9a5a00; --bad:#a3281c; --bar:#a8651f; --bar2:#e0c08a; --dim:rgba(241,232,212,.72);
+}
+:root[data-theme="contrast"] {
+  --bg:#ffffff; --surface:#ffffff; --ink:#000000; --ink2:#1a1a1a; --ink3:#333333; --line:#000000; --acc:#0033cc; --accbg:#e6ecff;
+  --ok:#005c1f; --warn:#7a4500; --bad:#a00000; --bar:#0033cc; --bar2:#99b0ff; --dim:rgba(255,255,255,.78);
+}
+:root[data-theme="ocean"] {
+  --bg:#0a1a2a; --surface:#10253a; --ink:#e8f1fa; --ink2:#b4c8dc; --ink3:#88a1ba; --line:#244563; --acc:#5cc8e8; --accbg:#12324d;
+  --ok:#4cd08a; --warn:#e8b04a; --bad:#ff8a80; --bar:#3aa6d0; --bar2:#1c5a7a; --dim:rgba(10,26,42,.72); color-scheme: dark;
+}
+:root[data-theme="contrast"] button, :root[data-theme="contrast"] select { border-width: 2px; border-color: #000; }
+.tools select, .scale select { padding: .3rem; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; max-width: 100%; }
+.scale { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
+.scale .chk { white-space: nowrap; }
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; }
+button, select, input { font: inherit; color: inherit; }
+button { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: .35rem .7rem; cursor: pointer; }
+button:hover { border-color: var(--acc); }
+:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+.top { display: flex; align-items: center; gap: 1rem; padding: .55rem 1rem; background: var(--surface); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.brand strong { font-size: 1.05rem; display: block; line-height: 1.1; }
+.brand span { font-size: .75rem; color: var(--ink3); }
+#crumbs { flex: 1; display: flex; gap: .3rem; flex-wrap: wrap; font-size: .9rem; min-width: 0; }
+#crumbs a { color: var(--acc); text-decoration: none; } #crumbs a:hover { text-decoration: underline; }
+#crumbs .sep { color: var(--ink3); } #crumbs .cur { font-weight: 600; }
+.tools { display: flex; gap: .4rem; }
+main { flex: 1; display: grid; grid-template-columns: minmax(300px, 46%) 1fr; min-height: 0; }
+.mapcol { position: relative; border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+.mapbar { padding: .5rem .75rem; display: flex; gap: .5rem; align-items: center; background: var(--surface); border-bottom: 1px solid var(--line); font-size: .85rem; flex-wrap: wrap; }
+.mapbar select { padding: .3rem; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; max-width: 100%; }
+#map { flex: 1; min-height: 280px; }
+.legenda { position: absolute; left: .6rem; bottom: .6rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .45rem .6rem; font-size: .75rem; max-width: 220px; }
+.legenda .rampa { display: flex; height: 10px; margin: .3rem 0 .15rem; gap: 2px; } .legenda .rampa i { flex: 1; border-radius: 2px; }
+.legenda .estr { display: flex; justify-content: space-between; color: var(--ink2); }
+.scheda { overflow-y: auto; padding: 1rem 1.25rem 3rem; min-width: 0; }
+.scheda h1 { font-size: 1.6rem; margin: 0; line-height: 1.15; }
+.scheda .sotto { color: var(--ink2); margin: .15rem 0 1rem; font-size: .9rem; }
+.scheda h2 { font-size: 1rem; margin: 1.6rem 0 .5rem; padding-bottom: .25rem; border-bottom: 1px solid var(--line); }
+.scheda h2 small { font-weight: 400; color: var(--ink3); margin-left: .4rem; }
+.kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .6rem; }
+.kpi div { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .55rem .7rem; }
+.kpi b { display: block; font-size: 1.35rem; font-variant-numeric: tabular-nums; } .kpi span { font-size: .78rem; color: var(--ink2); }
+.kpi em { display: block; font-style: normal; font-size: .72rem; color: var(--ink3); }
+.imbuto { display: grid; gap: .45rem; }
+.imbuto .riga { display: grid; grid-template-columns: 11.5rem 1fr 9.5rem; gap: .6rem; align-items: center; font-size: .86rem; }
+.imbuto .riga .v { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.barra { height: 14px; background: var(--accbg); border-radius: 0 4px 4px 0; position: relative; }
+.barra i { display: block; height: 100%; background: var(--bar); border-radius: 0 4px 4px 0; }
+.nota { font-size: .8rem; color: var(--ink2); margin: .5rem 0 0; }
+.avviso { background: var(--accbg); border: 1px solid color-mix(in srgb, var(--acc) 40%, transparent); padding: .5rem .75rem; border-radius: 6px; font-size: .85rem; margin: .6rem 0; }
+.avviso.alert { border-color: color-mix(in srgb, var(--warn) 55%, transparent); }
+table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+th, td { text-align: left; padding: .35rem .45rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--ink2); font-weight: 600; position: sticky; top: -1px; background: var(--bg); white-space: nowrap; cursor: pointer; user-select: none; }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr.cl { cursor: pointer; } tr.cl:hover td { background: var(--accbg); }
+td a { color: var(--acc); text-decoration: none; } td a:hover { text-decoration: underline; }
+.mini { display: inline-block; height: 8px; background: var(--bar); border-radius: 0 3px 3px 0; vertical-align: middle; min-width: 1px; }
+.filtri { display: flex; gap: .5rem; flex-wrap: wrap; margin: .4rem 0; }
+.filtri input, .filtri select { padding: .3rem .5rem; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+.pager { display: flex; gap: .5rem; align-items: center; margin-top: .5rem; font-size: .85rem; }
+.pill { display: inline-block; padding: 0 .45rem; border-radius: 99px; font-size: .72rem; border: 1px solid var(--line); white-space: nowrap; }
+.pill.ok { color: var(--ok); border-color: var(--ok); } .pill.warn { color: var(--warn); border-color: var(--warn); }
+.caric { color: var(--ink3); }
+dialog { max-width: min(760px, 94vw); max-height: 86vh; overflow: auto; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; }
+dialog::backdrop { background: rgba(0,0,0,.45); }
+dialog .chiudi { position: sticky; top: 0; float: right; }
+dialog h3 { margin: 1.1rem 0 .3rem; font-size: 1rem; } dialog p, dialog li { font-size: .88rem; }
+.tip { position: absolute; z-index: 5; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: .3rem .5rem; font-size: .78rem; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+@media (max-width: 860px) {
+  html, body { height: auto; } body { display: block; }
+  main { display: block; overflow-x: hidden; }
+  .mapcol { border-right: 0; border-bottom: 1px solid var(--line); height: auto; }
+  #map { flex: none; height: 62vh; min-height: 340px; }
+  .legenda { position: static; max-width: none; border: 0; border-top: 1px solid var(--line); border-radius: 0; }
+  .scheda { overflow: visible; padding: 1rem; }
+  .scheda table { display: block; overflow-x: auto; }
+  .imbuto .riga { grid-template-columns: 7.5rem 1fr 6.5rem; font-size: .8rem; }
+  .brand span { display: none; } .top { gap: .5rem; padding: .5rem .75rem; }
+  .kpi { grid-template-columns: 1fr 1fr; }
+}
+
+.mapbar { flex-direction: column; align-items: stretch; gap: .45rem; }
+.terr, .colora { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+.terr { align-items: flex-end; }
+#f-reset { padding: .3rem .8rem; font-size: .85rem; line-height: 1.25; }
+.terr label { display: flex; flex-direction: column; font-size: .72rem; color: var(--ink2); gap: .1rem; flex: 1 1 130px; min-width: 0; }
+.terr select { width: 100%; }
+.colora label.chk { display: flex; flex-direction: row; gap: .3rem; align-items: center; font-size: .78rem; }
+.legenda .nota-leg { margin-top: .3rem; color: var(--ink3); font-size: .68rem; }
+.chips { display: flex; gap: .4rem; flex-wrap: wrap; margin: .3rem 0 .9rem; }
+.chip { background: var(--accbg); border-color: var(--acc); font-size: .8rem; padding: .15rem .6rem; border-radius: 99px; }
+.chip.azzera { background: var(--surface); border-color: var(--line); color: var(--ink2); }
+.filtri-hint { margin: .2rem 0 .9rem; }
+.cl { cursor: pointer; }
+.riga.cl { border-radius: 6px; margin: 0 -.4rem; padding: .1rem .4rem; }
+.riga.cl:hover, .avviso.cl:hover { background: var(--accbg); }
+.on, tr.cl.on td, .riga.cl.on { outline: 2px solid var(--acc); outline-offset: -2px; background: var(--accbg); }
+tr.cl.on td { outline: none; background: var(--accbg); box-shadow: inset 0 1px 0 var(--acc), inset 0 -1px 0 var(--acc); }
+.avviso.cl small { color: var(--ink2); }
+
+/* navigazione tra mappa e statistiche */
+.nav { display: flex; gap: 1rem; font-size: .9rem; }
+.nav a { color: var(--ink2); text-decoration: none; padding: .2rem 0; border-bottom: 2px solid transparent; }
+.nav a[aria-current] { color: var(--ink); border-color: var(--acc); font-weight: 600; }
+.nav a:hover { color: var(--acc); }
+
+.tip { max-width: 22rem; }
+.tip-geo { opacity: .75; }
+.tip-mis { margin-top: .3rem; border-collapse: collapse; font-size: .74rem; }
+.tip-mis caption { text-align: left; font-weight: 600; padding-bottom: .1rem; }
+.tip-mis td { padding: .05rem 0; vertical-align: top; }
+.tip-mis td:last-child { text-align: right; padding-left: .8rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tip-nome { font-size: 1.1rem; line-height: 1.25; }
+.tip-ind { font-size: .95rem; }
+
+/* Logo OpenDataSicilia sulla mappa */
+.ctrl-logo { margin: 0 10px 6px 0; float: none; background: rgba(255,255,255,.88); border-radius: 6px; padding: 3px; box-shadow: 0 0 0 1px rgba(0,0,0,.12); }
+.ctrl-logo a { display: block; line-height: 0; }
+.ctrl-logo img { display: block; width: 44px; height: auto; }
+
+/* Pulsante «Porta in cima» (js/cima.js) */
+.in-cima { position: fixed; right: 1rem; bottom: 1rem; z-index: 20; width: 2.6rem; height: 2.6rem; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); box-shadow: 0 2px 8px rgb(0 0 0 / .18); cursor: pointer; }
+.in-cima[hidden] { display: none; }
+.in-cima:hover { background: var(--line); }
+.in-cima:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+/* Finestra Info: schede Metodo, Fonti, Credits */
+#dlg-info { padding: 0 1.2rem 1.2rem; width: min(760px, 94vw); }
+.info-testa { position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: .8rem 0 .2rem; }
+.info-testa h2 { margin: 0; font-size: 1.2rem; }
+.info-testa .chiudi { position: static; float: none; }
+.info-tab { position: sticky; top: 2.9rem; z-index: 2; display: flex; gap: .3rem; flex-wrap: wrap; background: var(--surface); border-bottom: 1px solid var(--line); padding: .4rem 0; }
+.info-tab button { border-color: transparent; background: transparent; color: var(--ink2); }
+.info-tab button[aria-selected="true"] { color: var(--ink); border-color: var(--acc); background: var(--accbg); font-weight: 600; }
+.info-pan ul { padding-left: 1.2rem; } .info-pan a { color: var(--acc); }
+.cr-logo { margin: 1rem 0 .4rem; } .cr-logo img { height: 48px; width: auto; }
+.tools button#btn-info { white-space: nowrap; }

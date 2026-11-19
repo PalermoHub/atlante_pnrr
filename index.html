@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atlante del PNRR</title>
+<meta name="description" content="Dove e come sono stati spesi i fondi del PNRR: regione, provincia e comune, in tutte le missioni. Dati ufficiali Italia Domani al 13 giugno 2026.">
+<link rel="icon" href="img/favicon.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<link rel="stylesheet" href="css/atlante.css?v=13">
+<link rel="stylesheet" href="css/statistiche.css?v=6">
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-KHR1GHDRQS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-KHR1GHDRQS');
+</script>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><strong>Atlante del PNRR</strong><span>dati al 13 giugno 2026 · fase di attuazione chiusa il 30 giugno 2026</span></div>
+  <nav id="crumbs" aria-label="Percorso"></nav>
+  <nav class="nav" aria-label="Sezioni"><a href="index.html" aria-current="page">Mappa e schede</a><a href="statistiche.html">Statistiche</a></nav>
+  <div class="tools">
+    <button id="btn-info" type="button" data-info="metodo" aria-haspopup="dialog">Info</button>
+    <label class="sr" for="sel-tema" style="position:absolute;left:-9999px">Tema</label>
+    <select id="sel-tema" aria-label="Tema dell'interfaccia">
+      <option value="auto">Tema: sistema</option><option value="chiaro">Chiaro</option><option value="scuro">Scuro</option>
+      <option value="seppia">Seppia</option><option value="contrasto">Alto contrasto</option><option value="oceano">Oceano</option>
+    </select>
+  </div>
+</header>
+<main>
+  <section class="mapcol" aria-label="Mappa dei comuni">
+    <div class="mapbar">
+      <div class="terr" role="group" aria-label="Filtro territoriale">
+        <label>Regione <select id="f-reg"></select></label>
+        <label>Provincia <select id="f-prov"></select></label>
+        <label>Comune <select id="f-com"></select></label>
+        <button id="f-reset" type="button" title="Torna all'Italia e togli tutti i filtri">Reset</button>
+      </div>
+      <div class="colora">
+        <label for="indic">Colora per</label>
+        <select id="indic"></select>
+        <label class="chk"><input type="checkbox" id="f-adatta" checked> scala sul territorio</label>
+      </div>
+      <div class="scale">
+        <label for="f-scala">Scala colore</label>
+        <select id="f-scala"></select>
+        <label for="f-classi">Classi</label>
+        <select id="f-classi"><option value="quantili">Quantili</option><option value="uguali">Intervalli uguali</option><option value="jenks">Rotture naturali</option></select>
+        <label class="chk"><input type="checkbox" id="f-inverti"> inverti</label>
+      </div>
+    </div>
+    <div id="map" role="img" aria-label="Mappa dei comuni italiani colorata per indicatore PNRR"></div>
+    <div id="legenda" class="legenda"></div>
+  </section>
+  <section id="scheda" class="scheda" aria-live="polite"><p class="caric">Caricamento dati…</p></section>
+</main>
+<noscript><p style="padding:1rem">Questo atlante richiede JavaScript.</p></noscript>
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pmtiles@4.3.0/dist/pmtiles.js"></script>
+<script src="js/tema.js?v=2"></script>
+<script src="js/cima.js?v=1" defer></script>
+<script src="js/info.js?v=3" defer></script>
+<script src="js/grafici.js?v=6"></script>
+<script type="module" src="js/app.js?v=22"></script>
+</body>
+</html>

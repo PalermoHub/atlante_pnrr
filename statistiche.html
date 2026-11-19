@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Statistiche · Atlante del PNRR</title>
+<meta name="description" content="Analisi e grafici sul PNRR: avanzamento, missioni, regioni, Mezzogiorno, comuni e concentrazione dei fondi. Dati Italia Domani al 13 giugno 2026.">
+<link rel="icon" href="img/favicon.png">
+<link rel="stylesheet" href="css/atlante.css?v=13">
+<link rel="stylesheet" href="css/statistiche.css?v=6">
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-KHR1GHDRQS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-KHR1GHDRQS');
+</script>
+
+
+
+</head>
+<body class="pagina-stat">
+<header class="top">
+  <div class="brand"><strong>Atlante del PNRR</strong><span>statistiche · dati al 13 giugno 2026</span></div>
+  <nav aria-label="Sezioni" class="nav"><a href="index.html">Mappa e schede</a><a href="statistiche.html" aria-current="page">Statistiche</a></nav>
+  <div class="tools">
+    <button id="btn-info" type="button" data-info="metodo" aria-haspopup="dialog">Info</button>
+    <label class="sr" for="sel-tema">Tema</label>
+    <select id="sel-tema" aria-label="Tema dell'interfaccia">
+      <option value="auto">Tema: sistema</option><option value="chiaro">Chiaro</option><option value="scuro">Scuro</option>
+      <option value="seppia">Seppia</option><option value="contrasto">Alto contrasto</option><option value="oceano">Oceano</option>
+    </select>
+  </div>
+</header>
+<main class="stat">
+  <h1>Il PNRR in numeri</h1>
+  <p class="intro">Dove sono andati i fondi, a che punto sono i progetti e come si distribuiscono tra missioni, regioni e comuni. Nessun giudizio: i dati mostrano avanzamento, non merito. Importi in euro, quota PNRR dei progetti (esclusi PNC e fondi complementari).</p>
+  <p id="caric" class="caric">Caricamento dati…</p>
+
+  <section class="capitolo" aria-labelledby="t1"><h2 id="t1">In sintesi</h2>
+    <div class="cifre" id="cifre"></div>
+    <div class="avviso" id="sintesi"></div>
+  </section>
+
+  <section class="capitolo" aria-labelledby="t2"><h2 id="t2">A che punto siamo</h2>
+    <div class="grafici" id="g-imbuto"></div>
+    <div class="grafici" id="g-comp"></div>
+  </section>
+
+  <section class="capitolo" aria-labelledby="t3"><h2 id="t3">Missione per missione</h2>
+    <div class="grafici" id="g-mis"></div>
+  </section>
+
+  <section class="capitolo" aria-labelledby="t4"><h2 id="t4">Le regioni</h2>
+    <div class="selettore"><label for="sel-metrica">Misura</label><select id="sel-metrica"></select><span class="leg-rip" id="leg-rip"></span></div>
+    <div class="grafici"><figure class="grafico largo"><div id="g-reg"></div></figure></div>
+    <div class="grafici" id="g-sud"></div>
+    <div class="grafici" id="g-calore"></div>
+  </section>
+
+  <section class="capitolo" aria-labelledby="t5"><h2 id="t5">I comuni</h2>
+    <div class="grafici" id="g-comuni"></div>
+    <div class="grafici" id="g-disp"></div>
+    <div class="grafici" id="g-conc"></div>
+  </section>
+
+  <section class="capitolo" aria-labelledby="t6"><h2 id="t6">Le province</h2>
+    <div class="grafici" id="g-prov"></div>
+  </section>
+
+  <section class="capitolo" aria-labelledby="t7"><h2 id="t7">I ritardi, provincia per provincia</h2>
+    <p class="intro">«In ritardo» = progetto ancora «in corso» con fine prevista anteriore al 13 giugno 2026, data dell'estrazione. Il programma si è chiuso il 30 giugno 2026, quindi parte di questi progetti si sarà chiusa nelle ultime settimane. Colore = ripartizione geografica.</p>
+    <div class="leg-rip" id="leg-rip2"></div>
+    <div class="grafici" id="g-rit"></div>
+    <div class="grafici" id="g-icc"></div>
+  </section>
+
+  <p class="nota">Fonte: Italia Domani, open data, CC-BY 4.0. Gli importi sono ripartiti sui territori con la percentuale di localizzazione dichiarata. <a href="#info" data-info="metodo">Metodo e limiti</a> · <a href="#info" data-info="fonti">Fonti</a> · <a href="#info" data-info="credits">Credits</a>.</p>
+</main>
+<script src="js/tema.js?v=2"></script>
+<script src="js/cima.js?v=1" defer></script>
+<script src="js/info.js?v=3" defer></script>
+<script src="js/grafici.js?v=6"></script>
+<script src="js/statistiche.js?v=4"></script>
+</body>
+</html>

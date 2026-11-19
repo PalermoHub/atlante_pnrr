@@ -1,0 +1,9 @@
+dati/
+scrpits/
+docs/
+link/
+.remember/
+.impeccable/
+.playwright-mcp/
+__pycache__/
+*Zone.Identifier

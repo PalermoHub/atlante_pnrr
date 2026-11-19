@@ -1,0 +1,66 @@
+/* Finestra «Info» condivisa dalle pagine: schede Metodo, Fonti, Credits. Apertura: apriInfo('metodo'|'fonti'|'credits'). */
+(function () {
+  const METODO = `<h3>Filtri</h3><p>Regione, provincia e comune sono filtri a cascata: scegliere un livello restringe gli altri, e la mappa, la scheda, le tabelle e l'elenco dei progetti seguono. Missione, tipo di intervento, stadio e segnalazioni (iter concluso ma «in corso», in ritardo) sono filtri che si combinano e restano attivi quando si cambia territorio. Tutto è nell'indirizzo della pagina, quindi si può condividere.</p>
+<h3>Unità di analisi</h3><p>Il progetto è identificato dalla coppia CUP + Codice Locale Progetto (un CUP può comparire su più progetti). Sono 291.398 progetti, per 171,3 miliardi di finanziamento PNRR. La somma dei progetti delle regioni supera il totale nazionale perché un progetto localizzato in più regioni compare in ciascuna, con l'importo ripartito.</p>
+<h3>Importi ripartiti e localizzazione</h3><p>Un progetto localizzato su più comuni è ripartito secondo la percentuale di localizzazione dichiarata (normalizzata a 100). Così la somma delle schede dei comuni, delle province e delle regioni torna al totale nazionale senza doppi conteggi. Gli importi di progetti localizzati solo a livello di provincia, di regione o in «ambito nazionale» sono attribuiti a quel livello e non ai comuni. L'ambito nazionale vale 42,7 miliardi: Ecobonus 13,95, Transizione 4.0 13,38, catene di approvvigionamento strategiche 3,2 e altre misure minori.</p>
+<h3>Comuni fusi e rinumerati</h3><p>La localizzazione PNRR usa il codice comune in vigore quando il progetto è stato registrato. Per riportarlo ai comuni attuali si seguono le variazioni ISTAT (SITUAS): fusioni (per esempio Vighizzolo d'Este → Santa Caterina d'Este, Quero Vas → Setteville), cambi di provincia o regione (Sassofeltrio, Montecopiolo) e la riforma delle province sarde del 2026 (Olbia da 090047 a 113017). I 159 codici raccordati valgono 63,1 milioni, già nelle schede dei comuni. Restano 43 localizzazioni (10,3 milioni, soprattutto codici sardi 312 e 318 senza storia in SITUAS) che non si possono assegnare a un comune con certezza: sono attribuite alla regione.</p><h3>Stadi di avanzamento</h3><ul><li><b>Concluso</b>: stato ufficiale «Concluso» in ReGiS. Non è dedotto da date o iter.</li><li><b>Lavori o attività avviati</b>: fase di esecuzione con inizio effettivo, oppure data di inizio progetto effettiva.</li><li><b>Gara aggiudicata</b>: fase di aggiudicazione (o attribuzione del finanziamento) conclusa, oppure gara con aggiudicazione definitiva. Per incentivi e contributi significa «finanziamento attribuito»: per i soli lavori pubblici usa il filtro «Realizzazione di lavori pubblici».</li><li><b>Misure nazionali senza progetto</b>: i due segnaposto di Ecobonus e Transizione 4.0 (27,3 miliardi, pagati per intero) non hanno avanzamento per progetto e stanno fuori dall'imbuto.</li><li><b>Chiusura da formalizzare</b>: progetti «in corso» con iter già concluso; non sono contati come conclusi.</li></ul>
+<h3>Mappa e colori</h3><p>La mappa colora i comuni per l'indicatore scelto in «Colora per»: finanziamento per abitante o totale, quota pagata, quota di importo concluso, in ritardo o con iter concluso ma stato «in corso». Con «scala sul territorio» i colori si adattano ai comuni dell'ambito selezionato (regione, provincia), senza si usa la scala di tutta Italia; i comuni senza progetti sono grigi. Le classi si scelgono fra quantili (stesso numero di comuni per colore), intervalli uguali e rotture naturali (Jenks); «inverti» capovolge la scala. Scala, classificazione e tema sono ricordati nel browser. La mappa di base è OpenFreeMap e segue il tema chiaro o scuro. Passando sopra un comune compaiono provincia, regione e valore dell'indicatore; sopra una provincia o una regione, anche il finanziato per missione secondo i filtri attivi.</p>
+<h3>OpenCUP</h3><p>Nell'elenco dei progetti di ogni comune il CUP rimanda alla scheda ufficiale su <a href="https://www.opencup.gov.it/" target="_blank" rel="noopener">OpenCUP</a> (Dipartimento per la programmazione e il coordinamento della politica economica), che dà soggetto titolare, descrizione e dati anagrafici del progetto di investimento. Un CUP può essere condiviso da più progetti PNRR: la scheda OpenCUP riguarda il CUP, non la singola riga dell'Atlante. I codici segnaposto (come «N/A2») non sono CUP e non hanno il link.</p>
+<h3>Aggiudicato</h3><p>Somma degli importi di aggiudicazione delle gare collegate al progetto; un CIG usato da più progetti è diviso fra loro. L'importo include tutte le fonti di finanziamento dell'appalto, non solo il PNRR. Incentivi, contributi e sottoscrizioni non hanno gara.</p>
+<h3>Ritardo</h3><p>«In ritardo»: stato «in corso» con fine prevista anteriore al 13/06/2026, la data di estrazione. Il programma si è chiuso il 30/06/2026: i dati non mostrano gli ultimi 17 giorni.</p>
+<h3>Scarica i dati</h3><p>Nella scheda di un comune «Scarica CSV» esporta i progetti secondo i filtri attivi; «Scarica tutti i dati del comune» esporta tutti i progetti del comune, senza filtri. I CSV hanno il CUP e il link OpenCUP.</p>
+<h3>Statistiche</h3><p>La pagina Statistiche usa gli stessi dati, importi e regole di ripartizione della mappa: imbuto di avanzamento, missioni, regioni e Mezzogiorno, concentrazione dei fondi fra i comuni (dispersione e curva di Lorenz), province e ritardi. I grafici non cambiano con i filtri della mappa.</p>
+<h3>Privacy</h3><p>Titoli e soggetti dei progetti di incentivo alle imprese non sono pubblicati; i soggetti attuatori con codice fiscale di persona fisica sono omessi. Nelle classifiche compaiono solo gli enti.</p>
+<h3>Limiti</h3><ul><li>I dati sono dichiarati dai soggetti attuatori in ReGiS e non sono verificati qui.</li><li>Dei 194,4 miliardi di dotazione delle misure, 171,3 hanno un progetto nei dati: gli altri 23,1 (7,9 su M1, 9,6 su M2, 2,2 su M7, il resto su M3, M5 e M6) non risultano ancora su progetti, per esempio M1C2I9.01.00 (4,7 miliardi). In 19 sottomisure i progetti superano l'importo della misura (2,8 miliardi in tutto): non si mostra una «quota finanziata» per misura. La quadratura completa è nel repository.</li><li>Le classifiche per abitante favoriscono i piccoli comuni con un singolo grande progetto: guarda anche gli importi assoluti.</li><li>Le sezioni «Chi realizza» e «Qualità dei dati» non si possono ricalcolare con i filtri e compaiono solo senza filtri.</li></ul>`;
+  const FONTI = `<h3>Dati dei progetti</h3>
+<p><a href="https://www.italiadomani.gov.it/content/sogei-ng/it/it/catalogo-open-data.html" target="_blank" rel="noopener">Italia Domani, Catalogo Open Data</a> (Sogei per la Presidenza del Consiglio dei ministri), licenza CC-BY 4.0. Dati dichiarati dai soggetti attuatori in ReGiS.</p>
+<ul><li><b>Progetti</b>, <b>Localizzazione</b>, <b>Gare</b>, <b>Iter di progetto</b>, <b>Pagamenti</b>: estrazione del 13/06/2026.</li><li><b>Spesa per misura</b> e <b>Quadro finanziario di programmazione</b>: dotazione e spesa per misura (30/04/2026), usate per quadrare i totali.</li></ul>
+<h3>Territorio</h3>
+<ul><li><b>Confini dei comuni</b>: ISTAT, ripresi dal repository ANNCSU (Archivio nazionale dei numeri civici e delle strade urbane).</li><li><b>Variazioni amministrative</b>: <a href="https://www.istat.it/classificazione/codici-dei-comuni-delle-province-e-delle-regioni/" target="_blank" rel="noopener">ISTAT, SITUAS</a>, per riportare i codici comune dei progetti ai comuni attuali.</li><li><b>Popolazione</b>: ISTAT, 1 gennaio 2026 (stima), per gli importi per abitante.</li></ul>
+<h3>Mappa di base</h3>
+<p><a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a>, con dati © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">contributori di OpenStreetMap</a> e schema © <a href="https://openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a>.</p>
+<h3>Link utili</h3>
+<ul><li><a href="https://pnrr.datibenecomune.it/fonti/regis/" target="_blank" rel="noopener">Dati aperti sul PNRR - ReGiS</a> (Dati Bene Comune): i dati ReGiS spiegati e da esplorare</li><li><a href="https://www.linkiesta.it/2026/11/dai-borghi-alle-grandi-citta-la-geografia-dei-171-miliardi-del-pnrr/" target="_blank" rel="noopener">«Dai borghi alle grandi città, la geografia dei 171 miliardi del Pnrr»</a> (Linkiesta)</li><li><a href="https://opencup.gov.it/" target="_blank" rel="noopener">OpenCUP</a>, per le schede dei singoli CUP</li></ul>
+<h3>Licenza</h3><p>I dati derivati di questo atlante restano sotto CC-BY 4.0: citare «Italia Domani, Catalogo Open Data» e «Atlante del PNRR · OpenDataSicilia».</p>`;
+  const CREDITS = `<div class="cr-logo"><a href="https://opendatasicilia.it/" target="_blank" rel="noopener"><img src="img/opendatasicilia.png" alt="OpenDataSicilia" height="48"></a></div>
+<p><b>Atlante del PNRR è un progetto di <a href="https://opendatasicilia.it/" target="_blank" rel="noopener">OpenDataSicilia</a></b>.</p>
+<h3>Sviluppo</h3>
+<p>Autore: <a href="https://www.linkedin.com/in/gbvitrano/" target="_blank" rel="noopener" title="@gbvitrano su LinkedIn">@gbvitrano</a>. Lo sviluppo tecnico è stato realizzato in collaborazione con <a href="https://claude.ai/" target="_blank" rel="noopener" title="Claude AI (Anthropic)">Claude AI</a> (Anthropic).</p>
+<h3>Strumenti</h3>
+<ul><li><a href="https://maplibre.org/" target="_blank" rel="noopener">MapLibre GL JS</a> 4.7.1 per la mappa (licenza BSD-3-Clause)</li><li><a href="https://protomaps.com/docs/pmtiles" target="_blank" rel="noopener">PMTiles</a> 4.3.0 per i confini comunali serviti da un solo file statico (BSD-3-Clause)</li><li><a href="https://duckdb.org/" target="_blank" rel="noopener">DuckDB</a> per ricostruire il modello dei dati dai CSV</li><li>Grafici in SVG, senza librerie esterne; nessun font remoto</li></ul>
+<h3>Dati e mappe</h3>
+<p>Italia Domani (CC-BY 4.0), ISTAT, ANNCSU, OpenStreetMap, OpenFreeMap, OpenMapTiles: dettagli nella scheda Fonti.</p>
+<h3>Segnalazioni</h3>
+<p>Il sito non è un prodotto ufficiale del Governo né di Italia Domani. Errori o correzioni si segnalano a OpenDataSicilia.</p>`;
+  const SCHEDE = [['metodo', 'Metodo e limiti', METODO], ['fonti', 'Fonti', FONTI], ['credits', 'Credits', CREDITS]];
+  let dlg;
+  function crea() {
+    dlg = document.createElement('dialog'); dlg.id = 'dlg-info'; dlg.setAttribute('aria-label', 'Informazioni');
+    dlg.innerHTML = `<div class="info-testa"><h2>Info</h2><form method="dialog"><button class="chiudi" aria-label="Chiudi">×</button></form></div>
+<div class="info-tab" role="tablist" aria-label="Sezioni delle informazioni">${SCHEDE.map(([k, t]) => `<button type="button" role="tab" id="tab-${k}" aria-controls="pan-${k}" data-k="${k}">${t}</button>`).join('')}</div>
+${SCHEDE.map(([k, , h]) => `<div class="info-pan" role="tabpanel" id="pan-${k}" aria-labelledby="tab-${k}" hidden>${h}</div>`).join('')}`;
+    document.body.appendChild(dlg);
+    dlg.addEventListener('click', (e) => { const b = e.target.closest('[data-k]'); if (b) scheda(b.dataset.k); else if (e.target === dlg) dlg.close(); });
+    dlg.addEventListener('keydown', (e) => {
+      const t = e.target.closest('[role="tab"]'); if (!t || !['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+      const ks = SCHEDE.map((s) => s[0]), i = ks.indexOf(t.dataset.k), n = ks[(i + (e.key === 'ArrowRight' ? 1 : ks.length - 1)) % ks.length];
+      scheda(n); document.getElementById('tab-' + n).focus();
+    });
+  }
+  function scheda(k) {
+    SCHEDE.forEach(([id]) => {
+      const on = id === k, t = document.getElementById('tab-' + id);
+      t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1; document.getElementById('pan-' + id).hidden = !on;
+    });
+    dlg.scrollTop = 0;
+  }
+  window.apriInfo = function (k) {
+    if (!dlg) crea();
+    scheda(SCHEDE.some((s) => s[0] === k) ? k : 'metodo');
+    if (!dlg.open) dlg.showModal();
+  };
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-info]').forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); apriInfo(b.dataset.info); }));
+    if (location.hash === '#info') apriInfo('metodo');
+  });
+})();
