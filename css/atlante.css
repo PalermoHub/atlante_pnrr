@@ -286,6 +286,11 @@ body.home .scheda { overflow-x: hidden; }
   .menu-ods strong { color: var(--ink); }
   /* nelle pagine che scorrono la testata resta di una riga: marchio + ☰ */
   body:not(.home) .brand span { display: none; }
+  /* su mobile il piede sta nel pannello: nessuna fascia fissa in basso, in nessuna pagina */
+  html body > .piede { display: none; }
+  html body:not(.home) { padding-bottom: 0; }
+  html body .menu-pan #btn-schermo { height: 48px; justify-content: flex-start; gap: .6rem; padding: 0 .85rem; font-size: 1rem; }
+  .menu-pan #btn-schermo::after { content: "Schermo intero"; }
   .menu-pan .cond > button { width: 100%; min-height: 48px; padding: 0 .85rem; justify-content: flex-start; gap: .6rem; font-size: 1rem; }
   .menu-pan .cond > button::after { content: "Condividi"; }
   .menu-pan .cond-menu { position: static; margin-top: .35rem; box-shadow: none; }
