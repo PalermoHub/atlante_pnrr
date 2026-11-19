@@ -28,7 +28,7 @@ const ZMIN = 8; /* sotto questo zoom il comune sotto la croce è arbitrario: la 
 const ZVISTA = 9.2, VISTA = [13.4, 38.0];
 const mobile = matchMedia('(max-width: 720px)'); /* stessa soglia del foglio inferiore (guscio.js): sul telefono la lente è fissa al centro, sempre accesa, senza impostazioni */
 
-const L = { on: false, libera: !mobile.matches, pos: null, stadio: null, hidM: new Set(), cur: null, prog: null, dati: null, rid: 0, ultimo: null, cent: null };
+const L = { on: false, libera: !mobile.matches, pos: null, stadio: null, hidM: new Set(), cur: null, prog: null, dati: null, rid: 0, ultimo: null, cent: null, fisso: null };
 let A, S, m, svg, tipEl;
 
 /* progetti del comune -> oggetti */
@@ -87,8 +87,11 @@ function disegna() {
       const ang = aM - tag.length * step / 2 + (k + 0.5) * step, len = lun(p.fin), dim = !stadioOk(p), h2 = dim ? hs * 0.35 : hs;
       const pts = [P(rb, ang - h2), P(rb + len, ang - h2), P(rb + len, ang + h2), P(rb, ang + h2)].map((q) => q.join(',')).join(' ');
       const r = el('polygon', { points: pts, fill: COL_MIS[mi], 'fill-opacity': dim ? 0.3 : OPAC[p.st], class: 'rag' });
-      const mostra = () => tip(p, P(rb + len, ang));
-      r.addEventListener('mouseenter', mostra); r.addEventListener('click', mostra); r.addEventListener('mouseleave', () => { if (!matchMedia('(hover: none)').matches) tip(null); });
+      const mostra = () => { if (!L.fisso) tip(p, P(rb + len, ang)); };
+      r.addEventListener('mouseenter', mostra);
+      /* il clic fissa la scheda (resta aperta, con il link a OpenCUP); un secondo clic sullo stesso raggio la chiude */
+      r.addEventListener('click', (e) => { e.stopPropagation(); if (L.fisso === p) { tip(null); return; } L.fisso = null; tip(p, P(rb + len, ang), true); });
+      r.addEventListener('mouseleave', () => { if (!L.fisso && !matchMedia('(hover: none)').matches) tip(null); });
       gb.append(r);
     });
     /* nastro della missione */
@@ -127,7 +130,7 @@ function disegna() {
 function presa(g, cx, cy, r) {
   const grab = el('circle', { cx, cy, r, fill: 'transparent', class: 'presa', 'aria-hidden': 'true' });
   grab.addEventListener('pointerdown', (e) => {
-    e.preventDefault(); const b = svg.getBoundingClientRect();
+    e.preventDefault(); tip(null); const b = svg.getBoundingClientRect();
     const mv = (ev) => { L.pos = [ev.clientX - b.left, ev.clientY - b.top]; pianifica(); };
     const su = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', su); removeEventListener('pointercancel', su); assesta(); };
     addEventListener('pointermove', mv); addEventListener('pointerup', su); addEventListener('pointercancel', su);
@@ -135,11 +138,14 @@ function presa(g, cx, cy, r) {
   g.append(grab);
 }
 /* scheda del progetto sotto il puntatore */
-function tip(p, xy) {
+const cupOk = (c) => /^[A-Z0-9]{15}$/i.test(String(c || '').trim());
+const opencup = (c) => `https://www.opencup.gov.it/portale/web/opencup/home/progetto/-/cup/${encodeURIComponent(String(c).trim())}`;
+function tip(p, xy, fisso) {
+  L.fisso = fisso ? p : null;
   if (!p) { tipEl.hidden = true; return; }
   const col = COL_MIS[MIS[p.m]], inc = !p.att;
-  tipEl.innerHTML = `<b>${esc(p.tit || 'Incentivo a imprese o persone (dato riservato)')}</b><span class="k">${MIS[p.m]} · ${esc(NOMI_MIS[MIS[p.m]])}</span><dl><dt>Stadio</dt><dd>${esc(STADI[p.st][0])}</dd><dt>Finanziato</dt><dd>${eur(p.fin)}</dd><dt>Pagato</dt><dd>${eur(p.pag)} (${pc(p.pag, p.fin)})</dd>${p.agg ? `<dt>Aggiudicato</dt><dd>${eur(p.agg)}</dd>` : ''}${p.fine ? `<dt>Fine prevista</dt><dd>${esc(p.fine)}</dd>` : ''}<dt>Tipo</dt><dd>${esc(p.nat)}</dd>${inc ? '' : `<dt>Attuatore</dt><dd>${esc(p.att)}</dd>`}<dt>CUP</dt><dd>${esc(p.cup)}</dd></dl>${p.quota < 1 ? `<small>Progetto su più comuni: quota ${Math.round(p.quota * 100)} %.</small>` : ''}`;
-  tipEl.style.borderColor = col; tipEl.hidden = false;
+  tipEl.innerHTML = `<b>${esc(p.tit || 'Incentivo a imprese o persone (dato riservato)')}</b><span class="k">${MIS[p.m]} · ${esc(NOMI_MIS[MIS[p.m]])}</span><dl><dt>Stadio</dt><dd>${esc(STADI[p.st][0])}</dd><dt>Finanziato</dt><dd>${eur(p.fin)}</dd><dt>Pagato</dt><dd>${eur(p.pag)} (${pc(p.pag, p.fin)})</dd>${p.agg ? `<dt>Aggiudicato</dt><dd>${eur(p.agg)}</dd>` : ''}${p.fine ? `<dt>Fine prevista</dt><dd>${esc(p.fine)}</dd>` : ''}<dt>Tipo</dt><dd>${esc(p.nat)}</dd>${inc ? '' : `<dt>Attuatore</dt><dd>${esc(p.att)}</dd>`}<dt>CUP</dt><dd>${esc(p.cup)}</dd></dl>${fisso ? (cupOk(p.cup) ? `<a class="oc" href="${opencup(p.cup)}" target="_blank" rel="noopener">Apri su OpenCUP ↗</a>` : '<small>Nessuna scheda OpenCUP: il CUP non è un codice valido.</small>') : '<small class="inv">Clic sul raggio per aprire la scheda</small>'}${p.quota < 1 ? `<small>Progetto su più comuni: quota ${Math.round(p.quota * 100)} %.</small>` : ''}`;
+  tipEl.style.borderColor = col; tipEl.classList.toggle('fisso', !!fisso); tipEl.hidden = false;
   const W = svg.clientWidth, H = svg.clientHeight, w = tipEl.offsetWidth, h = tipEl.offsetHeight;
   const x = Math.max(6, Math.min(W - w - 6, xy[0] - w / 2)), y0 = xy[1] > H / 2 ? xy[1] - h - 14 : xy[1] + 14;
   tipEl.style.left = x + 'px'; tipEl.style.top = Math.max(6, Math.min(H - h - 6, y0)) + 'px';
@@ -211,7 +217,7 @@ function avvia() {
   tipEl = document.createElement('div'); tipEl.className = 'lente-tip'; tipEl.hidden = true;
   m.getContainer().append(svg, tipEl);
   m.on('move', pianifica); m.on('moveend', assesta); m.on('resize', pianifica); m.on('idle', pianifica);
-  m.on('click', (e) => { if (!L.on) return; if (L.libera) { L.pos = [e.point.x, e.point.y]; assesta(); } else { m.easeTo({ center: e.lngLat, duration: 450 }); } });
+  m.on('click', (e) => { if (L.fisso) tip(null); if (!L.on) return; if (L.libera) { L.pos = [e.point.x, e.point.y]; assesta(); } else { m.easeTo({ center: e.lngLat, duration: 450 }); } });
   /* ricerca o scelta di un altro comune dall'app: la mappa va lì (con la lente accesa l'app non sposta la mappa da sola) */
   addEventListener('hashchange', () => {
     if (!L.on) return; const { liv, id } = A.parseHash();
@@ -232,7 +238,8 @@ function avvia() {
   chip.addEventListener('click', () => { if (lungo) { lungo = false; return; } altNascondi(); accendi(!L.on, mobile.matches); });
   alt.addEventListener('click', () => { impostaModo(!L.libera); altNascondi(); if (!L.on) accendi(true); chip.focus({ preventScroll: true }); });
   document.addEventListener('click', (e) => { if (!e.target.closest('#chip-lente, #lente-alt')) altNascondi(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') altNascondi(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { altNascondi(); tip(null); } });
+  m.on('movestart', () => tip(null));
   if (new URLSearchParams(location.search).get('lente') === '1') { const via = () => accendi(true); m.loaded() ? via() : m.once('load', via); }
 }
 if (window.AtlantePNRR) avvia(); else document.addEventListener('atlante-pronto', avvia, { once: true });

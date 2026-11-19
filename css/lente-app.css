@@ -31,6 +31,9 @@
 .lente-svg .segm[aria-pressed="true"] .sfondo { fill: var(--acc); fill-opacity: 1; stroke: var(--acc); }
 .lente-svg .segm:focus-visible .sfondo { stroke: var(--ink); stroke-width: 2; }
 .lente-tip { position: absolute; z-index: 6; width: 17rem; max-width: calc(100% - 12px); padding: .5rem .65rem; background: var(--surface); color: var(--ink); border: 2px solid var(--acc); border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,.25); font-size: .82rem; pointer-events: none; }
+.lente-tip.fisso { pointer-events: auto; }
+.lente-tip .oc { display: block; margin-top: .45rem; padding: .3rem .5rem; text-align: center; font-weight: 600; color: var(--acc); border: 1px solid var(--acc); border-radius: 6px; text-decoration: none; }
+.lente-tip .oc:hover, .lente-tip .oc:focus-visible { background: var(--accbg); }
 .lente-tip[hidden] { display: none; }
 .lente-tip b { display: block; line-height: 1.25; margin-bottom: .15rem; }
 .lente-tip .k { display: block; color: var(--ink3); font-size: .74rem; margin-bottom: .3rem; }
