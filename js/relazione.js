@@ -1,4 +1,4 @@
-/* Atlante PNRR · «La relazione». Tutti i numeri del testo, dei grafici e delle mappe vengono dai JSON in data/
+/* Atlante PNRR · «Cosa dicono i dati». Tutti i numeri del testo, dei grafici e delle mappe vengono dai JSON in data/
    (gli stessi dell'atlante): qui si fanno solo somme, rapporti e ordinamenti. Nessuna cifra è scritta a mano
    nella prosa. Controllo indipendente: scrpits/relazione_numeri.py. */
 (() => {

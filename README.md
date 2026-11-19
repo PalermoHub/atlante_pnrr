@@ -7,7 +7,7 @@ Dati: [Italia Domani, Catalogo Open Data](https://www.italiadomani.gov.it/conten
 ## Pagine
 - `index.html`: mappa e schede (Italia, regione, provincia, comune).
 - `statistiche.html`: grafici sull'insieme dei dati.
-- `relazione.html`: lettura dei dati in parole semplici, con mappe e grafici interattivi. Le cifre vengono da `data/*.json` e si ricontrollano con `python3 scrpits/relazione_numeri.py`. I numeri che non stanno nei JSON (divario tra dotazione e progetti) sono in `data/verifiche.json`, con la fonte.
+- `relazione.html` (nel menu «Cosa dicono i dati»): lettura dei dati in parole semplici, con mappe e grafici interattivi. Le cifre vengono da `data/*.json` e si ricontrollano con `python3 scrpits/relazione_numeri.py`. I numeri che non stanno nei JSON (divario tra dotazione e progetti) sono in `data/verifiche.json`, con la fonte.
 
 Per provare in locale le mappe serve un server che gestisca le richieste «Range» (i PMTiles): `python3 -m http.server` non basta.
 

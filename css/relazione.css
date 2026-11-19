@@ -3,12 +3,12 @@
 .rel article { display: block; }
 .rel .testata { margin: .4rem 0 1.4rem; }
 .rel .testata h1 { font-size: clamp(1.9rem, 4.5vw, 2.8rem); line-height: 1.08; margin: 0 0 .5rem; letter-spacing: -.01em; }
-.rel .sottotitolo { font-size: 1.15rem; color: var(--ink2); margin: 0 0 .4rem; max-width: 52ch; }
+.rel .sottotitolo { font-size: 1.15rem; color: var(--ink2); margin: 0 0 .4rem; max-width: none; }
 .rel .firma { font-size: .85rem; color: var(--ink3); margin: 0; }
 .rel .rsez { margin-top: 3rem; scroll-margin-top: 1rem; }
-.rel .rsez > h2 { font-size: clamp(1.35rem, 3vw, 1.8rem); line-height: 1.2; border-bottom: 2px solid var(--ink); padding-bottom: .4rem; margin: 0 0 1rem; max-width: 30ch; border-bottom-width: 0; padding-bottom: 0; }
+.rel .rsez > h2 { font-size: clamp(1.35rem, 3vw, 1.8rem); line-height: 1.2; border-bottom: 2px solid var(--ink); padding-bottom: .4rem; margin: 0 0 1rem; max-width: none; border-bottom-width: 0; padding-bottom: 0; }
 .rel .rsez > h2::before { content: attr(data-n); display: block; font-size: .8rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--acc); margin-bottom: .25rem; }
-.rel .rsez > p, .rel .rsez > ul, .rel .rsez > ol { max-width: 66ch; font-size: 1.05rem; line-height: 1.6; }
+.rel .rsez > p, .rel .rsez > ul, .rel .rsez > ol { max-width: none; font-size: 1.05rem; line-height: 1.6; }
 .rel .rsez > ul li, .rel .rsez > ol li { margin: .35rem 0; }
 .rel .rsez > .grafico, .rel .rsez > .grafici, .rel .rsez > .mappa-box, .rel .rsez > .calc, .rel .rsez > .limiti { max-width: none; }
 .rel .rsez > .grafico { margin: 1.2rem 0; }
