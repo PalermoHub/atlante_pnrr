@@ -14,6 +14,8 @@ const eur = (v) => {
 };
 const eurAb = (v, pop) => (pop > 0 ? nf.format(Math.round(v / pop)) + ' €' : '–');
 const NOMI_MIS = { M1: 'M1 Digitalizzazione, innovazione, cultura', M2: 'M2 Rivoluzione verde e transizione ecologica', M3: 'M3 Infrastrutture per la mobilità', M4: 'M4 Istruzione e ricerca', M5: 'M5 Inclusione e coesione', M6: 'M6 Salute', M7: 'M7 REPowerEU' };
+/* colori delle missioni (M1–M6 come nella mappa onData/ixMaps «Universo ReGiS»; M7 scelto per distinguersi) */
+const COL_MIS = { M1: '#5BBBEB', M2: '#92C151', M3: '#EA425B', M4: '#F49E4B', M5: '#B671DC', M6: '#FACB49', M7: '#8D6E63' };
 const STADI = ['Da attivare', 'In corso, senza gara né lavori', 'Gara aggiudicata', 'Lavori o attività avviati', 'Concluso (stato ufficiale)', 'Misura nazionale senza progetto (N/A)'];
 const FASI = [{ k: 'base', lab: 'Finanziato (con avanzamento rilevato)', set: [0, 1, 2, 3, 4] }, { k: 'agg', lab: 'Gara aggiudicata o oltre', set: [2, 3, 4] }, { k: 'lav', lab: 'Lavori / attività avviati o oltre', set: [3, 4] }, { k: 'fin', lab: 'Concluso (stato ufficiale)', set: [4] }];
 const FL = { 1: 'Iter concluso, stato «in corso»', 2: 'In ritardo sulla fine prevista' };
@@ -80,11 +82,13 @@ function valoriComuni(F) {
   const out = {};
   for (const id of Object.keys(S.com)) {
     const c = cells('c', id); let n = 0, fin = 0, pag = 0, conc = 0, rit = 0, chi = 0;
+    const ms = new Array(S.meta.missioni.length).fill(0), mn = ms.slice();
     for (let o = 0; o < c.length; o += 9) {
-      if (!ok(c, o, F)) continue; n += c[o + 4]; fin += c[o + 5]; pag += c[o + 7];
+      if (!ok(c, o, F)) continue; n += c[o + 4]; fin += c[o + 5]; pag += c[o + 7]; ms[c[o]] += c[o + 5]; mn[c[o]] += c[o + 4];
       if (c[o + 2] === 4) conc += c[o + 5]; if (c[o + 3] & 2) rit += c[o + 5]; if (c[o + 3] & 1) chi += c[o + 5];
     }
-    out[id] = { n, fin, pag, conc, rit, chi, pop: S.com[id].pop };
+    let dom = null, best = 0; ms.forEach((v, i) => { if (v > best) { best = v; dom = S.meta.missioni[i]; } });
+    out[id] = { n, fin, pag, conc, rit, chi, ms, mn, dom, pop: S.com[id].pop };
   }
   return out;
 }
@@ -95,6 +99,7 @@ const INDIC = {
   conc: { nome: 'Quota di importo di progetti conclusi (%)', f: (c) => (c.fin > 0 ? c.conc / c.fin : null), fmt: (v) => (100 * v).toFixed(0) + ' %' },
   rit: { nome: 'Quota di importo in ritardo sulla fine prevista (%)', f: (c) => (c.fin > 0 ? c.rit / c.fin : null), fmt: (v) => (100 * v).toFixed(0) + ' %' },
   chius: { nome: 'Quota con iter concluso ma stato «in corso» (%)', f: (c) => (c.fin > 0 ? c.chi / c.fin : null), fmt: (v) => (100 * v).toFixed(0) + ' %' },
+  dom: { nome: 'Missione prevalente (per importo)', cat: true, f: (c) => (c.fin > 0 ? c.dom : null), fmt: (k) => NOMI_MIS[k] || k },
 };
 /* Scale colore: definite in js/tema.js (condivise con le pagine dei grafici). */
 const SCALE = window.SCALE_PNRR;
@@ -144,18 +149,46 @@ const ambito = (liv, id) => {
 function aggiornaMappa() {
   if (!S.map || !S.map.getLayer('comuni') || !S.cur || !S.cube.c) return;
   const { liv, id, F } = S.cur; S.vals = valoriComuni(F); const I = INDIC[S.indic];
+  if (I.cat) { S.cls = null; S.clsMap = null; S.clsKey = null; mappaCategorie(I, F); aggiornaQuadro(); return; }
+  S.map.setPaintProperty('comuni', 'fill-opacity', 0.85);
   const ids = S.adatta ? ambito(liv, id) : Object.keys(S.com);
   const v = ids.map((k) => I.f(S.vals[k])).filter((x) => x != null && isFinite(x)).sort((a, b) => a - b);
-  const k = ramp().length; S.breaks = soglie(v, k);
-  const col = (x) => { if (x == null || !isFinite(x)) return null; let i = 0; while (i < S.breaks.length && x >= S.breaks[i]) i++; return ramp()[Math.min(i, k - 1)]; };
+  const k = ramp().length; S.breaks = soglie(v, k); const nc = S.breaks.length + 1;
+  const cls = (x) => { if (x == null || !isFinite(x)) return -1; let i = 0; while (i < S.breaks.length && x >= S.breaks[i]) i++; return i; };
+  /* le classi scelte nella legenda valgono finché indicatore, scala, classi, territorio e filtri restano gli stessi */
+  const chiave = [S.indic, S.adatta, S.classi, liv, id, fStr(F)].join('|'); if (chiave !== S.clsKey) { S.clsKey = chiave; S.cls = null; }
   const nessuno = getComputedStyle(document.documentElement).getPropertyValue('--line').trim() || '#ccc';
-  const expr = ['match', ['get', 'pro_com_t']]; let cnt = 0;
-  for (const [cid, c] of Object.entries(S.vals)) { const cc = col(I.f(c)); if (cc) { expr.push(cid, cc); cnt++; } }
+  const r = ramp(), expr = ['match', ['get', 'pro_com_t']], cont = new Array(nc).fill(0); S.clsMap = {}; let cnt = 0;
+  for (const [cid, c] of Object.entries(S.vals)) { const i = cls(I.f(c)); if (i < 0) continue; S.clsMap[cid] = i; cont[i]++; expr.push(cid, !S.cls || S.cls.has(i) ? r[Math.min(i, k - 1)] : nessuno); cnt++; }
   expr.push(nessuno); S.map.setPaintProperty('comuni', 'fill-color', cnt ? expr : nessuno);
-  const r = ramp();
-  $('#legenda').innerHTML = `<div>${esc(I.nome)}</div><div class="rampa">${r.map((c) => `<i style="background:${c}"></i>`).join('')}</div>
-   <div class="estr"><span>${v.length ? I.fmt(v[0]) : ''}</span><span>${v.length ? I.fmt(v[v.length - 1]) : ''}</span></div>
-   <div class="estr"><span>meno</span><span>più</span></div><div class="nota-leg">${S.adatta ? 'Scala adattata al territorio selezionato' : 'Scala su tutta Italia'}${nFiltri(F) ? ' · con i filtri attivi' : ''}. Grigio: nessun progetto.</div>`;
+  const lim = (i) => `${I.fmt(i === 0 ? v[0] : S.breaks[i - 1])} – ${I.fmt(i === nc - 1 ? v[v.length - 1] : S.breaks[i])}`;
+  $('#legenda').innerHTML = `<div>${esc(I.nome)}</div>` + (v.length ? `<ul class="cat">${cont.map((n, i) => `<li><button type="button" data-k="${i}" class="${S.cls?.has(i) ? 'on' : ''}" aria-pressed="${!!S.cls?.has(i)}" title="Mostra solo i comuni di questa classe"><i style="background:${r[Math.min(i, k - 1)]}"></i>${esc(lim(i))}<small>${nf.format(n)} comuni</small></button></li>`).join('')}</ul>` : '')
+    + `<div class="nota-leg">${S.cls ? '<button type="button" data-k="tutte" class="tutte">Mostra tutte le classi</button> · ' : 'Clic su una classe per isolarla · '}${S.adatta ? 'scala adattata al territorio' : 'scala su tutta Italia'}${nFiltri(F) ? ' · con i filtri attivi' : ''}. Grigio: nessun progetto${S.cls ? ' o classe esclusa' : ''}.</div>`;
+  aggiornaQuadro();
+}
+/* Modo «missione prevalente»: colore = missione con più importo nel comune, trasparenza = importo (più pieno = più finanziato) */
+function mappaCategorie(I, F) {
+  const nessuno = getComputedStyle(document.documentElement).getPropertyValue('--line').trim() || '#ccc';
+  const ids = (S.adatta ? ambito(S.cur.liv, S.cur.id) : Object.keys(S.com)).filter((k) => S.vals[k]?.fin > 0);
+  const ord = ids.map((k) => [k, S.vals[k].fin]).sort((a, b) => a[1] - b[1]);
+  const colori = ['match', ['get', 'pro_com_t']], opac = ['match', ['get', 'pro_com_t']];
+  ord.forEach(([k], i) => { colori.push(k, COL_MIS[S.vals[k].dom] || nessuno); opac.push(k, 0.4 + 0.55 * (ord.length > 1 ? i / (ord.length - 1) : 1)); });
+  colori.push(nessuno); opac.push(0.85);
+  S.map.setPaintProperty('comuni', 'fill-color', ord.length ? colori : nessuno);
+  S.map.setPaintProperty('comuni', 'fill-opacity', ord.length ? opac : 0.85);
+  const tot = {}; ord.forEach(([k]) => { const d = S.vals[k].dom; tot[d] = (tot[d] || 0) + 1; });
+  $('#legenda').innerHTML = `<div>${esc(I.nome)}</div><ul class="cat">${S.meta.missioni.map((k) => `<li><button type="button" data-f="mis" data-v="${k}" class="${F.mis === k ? 'on' : ''}" aria-pressed="${F.mis === k}" title="Filtra per ${esc(NOMI_MIS[k])}"><i style="background:${COL_MIS[k]}"></i>${esc(NOMI_MIS[k])}<small>${nf.format(tot[k] || 0)} comuni</small></button></li>`).join('')}</ul>
+   <div class="nota-leg">Trasparenza: più il colore è pieno, più il comune ha finanziamento${nFiltri(F) ? ' · con i filtri attivi' : ''}. Grigio: nessun progetto.</div>`;
+}
+/* Contatori sul riquadro visibile: comuni, progetti, importo e quota per missione (clic = filtro) */
+function aggiornaQuadro() {
+  const m = S.map, box = $('#quadro'); if (!m || !box || !S.vals || !m.getLayer('comuni')) return;
+  const ids = new Set(); for (const f of m.queryRenderedFeatures({ layers: ['comuni'] })) { const i = f.properties.pro_com_t; if (S.vals[i] && (!S.cls || S.cls.has(S.clsMap?.[i]))) ids.add(i); }
+  let n = 0, fin = 0, nc = 0; const ms = new Array(S.meta.missioni.length).fill(0);
+  ids.forEach((i) => { const c = S.vals[i]; if (c.n) { nc++; n += c.n; fin += c.fin; c.ms.forEach((v, j) => { ms[j] += v; }); } });
+  $('#q-t').innerHTML = `Nel riquadro: <b>${nf.format(nc)}</b> comuni · <b>${nf.format(n)}</b> progetti · <b>${eur(fin)}</b>`;
+  const F = S.cur?.F || F0();
+  $('#q-l').innerHTML = fin > 0 ? S.meta.missioni.map((mk, j) => [mk, ms[j]]).filter(([, v]) => v > 0).sort((a, b2) => b2[1] - a[1]).map(([mk, v]) => `<li><button type="button" data-f="mis" data-v="${mk}" class="${F.mis === mk ? 'on' : ''}" aria-pressed="${F.mis === mk}" title="Filtra per ${esc(NOMI_MIS[mk])}"><span class="qn"><i style="background:${COL_MIS[mk]}"></i>${esc(mk)}</span><span class="qb"><span style="width:${(100 * v / fin).toFixed(1)}%;background:${COL_MIS[mk]}"></span></span><span class="qv">${pct(v, fin)}</span></button></li>`).join('') : '<li class="vuoto">Nessun progetto nel riquadro.</li>';
 }
 const NESSUNO = ['==', ['get', 'pro_com_t'], '__nessuno__'];
 function evidenzia(liv, id, noFit) {
@@ -217,6 +250,7 @@ function creaMappa() {
     if (S.cur) { evidenzia(S.cur.liv, S.cur.id, true); aggiornaMappa(); }
   });
   m.on('moveend', scriviVista);
+  m.on('idle', () => aggiornaQuadro());
   const tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true; $('#map').append(tip);
   m.on('mousemove', 'comuni', (e) => {
     const f = e.features[0]; if (!f || !S.vals) return; const id = f.properties.pro_com_t; const c = S.vals[id]; if (!c) return;
@@ -246,6 +280,15 @@ function filtriInit() {
   $('#f-com').addEventListener('change', (e) => { const v = e.target.value; const prov = $('#f-prov').value, reg = $('#f-reg').value; go(v ? 'c' : prov ? 'p' : reg ? 'r' : null, v || prov || reg || null, S.cur.F); });
   $('#f-reset').addEventListener('click', () => go(null, null, F0()));
   $('#f-adatta').addEventListener('change', (e) => { S.adatta = e.target.checked; aggiornaMappa(); });
+  for (const sel of ['#legenda', '#quadro']) $(sel).addEventListener('click', (e) => { const b = e.target.closest('button[data-f="mis"]'); if (b && S.cur) { toggle('mis', b.dataset.v); return; }
+    const c = e.target.closest('button[data-k]'); if (!c) return; const k = c.dataset.k;
+    if (k === 'tutte') S.cls = null; else { const n = new Set(S.cls || []); n.has(+k) ? n.delete(+k) : n.add(+k); S.cls = n.size ? n : null; }
+    aggiornaMappa(); });
+  $('#f-link').addEventListener('click', async (e) => {
+    const b = e.currentTarget, t0 = b.textContent;
+    try { await navigator.clipboard.writeText(location.href); b.textContent = 'Link copiato'; } catch (err) { prompt('Copia il link:', location.href); }
+    setTimeout(() => { b.textContent = t0; }, 1800);
+  });
   $('#indic').innerHTML = Object.entries(INDIC).map(([k, v]) => `<option value="${k}">${esc(v.nome)}</option>`).join('');
   $('#indic').addEventListener('change', (e) => { S.indic = e.target.value; aggiornaMappa(); evidenziaIndicatore(); });
   $('#f-scala').innerHTML = Object.entries(SCALE).map(([k, v]) => `<option value="${k}">${esc(v[0])}</option>`).join('');
