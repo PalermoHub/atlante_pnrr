@@ -634,6 +634,7 @@ function analisiScheda(liv, id, n, nome, F, A) {
   const mk7 = S.meta.missioni.filter((k) => A.mis[k] && A.mis[k].fin > 0);
   fig(bc, 'Per missione', 'importo finanziato', (f) => G.ciambella(f, { voci: mk7.map((k) => ({ nome: k, sub: (NOMI_MIS[k] || k).replace(/^M\d /, ''), val: A.mis[k].fin })).sort((a, b) => b.val - a.val), formatta: eur, conTip: tip, nome: 'Per missione', centro: { valore: eur(T.fin), etichetta: 'PNRR' }, clic: (x) => toggle('mis', x.nome), attivo: (x) => x.nome === F.mis }));
   const kcomp = Object.keys(A.comp).filter((k) => A.comp[k].fin > 0);
+  if (kcomp.length > mk7.length) bc.classList.add('tre-cia'); /* solo se i componenti sono più delle missioni: due anelli corti in una colonna, quello lungo nell'altra */
   if (kcomp.length > 1) fig(bc, 'Per componente', 'importo finanziato', (f) => G.ciambella(f, { voci: kcomp.map((k) => ({ nome: k, sub: nomeProg(k), val: A.comp[k].fin })).sort((a, b) => b.val - a.val), formatta: eur, conTip: tip, nome: 'Per componente', centro: { valore: eur(T.fin), etichetta: 'PNRR' }, clic: (x) => toggle('comp', x.nome), attivo: (x) => x.nome === F.comp }));
   fig(bc, 'Per stadio di avanzamento', 'importo finanziato', (f) => G.ciambella(f, { voci: STADI.map((s, i) => ({ nome: s, id: i, val: A.st[i].fin, sub: nf.format(A.st[i].n) + ' progetti' })).sort((a, b) => b.val - a.val), formatta: eur, conTip: tip, nome: 'Per stadio', centro: { valore: eur(T.fin), etichetta: 'PNRR' }, clic: (x) => toggle('st', String(x.id)), attivo: (x) => sameSet(F.st, [x.id]) }));
   const cp = concPerMis(cells(liv, id), F);

@@ -80,6 +80,7 @@ body.pagina-stat { display: block; height: auto; }
 /* dentro la scheda */
 .scheda .grafici { grid-template-columns: 1fr; gap: 1rem; }
 @media (min-width: 1920px) { .scheda .grafici { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1920px) { .scheda .grafici.tre-cia > .grafico:nth-child(1) { grid-column: 1; grid-row: 1; } .scheda .grafici.tre-cia > .grafico:nth-child(2) { grid-column: 2; grid-row: 1 / span 2; } .scheda .grafici.tre-cia > .grafico:nth-child(3) { grid-column: 1; grid-row: 2; } }
 .scheda .grafico { padding: .8rem; } .scheda .grafico.largo { grid-column: 1 / -1; }
 .scheda ul.sintesi { margin: 0; padding-left: 1.1rem; } .scheda ul.sintesi li { margin: .25rem 0; font-size: .88rem; }
 .scheda .b-riga { grid-template-columns: minmax(6rem, 9rem) 1fr 4.6rem; }
