@@ -197,3 +197,10 @@ tr.cl.on td { outline: none; background: var(--accbg); box-shadow: inset 0 1px 0
 /* riquadro «Progetti a rischio»: valore più lungo (importo · quota · progetti) */
 .imbuto.largo .riga { grid-template-columns: 11.5rem 1fr 14rem; }
 @media (max-width: 860px) { .imbuto.largo .riga { grid-template-columns: 7rem 1fr 8.5rem; } .imbuto.largo .riga .v { white-space: normal; } }
+
+/* riordino colonne */
+th[aria-sort] { cursor: pointer; }
+th[aria-sort]:hover, th[aria-sort]:focus-visible { color: var(--ink); }
+th[aria-sort="ascending"]::after { content: " ▲"; font-size: .7em; }
+th[aria-sort="descending"]::after { content: " ▼"; font-size: .7em; }
+th[aria-sort="none"]::after { content: " ↕"; font-size: .7em; opacity: .4; }
