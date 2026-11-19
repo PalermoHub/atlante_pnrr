@@ -280,7 +280,7 @@ function creaMappa() {
   S.tonoMappa = tono();
   const m = new maplibregl.Map({ container: 'map', style: STILI[S.tonoMappa], bounds: [[ITALIA[0], ITALIA[1]], [ITALIA[2], ITALIA[3]]], attributionControl: { compact: true }, dragRotate: false, pitchWithRotate: false, maxPitch: 0, pitch: 0, bearing: 0 });
   m.touchZoomRotate.disableRotation(); m.touchPitch.disable(); m.keyboard.disableRotation();
-  S.map = m; m.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right'); m.addControl(new HomeControl(), 'top-right'); m.addControl(new LogoControl(), 'bottom-right');
+  S.map = m; m.addControl(new HomeControl(), 'top-right'); m.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right'); m.addControl(new LogoControl(), 'bottom-right');
   /* le info sulla mappa (attribuzioni) partono chiuse: si apre solo con l'icona i */
   const chiudiInfo = () => { const a = m.getContainer().querySelector('.maplibregl-ctrl-attrib'); if (a) { a.classList.remove('maplibregl-compact-show'); a.removeAttribute('open'); } };
   chiudiInfo(); m.on('load', chiudiInfo);
