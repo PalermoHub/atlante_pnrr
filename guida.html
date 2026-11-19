@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guida all'uso · Atlante del PNRR</title>
+<meta name="description" content="Guida illustrata all'Atlante del PNRR: a cosa serve, come cercare un comune, leggere la scheda, colorare la mappa, filtrare i progetti e capire i limiti dei dati.">
+<link rel="icon" href="img/favicon.png">
+<!-- SOCIAL -->
+<link rel="canonical" href="https://palermohub.github.io/atlante_pnrr/guida.html">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="OpenDataSicilia">
+<meta name="theme-color" content="#256abf" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121211" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="img/icon-192.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Atlante del PNRR">
+<meta property="og:locale" content="it_IT">
+<meta property="og:title" content="Guida all'uso · Atlante del PNRR">
+<meta property="og:description" content="Guida illustrata all'Atlante del PNRR: a cosa serve, come cercare un comune, leggere la scheda, colorare la mappa e filtrare i progetti.">
+<meta property="og:url" content="https://palermohub.github.io/atlante_pnrr/guida.html">
+<meta property="og:image" content="https://palermohub.github.io/atlante_pnrr/img/social-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Guida all'uso · Atlante del PNRR">
+<meta name="twitter:description" content="Guida illustrata all'Atlante del PNRR: a cosa serve, come cercare un comune, leggere la scheda, colorare la mappa e filtrare i progetti.">
+<meta name="twitter:image" content="https://palermohub.github.io/atlante_pnrr/img/social-card.png">
+<!-- /SOCIAL -->
+<link rel="stylesheet" href="css/atlante.css?v=47">
+<link rel="stylesheet" href="css/statistiche.css?v=7">
+<link rel="stylesheet" href="css/guida.css?v=1">
+<script src="js/consenso.js?v=1" defer></script>
+</head>
+<body class="pagina-stat pagina-guida">
+<header class="top">
+  <a class="brand" href="index.html" aria-label="Atlante del PNRR, pagina iniziale"><img src="img/logo-pnrr.svg" width="40" height="40" alt=""><div><strong>Atlante del PNRR</strong><span>guida all'uso · dati al 13 giugno 2026</span></div></a>
+  <nav aria-label="Sezioni" class="nav"><a href="index.html">Mappa e schede</a><a href="statistiche.html">Statistiche</a><a href="relazione.html">Cosa dicono i dati</a><a href="guida.html" aria-current="page">Guida</a></nav>
+  <div class="tools">
+    <button id="btn-info" type="button" data-info="metodo" aria-haspopup="dialog">Info</button>
+    <label class="sr" for="sel-tema">Tema</label>
+    <select id="sel-tema" aria-label="Tema dell'interfaccia">
+      <option value="auto">Sistema</option><option value="chiaro">Chiaro</option><option value="scuro">Scuro</option>
+      <option value="contrasto">Alto contrasto</option>
+    </select>
+  </div>
+</header>
+<main class="stat guida" id="contenuto">
+  <h1>Guida all'uso</h1>
+  <p class="intro">L'Atlante del PNRR mette sulla mappa i 291.398 progetti del Piano Nazionale di Ripresa e Resilienza. Questa guida spiega a cosa serve, come si usa e che cosa i dati permettono di dire (e di non dire). Le immagini si ingrandiscono con un clic e si sfogliano come una galleria.</p>
+
+  <nav class="indice" aria-label="In questa pagina">
+    <a href="#a-cosa-serve">A cosa serve</a><a href="#orientarsi">Orientarsi</a><a href="#cercare">Cercare un comune</a><a href="#scheda">La scheda</a><a href="#mappa">Colorare la mappa</a><a href="#filtri">Filtrare</a><a href="#altre-pagine">Statistiche e relazione</a><a href="#telefono">Da telefono</a><a href="#strumenti">Info, tema, condividi</a><a href="#parole">Le parole dei dati</a><a href="#limiti">Cosa i dati non dicono</a>
+  </nav>
+
+  <section class="capitolo" id="a-cosa-serve" aria-labelledby="t-serve"><h2 id="t-serve">A cosa serve</h2>
+    <p>Il PNRR ha finanziato opere, servizi, incentivi e riforme in tutta Italia, ma i dati ufficiali sono grandi tabelle difficili da leggere. L'atlante le trasforma in una domanda semplice: <b>quanto PNRR è arrivato nel mio territorio e a che punto sono i lavori?</b></p>
+    <ul class="elenco">
+      <li><b>Per cittadini e giornalisti locali</b>: trovare il proprio comune e leggere in pochi tocchi quanto ha ricevuto, quanto è stato pagato e quali progetti sono in ritardo o fermi.</li>
+      <li><b>Per amministratori e tecnici</b>: confrontare un comune con la provincia, la regione e i comuni di dimensioni simili, ed estrarre l'elenco dei progetti in CSV.</li>
+      <li><b>Per ricercatori</b>: ripartire gli importi sui comuni con regole dichiarate (vedi «Metodo e limiti» in Info) e rifare ogni cifra dai file aperti.</li>
+    </ul>
+    <figure class="figura">
+      <a class="gal" href="img/guida/01-home.png" data-gal="guida" data-w="1440" data-h="860" data-tit="La pagina iniziale: mappa dei comuni e scheda dell'Italia" data-descr="A sinistra la mappa, colorata per finanziamento PNRR per abitante; a destra la scheda del territorio selezionato, qui l'Italia intera.">
+        <img src="img/guida/01-home.png" width="1440" height="860" loading="lazy" alt="Pagina iniziale dell'atlante: a sinistra la mappa d'Italia colorata per comune, a destra la scheda dell'Italia con 171,32 miliardi di euro finanziati e 291.398 progetti.">
+      </a>
+      <figcaption>La pagina iniziale: mappa dei comuni a sinistra, scheda del territorio a destra. <span class="zoom">Clic per ingrandire</span></figcaption>
+    </figure>
+  </section>
+
+  <section class="capitolo" id="orientarsi" aria-labelledby="t-orient"><h2 id="t-orient">Orientarsi: gli elementi della pagina</h2>
+    <dl class="parti">
+      <dt>Cerca un comune</dt><dd>Il campo in alto a sinistra. Scrivendo almeno due lettere compaiono i comuni che corrispondono, con la sigla della provincia.</dd>
+      <dt>Azzera</dt><dd>Torna all'Italia e toglie tutti i filtri in un colpo solo.</dd>
+      <dt>Territorio</dt><dd>Apre i tre menù a cascata Regione, Provincia, Comune. In alto, il percorso a briciole (Italia › Sicilia › Palermo) permette di risalire di livello con un clic.</dd>
+      <dt>Colora per</dt><dd>Sceglie l'indicatore che dà il colore ai comuni: finanziamento per abitante o totale, quota pagata, quota conclusa, ritardi.</dd>
+      <dt>Opzioni della mappa</dt><dd>L'icona con i cursori: scala colore, tipo di classi, colori invertiti, scala calcolata sul territorio o su tutta Italia.</dd>
+      <dt>Legenda e «Nel riquadro…»</dt><dd>Sulla mappa: la legenda spiega le fasce di colore (un clic su una fascia evidenzia i comuni di quella fascia); «Nel riquadro» riassume i progetti dei comuni visibili in questo momento.</dd>
+      <dt>La scheda</dt><dd>La colonna di destra: cifre, grafici e elenco dei progetti del territorio scelto. Cambia quando cambi territorio o filtro.</dd>
+    </dl>
+  </section>
+
+  <section class="capitolo" id="cercare" aria-labelledby="t-cerca"><h2 id="t-cerca">Cercare un comune</h2>
+    <ol class="passi">
+      <li>Scrivi il nome nel campo «Cerca un comune…» (bastano due lettere).</li>
+      <li>Scegli dall'elenco con il mouse, oppure con le frecce ↑ ↓ e <kbd>Invio</kbd>.</li>
+      <li>La mappa si porta sul comune e la scheda mostra i suoi dati. L'indirizzo della pagina cambia (<code>#/c/…</code>): copiandolo puoi condividere esattamente quella vista.</li>
+    </ol>
+    <figure class="figura">
+      <a class="gal" href="img/guida/02-ricerca.png" data-gal="guida" data-w="1440" data-h="860" data-tit="La ricerca di un comune" data-descr="Scrivendo «palermo» compare l'elenco dei comuni che corrispondono, ordinati per popolazione.">
+        <img src="img/guida/02-ricerca.png" width="1440" height="860" loading="lazy" alt="Il campo di ricerca con la parola «palermo» digitata e l'elenco dei comuni suggeriti sotto.">
+      </a>
+      <figcaption>La ricerca suggerisce i comuni mentre scrivi. <span class="zoom">Clic per ingrandire</span></figcaption>
+    </figure>
+  </section>
+
+  <section class="capitolo" id="scheda" aria-labelledby="t-scheda"><h2 id="t-scheda">La scheda del territorio</h2>
+    <p>La scheda è uguale a ogni livello (Italia, regione, provincia, comune): cambiano i numeri, non il modo di leggerli.</p>
+    <figure class="figura">
+      <a class="gal" href="img/guida/03-scheda-comune.png" data-gal="guida" data-w="1440" data-h="860" data-tit="La scheda di un comune" data-descr="Le quattro cifre in alto: finanziamento PNRR, euro per abitante, quota pagata e quota di importo concluso. Sotto, «In sintesi» riassume in frasi ciò che emerge.">
+        <img src="img/guida/03-scheda-comune.png" width="1440" height="860" loading="lazy" alt="La scheda del comune di Palermo: 1,05 miliardi di euro finanziati, 1.677 euro per abitante, 49 per cento pagato, 4 per cento concluso.">
+      </a>
+      <figcaption>La scheda di un comune: cifre chiave, «In sintesi», poi i grafici. <span class="zoom">Clic per ingrandire</span></figcaption>
+    </figure>
+    <h3>Le cifre in alto</h3>
+    <ul class="elenco">
+      <li><b>Finanziamento PNRR</b>: la somma degli importi dei progetti del territorio, con il numero di progetti.</li>
+      <li><b>Per abitante</b>: lo stesso importo diviso per la popolazione (ISTAT, 1/1/2026). Permette di confrontare comuni grandi e piccoli.</li>
+      <li><b>Pagato</b>: pagamenti registrati rispetto al finanziamento.</li>
+      <li><b>Importo concluso</b>: quota dell'importo dei progetti con stato ufficiale «concluso», sui progetti con avanzamento rilevato.</li>
+    </ul>
+    <h3>I grafici: dal finanziamento alla fine dei lavori</h3>
+    <p>Ogni progetto è contato nello stadio più avanzato raggiunto: gara aggiudicata, lavori avviati, concluso, pagato. Le righe sono cumulative. Sotto, «Progetti a rischio» segnala i progetti fermi, in ritardo o con la chiusura ancora da formalizzare: sono segnali da verificare, non perdite accertate.</p>
+    <figure class="figura">
+      <a class="gal" href="img/guida/10-percorso-lavori.png" data-gal="guida" data-w="1440" data-h="860" data-tit="Dal finanziamento alla fine dei lavori" data-descr="Gli stadi di avanzamento e i progetti a rischio. Ogni riga è cliccabile: filtra mappa, grafici ed elenco dei progetti.">
+        <img src="img/guida/10-percorso-lavori.png" width="1440" height="860" loading="lazy" alt="Grafico a barre degli stadi di avanzamento dei progetti di Palermo e riquadro dei progetti a rischio.">
+      </a>
+      <figcaption>Stadi di avanzamento e progetti a rischio: ogni riga si può cliccare per filtrare. <span class="zoom">Clic per ingrandire</span></figcaption>
+    </figure>
+    <h3>L'elenco dei progetti</h3>
+    <p>Nella scheda di un comune, in fondo, c'è l'elenco dei suoi progetti: titolo, misura, stadio, finanziamento, pagato, aggiudicato. Si può cercare per titolo o soggetto attuatore, ordinare cliccando sulle intestazioni, aprire il CUP su <a href="https://www.opencup.gov.it/" target="_blank" rel="noopener">OpenCUP</a> e scaricare il CSV: «Scarica CSV (filtrati)» esporta ciò che vedi, «Scarica tutti i dati del comune» esporta tutto senza filtri.</p>
+    <figure class="figura">
+      <a class="gal" href="img/guida/12-progetti.png" data-gal="guida" data-w="1440" data-h="860" data-tit="L'elenco dei progetti di un comune" data-descr="Ricerca, ordinamento per colonna, link al CUP su OpenCUP e pulsanti per scaricare il CSV.">
+        <img src="img/guida/12-progetti.png" width="1440" height="860" loading="lazy" alt="Elenco dei progetti nel comune di Palermo con campo di ricerca, pulsanti di scarico CSV e colonne Progetto, Misura, Stadio, Finanziamento, Pagato, Aggiudicato.">
+      </a>
+      <figcaption>L'elenco dei progetti, con ricerca, ordinamento e CSV. <span class="zoom">Clic per ingrandire</span></figcaption>
+    </figure>
+    <figure class="figura">
+      <a class="gal" href="img/guida/11-missioni.png" data-gal="guida" data-w="1440" data-h="860" data-tit="Per missione" data-descr="Le sette missioni del PNRR (M1–M7) con progetti, dotazione e importo: un clic su una riga filtra tutto per quella missione.">
+        <img src="img/guida/11-missioni.png" width="1440" height="860" loading="lazy" alt="La tabella «Per missione» nella scheda di Palermo, con le sette missioni del PNRR.">
+      </a>
+      <figcaption>La tabella per missione: un clic filtra. <span class="zoom">Clic per ingrandire</span></figcaption>
+    </figure>
+  </section>
+
+  <section class="capitolo" id="mappa" aria-labelledby="t-mappa"><h2 id="t-mappa">Colorare la mappa</h2>
+    <p>Il pulsante «Colora per» cambia ciò che la mappa mostra. Con la stessa mappa si possono porre domande diverse: dove è arrivato più denaro per abitante? Dove i lavori sono più indietro? Dove l'iter è concluso ma lo stato è ancora «in corso»?</p>
+    <div class="coppia">
+      <figure class="figura">
+        <a class="gal" href="img/guida/04-colora-per.png" data-gal="guida" data-w="1440" data-h="860" data-tit="Scegliere l'indicatore" data-descr="«Colora per» elenca gli indicatori disponibili: finanziamento per abitante o totale, quota pagata, quota conclusa, ritardi.">
+          <img src="img/guida/04-colora-per.png" width="1440" height="860" loading="lazy" alt="Il pannello «Colora i comuni per» aperto sopra la mappa.">
+        </a>
+        <figcaption>«Colora per»: l'indicatore. <span class="zoom">Ingrandisci</span></figcaption>
+      </figure>
+      <figure class="figura">
+        <a class="gal" href="img/guida/05-opzioni-mappa.png" data-gal="guida" data-w="1440" data-h="860" data-tit="Le opzioni della mappa" data-descr="Scala colore, tipo di classi (quantili, intervalli uguali, rotture naturali), colori invertiti e scala calcolata sul territorio.">
+          <img src="img/guida/05-opzioni-mappa.png" width="1440" height="860" loading="lazy" alt="Il pannello delle opzioni della mappa con scala colore, classi, inverti i colori e scala sul territorio.">
+        </a>
+        <figcaption>Le opzioni: scala, classi, colori. <span class="zoom">Ingrandisci</span></figcaption>
+      </figure>
+    </div>
+    <ul class="elenco">
+      <li><b>Quantili</b>: ogni fascia contiene lo stesso numero di comuni (la lettura più equilibrata, è quella iniziale). <b>Intervalli uguali</b>: fasce di pari ampiezza. <b>Rotture naturali</b>: fasce che separano i gruppi di valori simili.</li>
+      <li><b>Scala sul territorio</b> (attiva di default): i colori si adattano ai comuni della regione o provincia scelta. Disattivandola si usa la scala di tutta Italia e i confronti tra territori diversi sono diretti.</li>
+      <li>I comuni senza progetti sono in grigio.</li>
+    </ul>
+  </section>
+
+  <section class="capitolo" id="filtri" aria-labelledby="t-filtri"><h2 id="t-filtri">Filtrare: tutto è cliccabile</h2>
+    <p>Quasi ogni riga delle schede si può cliccare. Un clic su una missione, su uno stadio, su un tipo di intervento o su un avviso (in ritardo, fermo, chiusura da formalizzare) <b>filtra insieme mappa, grafici ed elenco dei progetti</b>, a qualunque livello territoriale. I filtri si combinano e restano attivi quando cambi territorio. Per toglierli: «Azzera».</p>
+    <p>Ogni vista, filtri compresi, ha il proprio indirizzo: il pulsante «Condividi» in alto (icona con i tre punti uniti) lo copia, e chi lo apre vede esattamente ciò che vedi tu.</p>
+    <p class="nota-guida"><b>Esempio.</b> Per sapere quanti progetti della Missione 4 (Istruzione e ricerca) sono in ritardo a Palermo: cerca «Palermo», clicca <b>M4</b> nella tabella «Per missione» e poi la riga <b>In ritardo sulla fine prevista</b> tra i progetti a rischio. L'elenco in fondo alla scheda mostra solo quei progetti.</p>
+  </section>
+
+  <section class="capitolo" id="altre-pagine" aria-labelledby="t-altre"><h2 id="t-altre">Statistiche e «Cosa dicono i dati»</h2>
+    <p>Oltre alla mappa ci sono due pagine che scorrono, raggiungibili dal menù in alto.</p>
+    <div class="coppia">
+      <figure class="figura">
+        <a class="gal" href="img/guida/07-statistiche.png" data-gal="guida" data-w="1440" data-h="860" data-tit="Statistiche" data-descr="Il quadro nazionale su ciò che le schede non mostrano: Mezzogiorno e regioni, concentrazione dei fondi fra i comuni, ritardi provincia per provincia.">
+          <img src="img/guida/07-statistiche.png" width="1440" height="860" loading="lazy" alt="La pagina Statistiche con le cifre di sintesi e i grafici su Mezzogiorno, concentrazione e ritardi.">
+        </a>
+        <figcaption><b>Statistiche</b>: Mezzogiorno, concentrazione dei fondi, ritardi per provincia. <span class="zoom">Ingrandisci</span></figcaption>
+      </figure>
+      <figure class="figura">
+        <a class="gal" href="img/guida/08-relazione.png" data-gal="guida" data-w="1440" data-h="860" data-tit="Cosa dicono i dati" data-descr="Un racconto in parole semplici: un capitolo per ogni affermazione, con «Come l'abbiamo calcolato» e «Cosa i dati non dicono».">
+          <img src="img/guida/08-relazione.png" width="1440" height="860" loading="lazy" alt="La pagina «Cosa dicono i dati» con il primo capitolo e i relativi grafici.">
+        </a>
+        <figcaption><b>Cosa dicono i dati</b>: la relazione in parole semplici. <span class="zoom">Ingrandisci</span></figcaption>
+      </figure>
+    </div>
+    <p>Le Statistiche usano gli stessi dati e le stesse regole della mappa ma non cambiano con i filtri. «Cosa dicono i dati» dedica un capitolo a ogni affermazione e, dopo ciascuno, spiega come è stata calcolata e che cosa i dati non permettono di concludere.</p>
+  </section>
+
+  <section class="capitolo" id="telefono" aria-labelledby="t-tel"><h2 id="t-tel">Da telefono</h2>
+    <p>Il caso d'uso principale è il telefono. Su schermi stretti la mappa occupa tutto lo schermo e la scheda sta in un <b>foglio inferiore</b>: si trascina la maniglia verso l'alto per leggerla e verso il basso per tornare alla mappa. Il pulsante <b>☰</b> accanto alla ricerca apre il menù con le sezioni, Info, tema e crediti; nelle pagine che scorrono la <b>×</b> in alto riporta alla mappa. Sono disponibili anche i tre pannelli «Territorio», «Colora per» e «Opzioni».</p>
+    <figure class="figura figura-mobile">
+      <a class="gal" href="img/guida/09-mobile.png" data-gal="guida" data-w="390" data-h="800" data-tit="L'atlante su telefono" data-descr="Mappa a tutto schermo con ricerca e pulsanti in alto; la scheda del comune sale dal basso come un foglio.">
+        <img src="img/guida/09-mobile.png" width="390" height="800" loading="lazy" alt="L'atlante su schermo di telefono: mappa a tutto schermo con la barra di ricerca in alto e la scheda di Palermo che sale dal basso.">
+      </a>
+      <figcaption>Su telefono: mappa a tutto schermo e scheda a foglio inferiore. <span class="zoom">Clic per ingrandire</span></figcaption>
+    </figure>
+  </section>
+
+  <section class="capitolo" id="strumenti" aria-labelledby="t-str"><h2 id="t-str">Info, tema e condividi</h2>
+    <ul class="elenco">
+      <li><b>Info</b> apre una finestra con tre schede: <i>Metodo e limiti</i> (come sono calcolati gli importi), <i>Fonti</i> (da dove vengono i dati e con quale licenza) e <i>Credits</i>.</li>
+      <li><b>Tema</b>: «Sistema» segue le impostazioni del dispositivo; «Chiaro», «Scuro» e «Alto contrasto» si scelgono a mano e vengono ricordati.</li>
+      <li><b>Tastiera</b>: tutta l'interfaccia si usa da tastiera; <kbd>Esc</kbd> chiude pannelli, elenchi e finestre.</li>
+    </ul>
+    <figure class="figura">
+      <a class="gal" href="img/guida/06-info.png" data-gal="guida" data-w="1440" data-h="860" data-tit="La finestra Info" data-descr="Tre schede: Metodo e limiti, Fonti, Credits.">
+        <img src="img/guida/06-info.png" width="1440" height="860" loading="lazy" alt="La finestra Info aperta sulla scheda «Metodo e limiti», sopra la mappa oscurata.">
+      </a>
+      <figcaption>La finestra Info, scheda «Metodo e limiti». <span class="zoom">Clic per ingrandire</span></figcaption>
+    </figure>
+  </section>
+
+  <section class="capitolo" id="parole" aria-labelledby="t-par"><h2 id="t-par">Le parole dei dati</h2>
+    <dl class="parti">
+      <dt>CUP</dt><dd>Codice Unico di Progetto: l'identificativo di un investimento pubblico. Nell'atlante il progetto è la coppia CUP + Codice Locale Progetto, perché un CUP può comparire su più progetti.</dd>
+      <dt>Missione (M1–M7)</dt><dd>Le sette grandi aree del Piano, per esempio M2 «Rivoluzione verde e transizione ecologica» o M4 «Istruzione e ricerca».</dd>
+      <dt>Importo ripartito</dt><dd>Un progetto che interessa più comuni è diviso secondo la percentuale di localizzazione dichiarata. Così la somma dei comuni, delle province e delle regioni torna al totale nazionale.</dd>
+      <dt>Aggiudicato</dt><dd>Somma degli importi di aggiudicazione delle gare collegate al progetto. Comprende tutte le fonti di finanziamento dell'appalto, non solo il PNRR.</dd>
+      <dt>In ritardo</dt><dd>Progetto ancora «in corso» con fine prevista anteriore al 13/06/2026, data dell'estrazione dei dati.</dd>
+      <dt>Soggetto attuatore</dt><dd>L'ente (comune, ministero, società pubblica…) che realizza il progetto.</dd>
+    </dl>
+  </section>
+
+  <section class="capitolo" id="limiti" aria-labelledby="t-lim"><h2 id="t-lim">Cosa i dati non dicono</h2>
+    <ul class="elenco">
+      <li>I dati sono <b>dichiarati dai soggetti attuatori</b> in ReGiS e non sono verificati dall'atlante.</li>
+      <li>L'estrazione è del <b>13 giugno 2026</b>, il programma si è chiuso il 30 giugno: non si vedono gli ultimi giorni, quindi parte dei progetti «in ritardo» si sarà conclusa subito dopo.</li>
+      <li>«A rischio» è un <b>segnale</b>: i dati ufficiali non hanno uno stato «revocato» o «non realizzato» e non dicono se i fondi saranno persi.</li>
+      <li>Alcune localizzazioni (provincia, regione, «ambito nazionale») non si possono attribuire a un comune: restano al livello più basso certo.</li>
+      <li>Il sito <b>non è un prodotto ufficiale</b> del Governo né di Italia Domani. Errori e correzioni si segnalano a OpenDataSicilia.</li>
+    </ul>
+    <p class="nota">Dati: <a href="https://www.italiadomani.gov.it/content/sogei-ng/it/it/catalogo-open-data.html" target="_blank" rel="noopener">Italia Domani, Catalogo Open Data</a> (CC-BY 4.0). <a href="#info" data-info="metodo">Metodo e limiti</a> · <a href="#info" data-info="fonti">Fonti</a> · <a href="#info" data-info="credits">Credits</a></p>
+  </section>
+</main>
+<script src="js/tema.js?v=3"></script>
+<script src="js/piede.js?v=1" defer></script>
+<script src="js/menu.js?v=6" defer></script>
+<script src="js/info.js?v=8" defer></script>
+<script src="js/galleria.js?v=1" defer></script>
+</body>
+</html>
