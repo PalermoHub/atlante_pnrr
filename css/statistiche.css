@@ -89,3 +89,9 @@ body.pagina-stat { display: block; height: auto; }
 /* grafico dell'indicatore scelto in «Colora per» */
 .grafico.ind-attivo { border-color: var(--s6, var(--ink)); box-shadow: 0 0 0 2px var(--s6, var(--ink)); }
 .grafico.ind-attivo figcaption b::after { content: 'colora la mappa'; margin-left: .5rem; padding: .05rem .45rem; font-size: .68rem; font-weight: 600; border-radius: 99px; background: var(--s6, var(--ink)); color: var(--surface); vertical-align: middle; }
+/* «Salva come immagine PNG» su ogni grafico (js/salva-png.js): in alto a destra, senza coprire il titolo */
+.grafico { position: relative; }
+.grafico:has(.salva-png) figcaption { padding-right: 4.6rem; }
+.salva-png { position: absolute; top: .6rem; right: .6rem; display: inline-flex; align-items: center; gap: .3rem; min-height: 1.9rem; padding: 0 .55rem; font: 600 .74rem/1 inherit; color: var(--ink2); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
+.salva-png:hover, .salva-png:focus-visible { color: var(--ink); border-color: var(--ink3); }
+.salva-png:disabled { cursor: progress; opacity: .7; }
