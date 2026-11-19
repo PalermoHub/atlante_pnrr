@@ -235,7 +235,8 @@ body:not(.home) th { top: calc(var(--top-h, 0px) - 1px); }
 .piede-logo { flex: none; line-height: 0; }
 .piede-logo img { height: 30px; width: auto; }
 .piede-r1 { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0 .9rem; }
-.piede-r1 > * + * { padding-left: .9rem; border-left: 1px solid var(--line); }
+.piede-r1 > * + * { position: relative; }
+.piede-r1 > * + *::before { content: ""; position: absolute; left: -.45rem; top: 20%; bottom: 20%; border-left: 1px solid var(--ink3); opacity: .5; }
 .piede-r2 { color: var(--ink3); font-size: .75rem; }
 .piede strong { color: var(--ink); }
 .piede a, .piede-lnk { color: var(--ink2); text-decoration: underline; text-underline-offset: 2px; background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }
@@ -246,7 +247,8 @@ body:not(.home) { padding-bottom: var(--piede-h, 3.5rem); }
 @media (max-width: 720px) {
   .piede { padding: .25rem .75rem; }
   .piede a.piede-logo, .piede .piede-prog, .piede .piede-r2 { display: none; }
-  .piede-r1 > * + * { padding-left: .75rem; }
+  .piede-r1 > * + *::before { left: -.375rem; }
+  .piede-r1 > .piede-copy::before { display: none; }
   .piede-r1 { gap: 0 .75rem; min-height: 36px; }
   .piede a, .piede-lnk { min-height: 36px; display: inline-flex; align-items: center; }
 }
