@@ -162,3 +162,9 @@ body.lente-pag .lente-testo { flex: 1 1 45%; max-height: none; min-height: 0; ov
 .sintesi { flex: 1 1 14rem; color: var(--ink2); font-size: .9rem; }
 .lente-svg .presa { pointer-events: all; cursor: grab; touch-action: none; }
 .lente-svg .presa:active { cursor: grabbing; }
+
+/* niente rettangolo di messa a fuoco al clic; per la tastiera un segno più discreto */
+.lente-svg *:focus { outline: none; }
+.lente-svg .segm:focus-visible .stadio { fill: var(--ink); font-weight: 700; text-decoration: underline; }
+.lente-svg .nastro:focus-visible { stroke-width: 20; }
+.lente-svg { -webkit-tap-highlight-color: transparent; }

@@ -96,9 +96,9 @@ function disegna() {
     conteggi[m] = { n: tutti.length, nasconde };
     const step = Math.min(2.2, SET * 0.82 / Math.max(1, tag.length)), hs = step * 0.38; const gb = el('g'); g.append(gb);
     if (!nasc) tag.forEach((p, k) => {
-      const ang = aM - tag.length * step / 2 + (k + 0.5) * step, len = lun(p.fin), dim = !stadioOk(p);
-      const pts = [P(rb, ang - hs), P(rb + len, ang - hs), P(rb + len, ang + hs), P(rb, ang + hs)].map((q) => q.join(',')).join(' ');
-      const r = el('polygon', { points: pts, fill: COL_MIS[m], 'fill-opacity': dim ? 0.1 : OPAC[p.st], class: 'rag' });
+      const ang = aM - tag.length * step / 2 + (k + 0.5) * step, len = lun(p.fin), dim = !stadioOk(p), h2 = dim ? hs * 0.35 : hs;
+      const pts = [P(rb, ang - h2), P(rb + len, ang - h2), P(rb + len, ang + h2), P(rb, ang + h2)].map((q) => q.join(',')).join(' ');
+      const r = el('polygon', { points: pts, fill: COL_MIS[m], 'fill-opacity': dim ? 0.3 : OPAC[p.st], class: 'rag' });
       const mostra = () => tip(p, P(rb + len, ang));
       r.addEventListener('mouseenter', mostra); r.addEventListener('click', mostra); r.addEventListener('mouseleave', () => { if (!matchMedia('(hover: none)').matches) tip(null); });
       gb.append(r);
