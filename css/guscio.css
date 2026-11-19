@@ -3,7 +3,7 @@
 
 /* ---------- barra della mappa: ricerca + chip ---------- */
 body.home .mapbar { position: relative; z-index: 5; flex-direction: row; flex-wrap: wrap; align-items: stretch; gap: .5rem; padding: .5rem .75rem; }
-.cerca-riga { display: flex; gap: .4rem; flex: 1 1 15rem; min-width: 0; }
+.cerca-riga { display: flex; gap: .4rem; flex: 1 1 100%; min-width: 0; }
 .cerca { position: relative; flex: 1 1 auto; min-width: 0; }
 .azzera { display: inline-flex; align-items: center; gap: .4rem; flex: none; min-height: 44px; padding: 0 .85rem; font-weight: 600; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
 .azzera svg { width: 1.1rem; height: 1.1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -20,7 +20,7 @@ body.home .mapbar { position: relative; z-index: 5; flex-direction: row; flex-wr
 #q-lista li span { color: var(--ink3); font-size: .85rem; }
 #q-lista li[aria-selected="true"], #q-lista li:hover { background: var(--accbg); }
 #q-lista li.vuoto { color: var(--ink3); cursor: default; }
-.chipbar { display: flex; gap: .4rem; flex: 2 1 18rem; min-width: 0; }
+.chipbar { display: flex; gap: .4rem; flex: 1 1 100%; min-width: 0; }
 .chip2 { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; flex: 1 1 0; min-width: 0; min-height: 44px; padding: .2rem .75rem; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; line-height: 1.15; }
 .chip2-k { font-size: .75rem; color: var(--ink3); }
 .chip2-v { max-width: 100%; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -78,9 +78,7 @@ html[data-embed] body.home .brand span { display: none; }
   body.home #map { position: absolute; inset: 0; height: auto; min-height: 0; }
   body.home .mapbar { position: absolute; top: 0; left: 0; right: 0; padding: .5rem; background: none; pointer-events: none; }
   body.home .mapbar > * { pointer-events: auto; }
-  .cerca-riga { flex: 1 1 100%; }
   .cerca input, .chip2, .azzera { box-shadow: 0 2px 8px rgb(0 0 0 / .16); }
-  .chipbar { flex: 1 1 100%; }
   .pan { left: .5rem; right: .5rem; max-height: calc(100dvh - 11rem); }
   body.home .maplibregl-ctrl-top-right { top: 7rem; }
   body.home .sovra { position: absolute; left: .5rem; right: .5rem; bottom: calc(var(--fh, 184px) + .5rem); width: auto; max-width: 22rem; transition: bottom .22s cubic-bezier(.2, .8, .2, 1); }
@@ -107,7 +105,8 @@ html[data-embed] body.home .brand span { display: none; }
   body.home .foglio[data-stato="chiuso"] .kpi div:nth-child(n+3) { display: none; }
   body.home .foglio[data-stato="chiuso"] .kpi div { padding: .35rem .6rem; }
   body.home .foglio[data-stato="chiuso"] .kpi em { display: none; }
-  body.home .in-cima { bottom: .75rem; }
+
+  body.home .scheda table { display: block; overflow-x: auto; }
 
   /* bersagli da 44 px */
   body.home button, body.home select, body.home input:not([type="checkbox"]) { min-height: 44px; }

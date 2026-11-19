@@ -228,3 +228,28 @@ body:not(.home) th { top: calc(var(--top-h, 0px) - 1px); }
   body:not(.home) .tools { gap: .3rem; }
   body:not(.home) .tools select { width: 6.2rem; padding-left: .4rem; }
 }
+
+/* Piede minimo e fisso (js/piede.js) */
+.piede { flex: none; position: fixed; z-index: 25; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; gap: .9rem; padding: .4rem 1rem; background: var(--surface); border-top: 1px solid var(--line); color: var(--ink2); font-size: .8125rem; line-height: 1.35; }
+.piede p { margin: 0; }
+.piede-logo { flex: none; line-height: 0; }
+.piede-logo img { height: 30px; width: auto; }
+.piede-r1 { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0 .9rem; }
+.piede-r1 > * + * { padding-left: .9rem; border-left: 1px solid var(--line); }
+.piede-r2 { color: var(--ink3); font-size: .75rem; }
+.piede strong { color: var(--ink); }
+.piede a, .piede-lnk { color: var(--ink2); text-decoration: underline; text-underline-offset: 2px; background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }
+.piede a:hover, .piede-lnk:hover { color: var(--acc); }
+.piede-testo { text-align: center; min-width: 0; }
+body.home .piede { position: static; }
+body:not(.home) { padding-bottom: var(--piede-h, 3.5rem); }
+@media (max-width: 720px) {
+  .piede { padding: .25rem .75rem; }
+  .piede a.piede-logo, .piede .piede-prog, .piede .piede-r2 { display: none; }
+  .piede-r1 > * + * { padding-left: .75rem; }
+  .piede-r1 { gap: 0 .75rem; min-height: 36px; }
+  .piede a, .piede-lnk { min-height: 36px; display: inline-flex; align-items: center; }
+}
+.in-cima { bottom: calc(var(--piede-h, 0px) + .75rem); z-index: 26; }
+body.home .scheda { overflow-x: hidden; }
+.consenso { bottom: calc(var(--piede-h, 0px) + .75rem); }
