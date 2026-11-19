@@ -182,3 +182,8 @@ tr.cl.on td { outline: none; background: var(--accbg); box-shadow: inset 0 1px 0
 .legenda .cat button.qui { outline: 1.5px dashed currentColor; outline-offset: -1px; background: none; }
 .legenda .leg-fascia { margin-top: .3rem; font-size: .72rem; }
 .quadro .q-terr { font-weight: 700; }
+
+/* barra a tre tratti nel riquadro «Per missione» */
+.tri { display: inline-flex; height: 8px; border-radius: 0 3px 3px 0; overflow: hidden; vertical-align: middle; min-width: 1px; }
+.tri i { display: block; height: 100%; }
+.tri .tp { background: var(--ok); } .tri .tf { background: var(--warn); } .tri .ts { background: var(--ink3); }
