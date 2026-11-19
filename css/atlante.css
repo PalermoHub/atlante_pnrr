@@ -193,3 +193,7 @@ tr.cl.on td { outline: none; background: var(--accbg); box-shadow: inset 0 1px 0
 .leg-tri li { display: flex; align-items: center; gap: .4rem; }
 .leg-tri i { display: inline-block; width: .8rem; height: .8rem; border-radius: 2px; }
 .leg-tri .tp { background: var(--ok); } .leg-tri .tf { background: var(--warn); } .leg-tri .ts { background: var(--ink3); }
+
+/* riquadro «Progetti a rischio»: valore più lungo (importo · quota · progetti) */
+.imbuto.largo .riga { grid-template-columns: 11.5rem 1fr 14rem; }
+@media (max-width: 860px) { .imbuto.largo .riga { grid-template-columns: 7rem 1fr 8.5rem; } .imbuto.largo .riga .v { white-space: normal; } }
