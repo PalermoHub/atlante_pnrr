@@ -313,10 +313,18 @@ function creaMappa() {
   };
   /* mouse: segue il puntatore. Tocco: non esiste «mouseleave», quindi il tooltip compare al tap, in alto a sinistra, e si chiude da solo */
   let tipTocco = null, timerTocco = 0;
-  const chiudiTip = () => { tip.hidden = true; tipTocco = null; clearTimeout(timerTocco); m.getCanvas().style.cursor = ''; };
+  /* sul telefono il foglio si abbassa finché il popup è aperto, così non lo copre; poi torna com'era */
+  const foglioTip = document.getElementById('foglio'); let foglioRidotto = false;
+  const ripristinaFoglio = () => { if (foglioRidotto) { foglioTip.style.removeProperty('height'); foglioRidotto = false; } };
+  const chiudiTip = () => { tip.hidden = true; tipTocco = null; clearTimeout(timerTocco); m.getCanvas().style.cursor = ''; ripristinaFoglio(); };
   const mostraTocco = () => {
     if (!tipTocco || !riempiTip(tipTocco)) return chiudiTip();
     tip.style.left = '8px'; tip.style.top = '112px'; tip.hidden = false; /* sotto la barra di ricerca e filtri */
+    if (foglioTip && foglioTip.dataset.stato !== 'chiuso') {
+      const P = foglioTip.parentElement.getBoundingClientRect(), T = tip.getBoundingClientRect();
+      const libero = P.bottom - T.bottom - 8, h = foglioTip.getBoundingClientRect().height;
+      if (libero < h) { foglioTip.style.height = Math.max(120, libero) + 'px'; foglioRidotto = true; }
+    }
     clearTimeout(timerTocco); timerTocco = setTimeout(chiudiTip, 9000);
   };
   m.on('mousemove', 'comuni', (e) => {
