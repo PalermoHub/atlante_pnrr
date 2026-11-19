@@ -302,4 +302,4 @@ body.home .scheda { overflow-x: hidden; }
 }
 
 /* In un iframe la linguetta ☰ della testata PalermoHub sta fissa in alto a sinistra (~50 px): logo e titolo si spostano a destra */
-html[data-iframe] header.top, html[data-iframe] body:not(.home) .top, html[data-iframe] body.home > header.top { padding-left: 4.4rem; }
+html[data-iframe] header.top, html[data-iframe] body:not(.home) .top, html[data-iframe] body.home > header.top { padding-left: 5.65rem; }
