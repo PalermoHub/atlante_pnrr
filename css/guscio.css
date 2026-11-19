@@ -127,4 +127,10 @@ html[data-embed] body.home .brand span { display: none; }
 @media (max-width: 720px) {
   body.home > header.top, body.home > .piede { display: none; }
   body.home .cerca-riga .menu-btn { box-shadow: 0 2px 8px rgb(0 0 0 / .16); }
+  /* in embed l'angolo in alto a sinistra è della linguetta ☰ di PalermoHub: la barra scende sotto di essa */
+  html[data-embed] body.home .mapbar { padding-top: 1.9rem; }
+  html[data-embed] body.home .maplibregl-ctrl-top-right { top: 9rem; }
+}
+@media (min-width: 721px) {
+  html[data-embed] body.home .top { padding-left: 3.6rem; }
 }

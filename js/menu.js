@@ -9,6 +9,7 @@
   if (!top || !nav) return;
   const tools = top.querySelector('.tools');
   const home = document.body.classList.contains('home');
+  const embed = document.documentElement.hasAttribute('data-embed'); /* in embed la linguetta ☰ della testata PalermoHub sta in alto a sinistra: il nostro va a destra */
   const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x) e.textContent = x; return e; };
 
   /* pulsante */
@@ -16,11 +17,11 @@
   btn.setAttribute('aria-label', 'Apri il menù'); btn.setAttribute('aria-haspopup', 'dialog'); btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', 'menu-pan');
   btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
   const riga = document.querySelector('.cerca-riga');
-  if (home && riga) riga.prepend(btn); else top.append(btn);
+  if (home && riga) { if (embed) riga.append(btn); else riga.prepend(btn); } else top.append(btn);
 
   /* pannello */
   const vela = el('div', 'menu-vela'); vela.hidden = true;
-  const pan = el('div', 'menu-pan'); pan.id = 'menu-pan'; pan.hidden = true; pan.dataset.lato = home ? 'sx' : 'dx';
+  const pan = el('div', 'menu-pan'); pan.id = 'menu-pan'; pan.hidden = true; pan.dataset.lato = home && !embed ? 'sx' : 'dx';
   pan.setAttribute('role', 'dialog'); pan.setAttribute('aria-modal', 'true'); pan.setAttribute('aria-label', 'Menù');
   const testa = el('div', 'menu-testa');
   const marchio = top.querySelector('.brand').cloneNode(true); marchio.classList.add('menu-marchio'); marchio.removeAttribute('id');
