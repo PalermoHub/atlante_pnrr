@@ -287,7 +287,8 @@ function creaMappa() {
   const senzaHover = matchMedia('(hover: none)');
   const chiudiTip = () => { tip.hidden = true; m.getCanvas().style.cursor = ''; };
   m.on('mousemove', 'comuni', (e) => {
-    if (senzaHover.matches) return chiudiTip();
+    /* con un comune selezionato il tooltip non segue più il mouse: sarebbe rumore sopra la scheda già aperta */
+    if (senzaHover.matches || S.cur?.liv === 'c') return chiudiTip();
     const f = e.features[0]; if (!f || !S.vals) return chiudiTip(); const id = f.properties.pro_com_t; const c = S.vals[id]; if (!c) return;
     m.getCanvas().style.cursor = 'pointer'; tip.hidden = false; tip.style.left = e.point.x + 12 + 'px'; tip.style.top = e.point.y + 12 + 'px';
     const v = INDIC[S.indic].f(c), cm = S.com[id];
