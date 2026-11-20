@@ -35,8 +35,8 @@
 <!-- /SOCIAL -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <script>try{if(self!==top||/[?&]embed=1/.test(location.search))document.documentElement.setAttribute("data-embed","")}catch(e){document.documentElement.setAttribute("data-embed","")}</script>
-<link rel="stylesheet" href="css/atlante.css?v=55">
-<link rel="stylesheet" href="css/guscio.css?v=13">
+<link rel="stylesheet" href="css/atlante.css?v=56">
+<link rel="stylesheet" href="css/guscio.css?v=15">
 <link rel="stylesheet" href="css/statistiche.css?v=9">
 <link rel="stylesheet" href="css/lente-app.css?v=7">
 
@@ -82,6 +82,12 @@
           <label>Provincia <select id="f-prov"></select></label>
           <label>Comune <select id="f-com"></select></label>
         </div>
+        <div class="conf-az" role="group" aria-label="Confronto tra comuni">
+          <p class="pan-nota">Confronto tra comuni: scegline più d'uno e guardali affiancati.</p>
+          <button id="conf-mappa" type="button" data-conf="sel" aria-pressed="false">Scegli i comuni sulla mappa</button>
+          <button id="conf-prov" type="button" data-conf="gruppo" disabled>Aggiungi i comuni della provincia</button>
+          <button id="conf-reg" type="button" data-conf="gruppo" disabled>Aggiungi i comuni della regione</button>
+        </div>
       </div>
       <div id="pan-prog" class="pan" hidden>
         <div class="terr" role="group" aria-label="Filtro per missione, componente, misura e sub-misura">
@@ -107,6 +113,7 @@
       </div>
     </div>
     <div id="map" role="img" aria-label="Mappa dei comuni italiani colorata per indicatore PNRR"></div>
+    <div id="conf-pill" class="conf-pill" role="status" aria-live="polite" hidden></div>
     <div class="sovra">
       <details id="quadro" class="quadro" open><summary id="q-t">Nel riquadro…</summary><ul id="q-l"></ul></details>
       <details id="legenda" class="legenda" open><summary id="leg-t">Legenda</summary><div id="leg-c"></div></details>
@@ -121,7 +128,7 @@
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pmtiles@4.3.0/dist/pmtiles.js"></script>
 <script src="js/tema.js?v=3"></script>
-<script src="js/guscio.js?v=7" defer></script>
+<script src="js/guscio.js?v=8" defer></script>
 <script src="js/tabelle.js?v=1" defer></script>
 <script src="js/cima.js?v=2" defer></script>
 <script src="js/piede.js?v=1" defer></script>
@@ -129,7 +136,7 @@
 <script src="js/info.js?v=9" defer></script>
 <script src="js/condividi.js?v=2" defer></script>
 <script src="js/grafici.js?v=8"></script>
-<script type="module" src="js/app.js?v=52"></script>
+<script type="module" src="js/app.js?v=54"></script>
 <script src="js/lente-app.js?v=7" defer></script>
 <script src="js/salva-png.js?v=4" defer></script>
 </body>

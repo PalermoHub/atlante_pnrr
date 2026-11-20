@@ -64,19 +64,22 @@
     const d = await carica(); if (norm(q.value) !== t) return;
     const inizio = d.filter((c) => c.n.startsWith(t)), dentro = d.filter((c) => !c.n.startsWith(t) && c.n.includes(t));
     vis = inizio.concat(dentro).slice(0, 8);
-    lista.innerHTML = vis.length ? vis.map((c, i) => `<li id="q-o${i}" role="option" aria-selected="false" data-id="${c.id}"><b>${c.nm.replace(/[&<>"']/g, '')}</b> <span>${c.sig}</span></li>`).join('') : '<li class="vuoto" role="presentation">Nessun comune con questo nome</li>';
+    lista.innerHTML = vis.length ? vis.map((c, i) => `<li id="q-o${i}" role="option" aria-selected="false" data-id="${c.id}"><b>${c.nm.replace(/[&<>"']/g, '')}</b> <span>${c.sig}</span><button type="button" class="q-piu" data-piu="${c.id}" tabindex="-1" aria-label="Aggiungi ${c.nm.replace(/[&<>"']/g, '')} al confronto" title="Aggiungi al confronto">+</button></li>`).join('') : '<li class="vuoto" role="presentation">Nessun comune con questo nome</li>';
     lista.hidden = false; q.setAttribute('aria-expanded', 'true'); sel = -1; chiudiPannelli(null);
   }
-  function vai(id) { chiudiLista(); q.value = ''; q.blur(); location.hash = '#/c/' + id; if (mobile.matches) stato('medio'); }
+  /* la selezione per il confronto resta quando si passa a un altro comune; con l'app non ancora pronta si va all'indirizzo semplice */
+  function vai(id) { chiudiLista(); q.value = ''; q.blur(); if (window.AtlantePNRR?.vaiComune) window.AtlantePNRR.vaiComune(id); else location.hash = '#/c/' + id; if (mobile.matches) stato('medio'); }
+  /* «+» (o Maiusc+Invio) aggiunge il comune al confronto senza cambiare scheda; la ricerca resta pronta per il prossimo */
+  function aggiungi(id) { document.dispatchEvent(new CustomEvent('conf-aggiungi', { detail: { id } })); q.value = ''; chiudiLista(); q.focus(); }
   q.addEventListener('input', cerca);
   q.addEventListener('focus', () => { carica(); if (q.value) cerca(); });
   q.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowDown') { e.preventDefault(); if (!lista.hidden && vis.length) { sel = (sel + 1) % vis.length; evid(); } }
     else if (e.key === 'ArrowUp') { e.preventDefault(); if (!lista.hidden && vis.length) { sel = (sel - 1 + vis.length) % vis.length; evid(); } }
-    else if (e.key === 'Enter') { e.preventDefault(); const c = vis[sel >= 0 ? sel : 0]; if (c && !lista.hidden) vai(c.id); }
+    else if (e.key === 'Enter') { e.preventDefault(); const c = vis[sel >= 0 ? sel : 0]; if (c && !lista.hidden) (e.shiftKey ? aggiungi : vai)(c.id); }
   });
   lista.addEventListener('pointerdown', (e) => e.preventDefault());
-  lista.addEventListener('click', (e) => { const li = e.target.closest('li[data-id]'); if (li) vai(li.dataset.id); });
+  lista.addEventListener('click', (e) => { const piu = e.target.closest('button[data-piu]'); if (piu) { aggiungi(piu.dataset.piu); return; } const li = e.target.closest('li[data-id]'); if (li) vai(li.dataset.id); });
 
   /* ---------- foglio inferiore: tre altezze, trascinabile o a tocchi ---------- */
   const foglio = $('#foglio'), man = $('#maniglia'), ORDINE = ['chiuso', 'medio', 'aperto'];

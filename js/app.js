@@ -41,7 +41,21 @@ const S = { meta: null, it: null, reg: null, prov: null, com: null, bbox: null, 
 const get = async (u) => { if (!S.cache.has(u)) { S.cache.set(u, fetch(u + '?d=2').then((r) => { if (!r.ok) throw new Error(u + ' ' + r.status); return r.json(); })); } return S.cache.get(u); };
 
 /* ---------- stato nell'indirizzo ---------- */
-const F0 = () => ({ mis: null, comp: null, msr: null, sub: null, nat: null, st: null, fl: null });
+const F0 = () => ({ mis: null, comp: null, msr: null, sub: null, nat: null, st: null, fl: null, k: null, x: false });
+/* Confronto tra comuni: «k» è la selezione (comuni «082053», o gruppi «p082» = tutta la provincia, «r19» = tutta la regione),
+   «x» dice se il confronto è aperto al posto della scheda. Vivono dentro F, quindi seguono ogni cambio di territorio o filtro. */
+const TOK = /^(\d{6}|x\d{6}|p\d{3}|r\d{1,2})$/, MAXTOK = 60, MAXCOM = 2000;
+const tokOk = (t) => TOK.test(t) && !!(t[0] === 'p' ? S.prov?.[t.slice(1)] : t[0] === 'r' ? S.reg?.[t.slice(1)] : S.com?.[t[0] === 'x' ? t.slice(1) : t]);
+function comuniDi(toks) {
+  const out = new Set();
+  for (const t of toks || []) {
+    if (t[0] === 'x') continue;
+    if (t[0] === 'p' || t[0] === 'r') { const ch = t[0] === 'p' ? 'pv' : 'rg', v = t.slice(1); for (const [id, c] of Object.entries(S.com)) if (c[ch] === v) out.add(id); } else out.add(t);
+    if (out.size >= MAXCOM) break;
+  }
+  for (const t of toks || []) if (t[0] === 'x') out.delete(t.slice(1));
+  return [...out].slice(0, MAXCOM);
+}
 /* imposta (o toglie) un livello del piano: i livelli superiori si allineano, quelli inferiori si azzerano */
 function setProg(F, L, v) {
   const i = LIV.indexOf(L); LIV.forEach((l, j) => { if (j > i) F[l] = null; });
@@ -56,10 +70,13 @@ function parseHash() {
   if (q.get('n') != null && /^\d+$/.test(q.get('n'))) F.nat = +q.get('n');
   if (q.get('s')) F.st = q.get('s').split('.').map(Number).filter((x) => x >= 0 && x <= 5);
   if (q.get('f') === '1' || q.get('f') === '2') F.fl = +q.get('f');
+  if (q.get('k')) { const t = [...new Set(q.get('k').split('.').filter(tokOk))].slice(0, MAXTOK); if (t.length) F.k = t; } /* indirizzi vecchi o manomessi: i codici sconosciuti si scartano */
+  F.x = q.get('x') === '1' && !!F.k;
   return { liv: m ? m[1] : null, id: m ? m[2] : null, F };
 }
-function fStr(F) {
+function fStr(F, soloFiltri) {
   const q = new URLSearchParams(); if (F.mis) q.set('m', F.mis); if (F.comp) q.set('c', F.comp); if (F.msr) q.set('i', F.msr); if (F.sub) q.set('u', F.sub); if (F.nat != null) q.set('n', F.nat); if (F.st) q.set('s', F.st.join('.')); if (F.fl) q.set('f', F.fl);
+  if (!soloFiltri && F.k?.length) { q.set('k', F.k.join('.')); if (F.x) q.set('x', '1'); }
   const s = q.toString(); return s ? '?' + s : '';
 }
 /* Vista della mappa nell'indirizzo: parametro «v=zoom/lat/lon» accanto ai filtri; si scrive con replaceState (nessun nuovo route). */
@@ -197,7 +214,7 @@ function aggiornaMappa() {
   const k = ramp().length; S.breaks = soglie(v, k); const nc = S.breaks.length + 1;
   const cls = (x) => { if (x == null || !isFinite(x)) return -1; let i = 0; while (i < S.breaks.length && x >= S.breaks[i]) i++; return i; };
   /* le classi scelte nella legenda valgono finché indicatore, scala, classi, territorio e filtri restano gli stessi */
-  const chiave = [S.indic, S.adatta, S.classi, liv, id, fStr(F)].join('|'); if (chiave !== S.clsKey) { S.clsKey = chiave; S.cls = null; }
+  const chiave = [S.indic, S.adatta, S.classi, liv, id, fStr(F, true)].join('|'); if (chiave !== S.clsKey) { S.clsKey = chiave; S.cls = null; }
   const nessuno = getComputedStyle(document.documentElement).getPropertyValue('--line').trim() || '#ccc';
   const r = ramp(), expr = ['match', ['get', 'pro_com_t']], cont = new Array(nc).fill(0); S.clsMap = {}; let cnt = 0; const inTerr = new Set(ambito(liv, id));
   for (const [cid, c] of Object.entries(S.vals)) { const i = cls(I.f(c)); if (i < 0) continue; S.clsMap[cid] = i; if (inTerr.has(cid)) cont[i]++; expr.push(cid, !S.cls || S.cls.has(i) ? r[Math.min(i, k - 1)] : nessuno); cnt++; }
@@ -299,6 +316,21 @@ function aggiungiLivelli(m, url) {
   m.addLayer({ id: 'bordi', type: 'line', source: 'c', 'source-layer': 'comuni', minzoom: 7, paint: { 'line-color': st.getPropertyValue('--surface'), 'line-width': 0.4 } }, prima);
   m.addLayer({ id: 'vela', type: 'fill', source: 'c', 'source-layer': 'comuni', filter: NESSUNO, paint: { 'fill-color': st.getPropertyValue('--bg'), 'fill-opacity': 0.7 } }, prima);
   m.addLayer({ id: 'contorno', type: 'line', source: 'c', 'source-layer': 'comuni', filter: NESSUNO, paint: { 'line-color': '#e8590c', 'line-width': 1.6 } }, prima);
+  /* comuni scelti per il confronto: sopra la velina, così restano visibili anche fuori dal territorio aperto */
+  m.addLayer({ id: 'self', type: 'fill', source: 'c', 'source-layer': 'comuni', filter: NESSUNO, paint: { 'fill-color': COL_SEL, 'fill-opacity': 0.22 } }, prima);
+  m.addLayer({ id: 'selb', type: 'line', source: 'c', 'source-layer': 'comuni', filter: NESSUNO, paint: { 'line-color': COL_SEL, 'line-width': 2.2 } }, prima);
+}
+const COL_SEL = '#d6336c';
+function aggiornaSel() {
+  const m = S.map; if (!m || !m.getLayer('selb')) return;
+  const ids = comuniDi(S.cur?.F.k), f = ids.length ? ['match', ['get', 'pro_com_t'], ids, true, false] : NESSUNO; /* «match» non accetta elenchi vuoti */
+  m.setFilter('self', f); m.setFilter('selb', f);
+}
+/* inquadra l'insieme dei comuni scelti (unione dei loro riquadri) */
+function inquadraSel(ids) {
+  const m = S.map; if (!m || !ids.length) return; let b = null;
+  for (const id of ids) { const x = S.bbox.c?.[id]; if (x) b = b ? [Math.min(b[0], x[0]), Math.min(b[1], x[1]), Math.max(b[2], x[2]), Math.max(b[3], x[3])] : [...x]; }
+  if (b) m.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding: padItalia(m), duration: 600, maxZoom: 11 });
 }
 function creaMappa() {
   const proto = new pmtiles.Protocol(); maplibregl.addProtocol('pmtiles', proto.tile);
@@ -314,7 +346,7 @@ function creaMappa() {
   m.on('style.load', () => {
     if (!S.avviata) { S.avviata = true; m.resize(); m.setMaxBounds(limitiPer(m)); m.on('resize', () => m.setMaxBounds(limitiPer(m))); if (S.vista0) m.jumpTo({ zoom: S.vista0[0], center: [S.vista0[2], S.vista0[1]] }); else m.fitBounds([[ITALIA[0], ITALIA[1]], [ITALIA[2], ITALIA[3]]], { padding: padItalia(m), duration: 0 }); S.vista0 = null; }
     aggiungiLivelli(m, url);
-    if (S.cur) { evidenzia(S.cur.liv, S.cur.id, true); aggiornaMappa(); }
+    if (S.cur) { evidenzia(S.cur.liv, S.cur.id, true); aggiornaMappa(); aggiornaSel(); }
   });
   m.on('moveend', scriviVista);
   m.on('idle', () => aggiornaQuadro());
@@ -370,6 +402,8 @@ function creaMappa() {
   m.on('click', 'comuni', (e) => {
     if (S.lente) return; /* con la lente accesa il clic sposta la lente (js/lente-app.js) */
     const f = e.features[0]; const id = f && f.properties.pro_com_t; if (!id || !S.com[id]) return;
+    const oe = e.originalEvent; /* modo «scegli sulla mappa», oppure Maiusc/Ctrl/Cmd+clic: il comune entra o esce dal confronto, senza cambiare scheda */
+    if (S.selMode || oe?.shiftKey || oe?.ctrlKey || oe?.metaKey) { chiudiTip(); alternaComune(id); return; }
     if (senzaHover.matches) { tipTocco = id; go('c', id, S.cur?.F); mostraTocco(); } else go('c', id, S.cur?.F);
   });
 }
@@ -433,15 +467,144 @@ async function route() {
   if (!S.it || !S.cube.i) return;
   const { liv, id, F } = parseHash();
   if (liv && !nodo(liv, id)) { location.hash = '#/'; return; }
-  S.cur = { liv, id, F }; const n = nodo(liv, id); const nome = liv === 'c' ? n.nm : n.nome;
+  const prima = S.cur; S.cur = { liv, id, F }; const n = nodo(liv, id); const nome = liv === 'c' ? n.nm : n.nome;
   const g = liv ? genitori(liv, id) : [];
-  $('#crumbs').innerHTML = g.map((x) => `<a href="${href(x.liv, x.id, F)}">${esc(x.nome)}</a><span class="sep">›</span>`).join('') + `<span class="cur">${esc(liv ? nome : 'Italia')}</span>`;
-  document.title = (liv ? nome + ' · ' : '') + 'Atlante del PNRR';
-  riempiFiltri(liv, id); riempiProg(F); $('#f-reset').disabled = !liv && !nFiltri(F);
-  evidenzia(liv, id); aggiornaMappa();
+  const Fs = { ...F, x: false }; /* i link al territorio portano alla scheda, non al confronto */
+  const nSel = comuniDi(F.k).length, conf = F.x && nSel > 0;
+  $('#crumbs').innerHTML = g.map((x) => `<a href="${href(x.liv, x.id, Fs)}">${esc(x.nome)}</a><span class="sep">›</span>`).join('') + `<span class="cur">${esc(liv ? nome : 'Italia')}</span>`;
+  document.title = (conf ? 'Confronto di ' + nf.format(nSel) + ' comuni · ' : liv ? nome + ' · ' : '') + 'Atlante del PNRR';
+  riempiFiltri(liv, id); riempiProg(F); $('#f-reset').disabled = !liv && !nFiltri(F) && !F.k;
+  /* se cambia solo la selezione la mappa non deve spostarsi: chi tocca i comuni uno dopo l'altro perderebbe la vista */
+  const senzaSel = (x) => fStr({ ...x, k: null, x: false }, true), kk = (x) => (x?.k || []).join('.');
+  const soloSel = !!prima && prima.liv === liv && prima.id === id && senzaSel(prima.F) === senzaSel(F) && (kk(prima.F) !== kk(F) || !!prima.F.x !== !!F.x);
+  evidenzia(liv, id, soloSel || conf); aggiornaSel(); aggiornaMappa();
+  pillConf(); aggiornaPanConf();
+  if (conf) {
+    if (!S.lente && !(soloSel && prima.F.x && kk(prima.F) === kk(F))) inquadraSel(comuniDi(F.k));
+    disegnaConfronto(F); $('#scheda').scrollTop = 0; return;
+  }
   let det = n; if (liv === 'c') det = { ...n, ...(await get(`data/comuni/${id}.json`).catch(() => ({}))) };
-  if (S.cur.liv !== liv || S.cur.id !== id) return;
+  if (S.cur.F !== F) return; /* nel frattempo è arrivato un altro indirizzo */
   disegnaScheda(liv, id, det, nome, F); $('#scheda').scrollTop = 0;
+}
+
+
+/* ---------- confronto tra comuni ---------- */
+function setConf(mod, x) {
+  if (!S.cur) return; const F = { ...S.cur.F };
+  const k = [...new Set(mod([...(F.k || [])]))].slice(0, MAXTOK);
+  F.k = k.length ? k : null; F.x = !!F.k && (x == null ? F.x : x);
+  go(S.cur.liv, S.cur.id, F);
+}
+/* un comune entra o esce; se esce ma un gruppo (provincia/regione) lo contiene ancora, si aggiunge un'esclusione «xCODICE» */
+function alternaComune(id) {
+  setConf((k) => {
+    const ex = 'x' + id;
+    if (comuniDi(k).includes(id)) { k = k.filter((t) => t !== id); return comuniDi(k).includes(id) ? [...k, ex] : k; }
+    k = k.filter((t) => t !== ex); return comuniDi(k).includes(id) ? k : [...k, id];
+  });
+}
+function azioneConf(az, d) {
+  if (!S.cur) return;
+  if (az === 'sel') { S.selMode = !S.selMode; pillConf(); aggiornaPanConf(); return; }
+  if (az === 'apri') setConf((k) => k, true);
+  else if (az === 'esci') setConf((k) => k, false);
+  else if (az === 'svuota') setConf(() => []);
+  else if (az === 'alterna') alternaComune(d.id);
+  else if (az === 'gruppo') setConf((k) => (k.includes(d.tok) ? k : [...k, d.tok]));
+  else if (az === 'rimuovi') setConf((k) => k.filter((t) => t !== d.tok));
+  else if (az === 'csv') scaricaConfronto();
+}
+const nComuni = (n) => `${nf.format(n)} ${n === 1 ? 'comune' : 'comuni'}`;
+function tokEtich(t) {
+  if (t[0] === 'p') return `Provincia di ${S.prov[t.slice(1)].nome} · ${nComuni(comuniDi([t]).length)}`;
+  if (t[0] === 'r') return `Regione ${S.reg[t.slice(1)].nome} · ${nComuni(comuniDi([t]).length)}`;
+  const c = S.com[t[0] === 'x' ? t.slice(1) : t]; return `${t[0] === 'x' ? 'senza ' : ''}${c.nm} (${S.prov[c.pv]?.sigla ?? ''})`;
+}
+/* riga sotto la mappa: quanti comuni sono scelti e i comandi; serve anche quando la scheda è chiusa (telefono) */
+function pillConf() {
+  const p = $('#conf-pill'); if (!p || !S.cur) return;
+  const n = comuniDi(S.cur.F.k).length, aperto = S.cur.F.x && n > 0;
+  p.hidden = (!n && !S.selMode) || (aperto && !S.selMode); if (p.hidden) return;
+  p.innerHTML = `<span class="cp-t">${S.selMode ? `Clic sui comuni della mappa per aggiungerli o toglierli${S.lente ? ' (spegni la Lente)' : ''} · ` : ''}<b>${nComuni(n)}</b> nel confronto</span><span class="cp-b">${n ? `<button type="button" data-conf="apri"${n < 2 || aperto ? ' disabled' : ''}>Confronta</button><button type="button" data-conf="svuota">Svuota</button>` : ''}${S.selMode ? '<button type="button" data-conf="sel">Fatto</button>' : ''}</span>`;
+}
+/* pannello «Territorio»: scelta sulla mappa e aggiunta di intere province o regioni */
+function aggiornaPanConf() {
+  const cur = S.cur, bm = $('#conf-mappa'); if (!cur || !bm) return;
+  bm.setAttribute('aria-pressed', String(!!S.selMode)); bm.textContent = S.selMode ? 'Fine scelta sulla mappa' : 'Scegli i comuni sulla mappa';
+  const c = cur.liv === 'c' ? S.com[cur.id] : null, pv = cur.liv === 'p' ? cur.id : c?.pv, rg = cur.liv === 'r' ? cur.id : cur.liv === 'p' ? S.prov[cur.id]?.reg : c?.rg;
+  const imp = (b, tok, def, nome) => { b.dataset.tok = tok || ''; if (!tok) { b.disabled = true; b.textContent = def; return; } b.disabled = !!cur.F.k?.includes(tok); b.textContent = `Aggiungi i ${nComuni(comuniDi([tok]).length)} ${nome}`; };
+  imp($('#conf-prov'), pv && 'p' + pv, 'Aggiungi i comuni della provincia', `della provincia di ${S.prov[pv]?.nome}`);
+  imp($('#conf-reg'), rg && 'r' + rg, 'Aggiungi i comuni della regione', `della regione ${S.reg[rg]?.nome}`);
+}
+function confBarra(liv, id, F) {
+  const sel = comuniDi(F.k), n = sel.length; let a = '';
+  if (liv === 'c') a = `<button type="button" data-conf="alterna" data-id="${id}">${sel.includes(id) ? 'Togli dal confronto' : 'Aggiungi al confronto'}</button>`;
+  else if (liv === 'p' || liv === 'r') { const tok = liv + id; a = `<button type="button" data-conf="gruppo" data-tok="${tok}"${F.k?.includes(tok) ? ' disabled' : ''}>Aggiungi i ${nComuni(comuniDi([tok]).length)} al confronto</button>`; }
+  if (!a && !n) return '';
+  return `<div class="conf-barra" role="group" aria-label="Confronto tra comuni">${a}${n ? `<span>${nComuni(n)} nel confronto</span><button type="button" data-conf="apri"${n < 2 ? ' disabled' : ''}>Apri il confronto</button><button type="button" data-conf="svuota">Svuota</button>` : ''}</div>`;
+}
+
+const CONF_COL = 6; /* fino a questo numero i comuni stanno in colonna, uno accanto all'altro; oltre, la tabella si gira: un comune per riga */
+const rapp = (a, b) => (b > 0 ? a / b : null);
+const pc1 = (v) => pct(v, 1);
+function metricheConf() {
+  const m = [
+    { k: 'pop', lab: 'Abitanti', c: 'Abitanti', f: (x) => x.pop, fmt: (v) => nf.format(v) },
+    { k: 'n', lab: 'Progetti', c: 'Progetti', f: (x) => x.A.tot.n, fmt: (v) => nf.format(v), bar: 1 },
+    { k: 'fin', lab: 'Finanziamento PNRR', c: 'Finanziamento', f: (x) => x.A.tot.fin, fmt: eur, bar: 1 },
+    { k: 'pc', lab: '€ per abitante', c: '€/abitante', f: (x) => (x.pop > 0 && x.A.tot.n ? x.A.tot.fin / x.pop : null), fmt: (v) => nf.format(Math.round(v)) + ' €', bar: 1 },
+    { k: 'pag', sez: 'Stato dei progetti', lab: 'Pagato (sul finanziamento)', c: 'Pagato', f: (x) => rapp(x.A.tot.pag, x.A.tot.fin), fmt: pc1, bar: 1, p: 1 },
+    { k: 'agg', lab: 'Gara aggiudicata o oltre', c: 'Gara agg.', f: (x) => rapp(x.A.fase[1].fin, x.A.fase[0].fin), fmt: pc1, bar: 1, p: 1 },
+    { k: 'lav', lab: 'Lavori o attività avviati o oltre', c: 'Lavori', f: (x) => rapp(x.A.fase[2].fin, x.A.fase[0].fin), fmt: pc1, bar: 1, p: 1 },
+    { k: 'conc', lab: 'Conclusi', c: 'Conclusi', f: (x) => rapp(x.A.fase[3].fin, x.A.fase[0].fin), fmt: pc1, bar: 1, p: 1 },
+    { k: 'fer', lab: 'Fermi (da attivare o senza gara né lavori)', c: 'Fermi', f: (x) => rapp(x.A.st[0].fin + x.A.st[1].fin, x.A.tot.fin), fmt: pc1, bar: 1, p: 1 },
+    { k: 'rit', lab: 'In ritardo sulla fine prevista', c: 'In ritardo', f: (x) => rapp(x.A.fl[2].fin, x.A.tot.fin), fmt: pc1, bar: 1, p: 1 },
+  ];
+  S.meta.missioni.forEach((k, i) => m.push({ k, sez: i ? null : 'Finanziamento per missione', lab: NOMI_MIS[k] || k, c: k, f: (x) => x.A.mis[k]?.fin || 0, fmt: eur, bar: 1 }));
+  return m;
+}
+let confSort = ['fin', -1];
+function disegnaConfronto(F) {
+  const ids = comuniDi(F.k), Fs = { ...F, x: false }, met = metricheConf(), nfil = nFiltri(F);
+  const cols = ids.map((id) => { const c = S.com[id]; return { id, nome: c.nm, sig: S.prov[c.pv]?.sigla ?? '', pop: c.pop || 0, A: analisi(cells('c', id), F) }; });
+  let ins = null;
+  if (cols.length > 1) { const all = []; for (const id of ids) for (const v of cells('c', id)) all.push(v); ins = { nome: 'Insieme', sig: '', pop: cols.reduce((a, c) => a + c.pop, 0), A: analisi(all, F) }; }
+  const val = (c) => met.map((m) => m.f(c)); cols.forEach((c) => { c.v = val(c); }); if (ins) ins.v = val(ins);
+  const mx = met.map((m, i) => (m.bar ? Math.max(0, ...cols.map((c) => c.v[i] ?? 0)) : 0));
+  S.confDati = { cols, ins, met };
+  const cella = (c, i, w) => { const m = met[i], v = c.v[i]; const top = m.bar && c !== ins && mx[i] > 0 && v === mx[i] && cols.length > 1;
+    return `<td class="n${top ? ' max' : ''}">${v == null ? '–' : m.fmt(v)}${m.bar && v > 0 && mx[i] > 0 ? ` <span class="mini" style="width:${Math.max(1, w * v / mx[i]).toFixed(0)}px"></span>` : ''}</td>`; };
+  const nome = (c) => (c === ins ? `<b>Insieme</b>` : `<a href="${href('c', c.id, Fs)}">${esc(c.nome)}</a> <small>${esc(c.sig)}</small>`);
+  const disegnaTab = () => {
+    let h;
+    if (cols.length <= CONF_COL) {
+      const tutti = ins ? [...cols, ins] : cols;
+      h = `<div class="conf-scroll"><table class="conf conf-col" data-nosort><thead><tr><th scope="col">Indicatore</th>${tutti.map((c) => `<th class="n" scope="col">${nome(c)}</th>`).join('')}</tr></thead><tbody>${met.map((m, i) => `${m.sez ? `<tr class="sez"><th colspan="${tutti.length + 1}" scope="colgroup">${esc(m.sez)}</th></tr>` : ''}<tr><th scope="row">${esc(m.lab)}</th>${tutti.map((c) => cella(c, i, 36)).join('')}</tr>`).join('')}</tbody></table></div>`;
+    } else {
+      const i0 = Math.max(0, met.findIndex((m) => m.k === confSort[0])), dir = confSort[1];
+      const righe = cols.slice().sort((a, b) => { if (confSort[0] === 'nome') return a.nome.localeCompare(b.nome, 'it') * dir; const x = a.v[i0] ?? -Infinity, y = b.v[i0] ?? -Infinity; return (x > y ? 1 : x < y ? -1 : 0) * dir; });
+      const th = (k, t, n, tit) => `<th class="n-ord${n ? ' n' : ''}" scope="col" data-ord="${k}" tabindex="0" role="button" title="${esc(tit || t)}" aria-sort="${confSort[0] === k ? (dir > 0 ? 'ascending' : 'descending') : 'none'}">${esc(t)}</th>`;
+      h = `<div class="conf-scroll"><table class="conf conf-riga" data-nosort><thead><tr>${th('nome', 'Comune', 0)}${met.map((m) => th(m.k, m.c, 1, m.lab)).join('')}</tr></thead><tbody>${ins ? `<tr class="ins"><td>${nome(ins)}</td>${met.map((m, i) => cella(ins, i, 30)).join('')}</tr>` : ''}${righe.slice(0, 400).map((c) => `<tr><td>${nome(c)}</td>${met.map((m, i) => cella(c, i, 30)).join('')}</tr>`).join('')}</tbody></table></div>${righe.length > 400 ? `<p class="nota">Mostrati i primi 400 di ${nf.format(righe.length)}: ordina per un altro indicatore, oppure scarica il CSV con tutti.</p>` : ''}`;
+    }
+    $('#conf-tab').innerHTML = h;
+    $('#conf-tab').querySelectorAll('th[data-ord]').forEach((t) => { const go2 = () => { const k = t.dataset.ord; confSort = [k, confSort[0] === k ? -confSort[1] : (k === 'nome' ? 1 : -1)]; disegnaTab(); $('#conf-tab').querySelector(`th[data-ord="${k}"]`)?.focus(); }; t.addEventListener('click', go2); t.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go2(); } }); });
+  };
+  $('#scheda').innerHTML = `<div class="testa"><div><h1>Confronto tra ${nComuni(cols.length)}</h1><p class="sotto">Comuni a confronto · ${nf.format(cols.reduce((a, c) => a + c.A.tot.n, 0))} progetti · estrazione del 13/06/2026</p></div></div>
+  <div class="conf-az-riga"><button type="button" data-conf="esci">← Torna alla scheda</button><button type="button" data-conf="csv">Scarica CSV</button><button type="button" data-conf="svuota">Svuota il confronto</button></div>
+  <div class="chips" role="group" aria-label="Comuni scelti">${(F.k || []).map((t) => `<button type="button" class="chip-conf" data-conf="rimuovi" data-tok="${t}" title="Togli dal confronto">${esc(tokEtich(t))} <span aria-hidden="true">×</span></button>`).join('')}</div>
+  ${nfil ? chips(F) : ''}
+  <div id="conf-tab"></div>
+  <p class="nota">${cols.length > CONF_COL ? 'Un comune per riga: clic sull\'intestazione di una colonna per ordinare. ' : ''}${ins ? '«Insieme» somma i comuni scelti. ' : ''}Pagato, Fermi e In ritardo sono quote del finanziamento; Gara aggiudicata, Lavori e Conclusi sono quote del finanziamento dei progetti con avanzamento rilevato, come nella scheda. ${nfil ? 'I filtri attivi valgono anche qui. ' : ''}Il valore più alto di ogni indicatore è in grassetto. Gli importi dei progetti localizzati solo a livello di provincia, regione o nazionale non compaiono nei comuni. <a href="#" id="l-metodo">Metodo e limiti</a>.</p>`;
+  $('#l-metodo').addEventListener('click', (e) => { e.preventDefault(); apriInfo('metodo'); });
+  disegnaTab();
+}
+function scaricaConfronto() {
+  const D = S.confDati; if (!D) return; const c = (v) => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  const riga = (x, cod) => [cod, x.nome, x.sig, ...D.met.map((m, i) => { const v = x.v[i]; return v == null ? '' : m.p ? +(100 * v).toFixed(2) : m.k === 'pc' ? +v.toFixed(2) : v; })].map(c).join(';');
+  const head = ['Codice ISTAT', 'Comune', 'Provincia', ...D.met.map((m) => m.lab + (m.p ? ' (%)' : m.k === 'pc' ? '' : m.bar && m.k !== 'n' ? ' (€)' : ''))].map(c).join(';');
+  const righe = D.cols.map((x) => riga(x, x.id)); if (D.ins) righe.push(riga(D.ins, ''));
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + [head, ...righe].join('\n')], { type: 'text/csv' })); a.download = `pnrr_confronto_${D.cols.length}_comuni.csv`; a.click();
 }
 
 /* ---------- scheda ---------- */
@@ -502,7 +665,7 @@ function disegnaScheda(liv, id, n, nome, F) {
   const livNome = { null: 'Italia', r: 'Regione', p: 'Provincia', c: 'Comune' }[liv];
   const sp = nome + (liv === 'c' ? ` (${S.prov[n.pv]?.sigla ?? ''})` : liv === 'p' ? ` (${n.sigla ?? ''})` : '');
   const base = A.fase[0];
-  let h = `<div class="testa"><div><h1>${esc(sp)}</h1><p class="sotto">${livNome} · ${n.pop ? nf.format(n.pop) + ' abitanti (ISTAT 1/1/2026)' : ''} · estrazione del 13/06/2026</p></div><div class="sagoma" id="sagoma" aria-hidden="true"></div></div>${chips(F)}`;
+  let h = `<div class="testa"><div><h1>${esc(sp)}</h1><p class="sotto">${livNome} · ${n.pop ? nf.format(n.pop) + ' abitanti (ISTAT 1/1/2026)' : ''} · estrazione del 13/06/2026</p></div><div class="sagoma" id="sagoma" aria-hidden="true"></div></div>${chips(F)}${confBarra(liv, id, F)}`;
   h += `<div class="kpi">
    <div><b>${eur(T.fin)}</b><span>Finanziamento PNRR${nfil ? ' (filtrato)' : ' dei progetti'}</span><em>${nf.format(T.n)} progetti</em></div>
    <div><b>${n.pop ? eurAb(T.fin, n.pop) : '–'}</b><span>per abitante</span></div>
@@ -570,7 +733,7 @@ function metriche(liv, id, pop, F) {
   const A = analisi(cells(liv, id), F), T = A.tot;
   return { A, pc: pop > 0 && T.n ? T.fin / pop : null, pag: T.fin > 0 ? T.pag / T.fin : null, conc: A.fase[0].fin > 0 ? A.fase[3].fin / A.fase[0].fin : null, rit: T.fin > 0 ? A.fl[2].fin / T.fin : null };
 }
-function valoriC(F) { const k = fStr(F); if (S.vc?.k !== k) S.vc = { k, v: valoriComuni(F) }; return S.vc.v; }
+function valoriC(F) { const k = fStr(F, true); if (S.vc?.k !== k) S.vc = { k, v: valoriComuni(F) }; return S.vc.v; }
 function concPerMis(c, F, L = 'mis') { const o2 = {}; for (let o = 0; o < c.length; o += 9) if (ok(c, o, F, L) && c[o + 2] === 4) { const k = S.sx[L][c[o]]; o2[k] = (o2[k] || 0) + c[o + 5]; } return o2; }
 
 /* grafici della scheda che mostrano lo stesso indicatore del menu «Colora per» */
@@ -684,7 +847,7 @@ function toggle(k, v) {
   go(S.cur.liv, S.cur.id, F);
 }
 function scheda_click(e) {
-  const ch = e.target.closest('.chip'); if (ch) { const F = { ...S.cur.F }; if (ch.dataset.x === 'all') Object.assign(F, F0()); else if (LIV.includes(ch.dataset.x)) setProg(F, ch.dataset.x, null); else F[ch.dataset.x] = null; go(S.cur.liv, S.cur.id, F); return; }
+  const ch = e.target.closest('.chip'); if (ch) { const F = { ...S.cur.F }; if (ch.dataset.x === 'all') Object.assign(F, F0(), { k: F.k, x: F.x }); else if (LIV.includes(ch.dataset.x)) setProg(F, ch.dataset.x, null); else F[ch.dataset.x] = null; go(S.cur.liv, S.cur.id, F); return; }
   const el = e.target.closest('[data-f]'); if (el) toggle(el.dataset.f, el.dataset.v);
 }
 
@@ -756,12 +919,15 @@ async function init() {
     for (const [c, v] of Object.entries(meta.dot)) { for (const L of ['comp', 'msr', 'sub']) { const k = su(c, L); S.dotL[L][k] = (S.dotL[L][k] || 0) + v; } }
   } catch (e) { $('#scheda').innerHTML = `<p class="avviso alert">Impossibile caricare i dati: ${esc(e.message)}</p>`; return; }
   filtriInit(); $('#scheda').addEventListener('click', scheda_click);
+  document.addEventListener('click', (e) => { const b = e.target.closest('[data-conf]'); if (b && !b.disabled) azioneConf(b.dataset.conf, b.dataset); });
+  /* la ricerca (js/guscio.js) chiede di aggiungere un comune; «vaiComune» apre il comune tenendo la selezione */
+  document.addEventListener('conf-aggiungi', (e) => { const id = e.detail?.id; if (id && S.com[id] && S.cur) setConf((k) => (comuniDi(k).includes(id) ? k : [...k.filter((t) => t !== 'x' + id), id])); });
   $('#scheda').addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-f][role="button"]')) { e.preventDefault(); toggle(e.target.dataset.f, e.target.dataset.v); } });
   document.addEventListener('tema-cambia', () => { if (S.map && tono() !== S.tonoMappa) { S.tonoMappa = tono(); S.map.setStyle(STILI[S.tonoMappa], { diff: false }); } else if (S.map?.getLayer('vela')) { const st = getComputedStyle(document.documentElement); S.map.setPaintProperty('vela', 'fill-color', st.getPropertyValue('--bg')); S.map.setPaintProperty('bordi', 'line-color', st.getPropertyValue('--surface')); aggiornaMappa(); } if (S.cur && S.cube.c) route(); });
   addEventListener('hashchange', route);
   S.vista0 = vistaDaHash(); creaMappa(); route();
   /* ponte per la lente (js/lente-app.js), che vive in un file a parte */
-  window.AtlantePNRR = { S, go, get, evidenzia, parseHash };
+  window.AtlantePNRR = { S, go, get, evidenzia, parseHash, vaiComune: (id) => go('c', id, { ...F0(), k: S.cur?.F.k || null }) };
   document.dispatchEvent(new Event('atlante-pronto'));
 }
 init();

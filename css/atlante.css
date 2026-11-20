@@ -354,3 +354,22 @@ canvas.disp.clicca { cursor: pointer; }
 #tab-prog tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--s2) 16%, var(--surface)); }
 #tab-prog tbody tr:hover td { background: color-mix(in srgb, var(--s3) 38%, var(--surface)); }
 #tab-prog tbody tr:hover td:first-child { box-shadow: inset 3px 0 0 var(--s5); }
+
+/* ---------- confronto tra comuni (scheda) ---------- */
+.conf-barra, .conf-az-riga { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .5rem; margin: .3rem 0 .9rem; font-size: .85rem; }
+.conf-barra span { color: var(--ink2); }
+.conf-barra button, .conf-az-riga button { padding: .3rem .75rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.conf-barra button:not(:disabled), .conf-az-riga button:first-child { border-color: var(--acc); color: var(--acc); }
+.conf-barra button:disabled { color: var(--ink3); cursor: default; }
+.chip-conf { background: var(--accbg); border: 1px solid var(--acc); font-size: .8rem; padding: .15rem .6rem; border-radius: 99px; }
+.conf-scroll { overflow-x: auto; margin: .4rem 0; }
+.conf th, .conf td { white-space: nowrap; }
+.conf thead th { cursor: default; }
+.conf th[data-ord] { cursor: pointer; }
+.conf-col tbody th[scope="row"] { position: sticky; left: 0; z-index: 1; background: var(--bg); font-weight: 400; color: var(--ink); white-space: normal; min-width: 11rem; cursor: default; }
+.conf tr.sez th { padding-top: .8rem; background: none; color: var(--ink3); font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; cursor: default; position: static; }
+.conf td.max { font-weight: 700; }
+.conf tr.ins td { background: var(--accbg); }
+.conf-riga td:first-child, .conf-riga th:first-child { position: sticky; left: 0; background: var(--bg); }
+.conf-riga tr.ins td:first-child { background: var(--accbg); }
+.conf small { color: var(--ink3); }

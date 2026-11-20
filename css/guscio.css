@@ -16,7 +16,9 @@ body.home .mapbar { position: relative; z-index: 5; flex-direction: row; flex-wr
 #q-lista { position: absolute; z-index: 8; top: calc(100% + .25rem); left: 0; right: 0; margin: 0; padding: .25rem; list-style: none; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 6px 20px rgb(0 0 0 / .18); }
 #q-lista[hidden], .pan[hidden] { display: none; }
 #q-lista li { display: flex; justify-content: space-between; align-items: center; gap: .5rem; min-height: 44px; padding: .4rem .65rem; border-radius: 7px; cursor: pointer; }
-#q-lista li b { font-weight: 600; }
+#q-lista li b { font-weight: 600; flex: 1; }
+#q-lista .q-piu { flex: none; width: 2.75rem; min-height: 2.75rem; margin: -.4rem -.45rem -.4rem 0; padding: 0; font-size: 1.4rem; line-height: 1; color: var(--acc); background: none; border: 0; border-radius: 7px; }
+#q-lista .q-piu:hover { background: var(--line); }
 #q-lista li span { color: var(--ink3); font-size: .85rem; }
 #q-lista li[aria-selected="true"], #q-lista li:hover { background: var(--accbg); }
 #q-lista li.vuoto { color: var(--ink3); cursor: default; }
@@ -136,3 +138,22 @@ html[data-embed] body.home #crumbs { margin-top: .05rem; }
   html[data-embed] body.home .maplibregl-ctrl-top-right { top: 9rem; }
 }
 
+
+/* ---------- confronto tra comuni: pannello, riga sotto la mappa ---------- */
+.conf-az { display: grid; gap: .4rem; margin-top: .8rem; padding-top: .7rem; border-top: 1px solid var(--line); }
+.conf-az .pan-nota { margin: 0 0 .1rem; font-size: .8rem; color: var(--ink2); }
+.conf-az button { min-height: 44px; padding: .35rem .75rem; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.conf-az button[aria-pressed="true"] { border-color: var(--acc); background: var(--accbg); color: var(--acc); font-weight: 600; }
+.conf-az button:disabled { color: var(--ink3); cursor: default; }
+.conf-pill { position: absolute; z-index: 3; top: .6rem; left: .6rem; display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .6rem; max-width: min(34rem, calc(100% - 4.5rem)); padding: .35rem .5rem .35rem .75rem; font-size: .8rem; background: var(--surface); border: 1px solid var(--acc); border-radius: 10px; box-shadow: 0 2px 8px rgb(0 0 0 / .16); }
+.conf-pill[hidden] { display: none; }
+.conf-pill .cp-b { display: inline-flex; gap: .35rem; margin-left: auto; }
+.conf-pill button { min-height: 36px; padding: .15rem .65rem; font-size: .8rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.conf-pill button:not(:disabled) { border-color: var(--acc); color: var(--acc); }
+.conf-pill button:disabled { color: var(--ink3); }
+@media (max-width: 720px) {
+  .conf-pill { top: auto; left: .5rem; right: .5rem; max-width: none; bottom: calc(var(--fh, 184px) + .5rem); }
+  body.home[data-foglio="medio"] .conf-pill, body.home[data-foglio="aperto"] .conf-pill { display: none; }
+  .conf-pill button { min-height: 44px; }
+}
+@media (max-width: 720px) and (hover: hover) { .conf-pill { top: 7.6rem; bottom: auto; right: 4rem; } }
