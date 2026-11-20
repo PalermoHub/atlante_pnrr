@@ -599,11 +599,13 @@ function calcolaAtt(prog, F, nomi) {
   return { top1n: ord[0][0], top1: ord[0][1] / T, top5: ord.slice(0, 5).reduce((a, x) => a + x[1], 0) / T, hhi, big: big / T, com: com / T, priv: priv / T };
 }
 const COL_ST = ['#9aa0a6', '#e0a13a', '#7fb0ee', '#3987e5', '#0f7b3f'];
+/* testo chiaro o scuro a seconda della luminosità dello sfondo */
+const testoSu = (hex) => { const n = parseInt(hex.slice(1), 16), l = 0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255); return l > 150 ? '#14181c' : '#fff'; };
 /* barre impilate al 100 %: profilo per missione e per stadio di ogni comune */
 function graficiConf(cols, ins) {
   if (cols.length > 12) return '';
   const righe = ins ? [...cols, ins] : cols;
-  const barra = (parti, tot) => (tot > 0 ? `<span class="sb">${parti.filter((p) => p.v > 0).map((p) => `<i style="width:${(100 * p.v / tot).toFixed(2)}%;background:${p.col}" title="${esc(p.lab)}: ${pct(p.v, tot)} · ${eur(p.v)}"></i>`).join('')}</span>` : '<span class="sb vuoto">nessun progetto</span>');
+  const barra = (parti, tot) => (tot > 0 ? `<span class="sb">${parti.filter((p) => p.v > 0).map((p) => `<i style="width:${(100 * p.v / tot).toFixed(2)}%;background:${p.col};color:${testoSu(p.col)}" title="${esc(p.lab)}: ${pct(p.v, tot)} · ${eur(p.v)}">${p.v / tot >= 0.06 ? pct(p.v, tot) : ''}</i>`).join('')}</span>` : '<span class="sb vuoto">nessun progetto</span>');
   const blocco = (tit, voci, fv, tot) => `<div class="conf-graf" role="group" aria-label="${esc(tit)}"><h2>${esc(tit)} <small>quota del finanziamento</small></h2>${righe.map((c) => `<div class="sbr"><span class="sbn">${esc(c.nome)}</span>${barra(voci.map((v) => ({ v: fv(c, v), col: v.col, lab: v.lab })), tot(c))}</div>`).join('')}<ul class="sbl">${voci.map((v) => `<li><i style="background:${v.col}"></i>${esc(v.lab)}</li>`).join('')}</ul></div>`;
   const mis = S.meta.missioni.map((k) => ({ k, col: COL_MIS[k], lab: NOMI_MIS[k] || k }));
   const st = [0, 1, 2, 3, 4].map((i) => ({ i, col: COL_ST[i], lab: STADI[i] }));

@@ -380,8 +380,8 @@ canvas.disp.clicca { cursor: pointer; }
 .conf-graf { margin: .8rem 0; }
 .sbr { display: grid; grid-template-columns: minmax(6rem, 28%) 1fr; gap: .5rem; align-items: center; margin: .25rem 0; font-size: .85rem; }
 .sbn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sb { display: flex; height: 16px; background: var(--line); border-radius: 3px; overflow: hidden; }
-.sb i { display: block; height: 100%; }
+.sb { display: flex; height: 22px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.sb i { display: flex; align-items: center; justify-content: center; height: 100%; font-size: .72rem; font-style: normal; font-weight: 600; white-space: nowrap; overflow: hidden; }
 .sb.vuoto { background: none; color: var(--ink3); font-size: .75rem; height: auto; }
 .sbl { display: flex; flex-wrap: wrap; gap: .2rem .9rem; list-style: none; margin: .4rem 0 0; padding: 0; font-size: .75rem; color: var(--ink2); }
 .sbl i { display: inline-block; width: .7rem; height: .7rem; border-radius: 2px; margin-right: .3rem; vertical-align: -1px; }
