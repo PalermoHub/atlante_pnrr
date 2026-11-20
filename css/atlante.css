@@ -349,3 +349,5 @@ html[data-iframe] header.top, html[data-iframe] body:not(.home) .top, html[data-
 canvas.disp.clicca { cursor: pointer; }
 
 #tab-prog td.num, #tab-prog th.num { width: 2.6rem; color: var(--ink3); font-variant-numeric: tabular-nums; padding-right: .4rem; }
+#tab-prog tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+#tab-prog tbody tr:hover td { background: var(--accbg); }
