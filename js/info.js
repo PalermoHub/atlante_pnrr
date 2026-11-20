@@ -27,7 +27,7 @@
 <h3>Sviluppo</h3>
 <p>Autore: <a href="https://www.linkedin.com/in/gbvitrano/" target="_blank" rel="noopener" title="@gbvitrano su LinkedIn">@gbvitrano</a>. Lo sviluppo tecnico è stato realizzato in collaborazione con <a href="https://claude.ai/" target="_blank" rel="noopener" title="Claude AI (Anthropic)">Claude AI</a> (Anthropic).</p>
 <h3>Strumenti</h3>
-<ul><li><a href="https://maplibre.org/" target="_blank" rel="noopener">MapLibre GL JS</a> 4.7.1 per la mappa (licenza BSD-3-Clause)</li><li><a href="https://protomaps.com/docs/pmtiles" target="_blank" rel="noopener">PMTiles</a> 4.3.0 per i confini comunali serviti da un solo file statico (BSD-3-Clause)</li><li><a href="https://duckdb.org/" target="_blank" rel="noopener">DuckDB</a> per ricostruire il modello dei dati dai CSV</li><li>Grafici in SVG, senza librerie esterne; nessun font remoto</li></ul>
+<ul><li><a href="https://maplibre.org/" target="_blank" rel="noopener">MapLibre GL JS</a> 4.7.1 per la mappa (licenza BSD-3-Clause)</li><li><a href="https://protomaps.com/docs/pmtiles" target="_blank" rel="noopener">PMTiles</a> 4.3.0 per i confini comunali serviti da un solo file statico (BSD-3-Clause)</li><li><a href="https://duckdb.org/" target="_blank" rel="noopener">DuckDB</a> per ricostruire il modello dei dati dai CSV</li><li><a href="https://visquill.com/" target="_blank" rel="noopener">VisQuill</a>, libreria TypeScript open source per visualizzazioni di dati interattive basate sulla geometria</li><li>Grafici in SVG, senza librerie esterne; nessun font remoto</li></ul>
 <h3>Dati e mappe</h3>
 <p>Italia Domani (CC-BY 4.0), ISTAT, ANNCSU, OpenStreetMap, OpenFreeMap, OpenMapTiles: dettagli nella scheda Fonti.</p>
 <h3>Segnalazioni</h3>
