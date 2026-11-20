@@ -715,18 +715,19 @@ const progOk = (r, F) => {
 };
 const COLP = { t: (r) => r[2] || '', m: (r) => r[4] || '', s: (r) => r[7], f: (r) => r[8] || 0, p: (r) => r[9] || 0, a: (r) => r[10] || 0 };
 function iniziaProgetti(n, nome, F) {
-  const P = { page: 0, q: '', sort: null, dir: 1 }; const all = (n.progetti || []).filter((r) => progOk(r, F)); let vis = all;
+  const P = { page: 0, q: '', sort: null, dir: 1, pp: 25 }; const all = (n.progetti || []).filter((r) => progOk(r, F)); let vis = all;
   const draw = () => {
     const q = P.q.toLowerCase(); vis = all.filter((r) => !q || ((r[2] || '') + ' ' + (r[3] || '') + ' ' + r[0]).toLowerCase().includes(q));
     if (P.sort) { const g = COLP[P.sort]; vis = vis.slice().sort((a, b) => { const x = g(a), y = g(b); return (typeof x === 'string' ? x.localeCompare(y, 'it', { numeric: true }) : x - y) * P.dir; }); }
     const th = (k, t, n) => `<th${n ? ' class="n"' : ''} data-o="${k}" tabindex="0" role="button" aria-sort="${P.sort === k ? (P.dir > 0 ? 'ascending' : 'descending') : 'none'}">${t}</th>`;
-    const pp = 25, pages = Math.max(1, Math.ceil(vis.length / pp)); P.page = Math.min(P.page, pages - 1);
+    const pp = P.pp || Math.max(1, vis.length), pages = Math.max(1, Math.ceil(vis.length / pp)); P.page = Math.min(P.page, pages - 1);
     $('#p-cnt').textContent = nf.format(vis.length) + (nFiltri(F) ? ' con i filtri attivi' : '');
     $('#tab-prog').innerHTML = `<table><thead><tr>${th('t', 'Progetto')}${th('m', 'Misura')}${th('s', 'Stadio')}${th('f', 'Finanziamento', 1)}${th('p', 'Pagato', 1)}${th('a', 'Aggiudicato', 1)}</tr></thead><tbody>${vis.slice(P.page * pp, (P.page + 1) * pp).map((r) => {
       const quota = r[11] < 0.999 ? ` <span class="pill" title="Il progetto è localizzato su più territori: importi ripartiti">quota ${(100 * r[11]).toFixed(0)} %</span>` : '';
       return `<tr><td>${r[2] ? esc(r[2]) : '<i>Incentivo a imprese (titolo non pubblicato)</i>'}${quota}<br><small>${r[3] ? esc(r[3]) : '<i>soggetto non pubblicato</i>'} · CUP ${cupHtml(r[0])}${r[12] ? ' · fine prevista ' + esc(r[12]) : ''}</small></td><td title="${esc(nomeProg(r[4]))}"><b>${esc(etich(r[4]))}</b><br><small>${esc(compDi(r[4]))} · ${esc(r[4])}</small></td><td><span class="pill ${r[7] === 4 ? 'ok' : r[13] ? 'warn' : ''}">${esc(STADI[r[7]])}${r[13] ? ' · iter concluso' : ''}</span></td><td class="n">${eur(r[8])}</td><td class="n">${eur(r[9])}</td><td class="n">${eur(r[10])}</td></tr>`;
-    }).join('')}</tbody></table><div class="pager"><button id="pg-p" ${P.page ? '' : 'disabled'}>‹</button> pagina ${P.page + 1} di ${pages} (${nf.format(vis.length)} progetti) <button id="pg-n" ${P.page < pages - 1 ? '' : 'disabled'}>›</button></div>`;
+    }).join('')}</tbody></table><div class="pager"><button id="pg-p" ${P.page ? '' : 'disabled'}>‹</button> pagina ${P.page + 1} di ${pages} (${nf.format(vis.length)} progetti) <button id="pg-n" ${P.page < pages - 1 ? '' : 'disabled'}>›</button><label class="pager-pp">Elementi per pagina: <select id="pg-pp">${[25, 50, 100, 0].map((v) => `<option value="${v}"${v === P.pp ? ' selected' : ''}>${v || 'Tutti'}</option>`).join('')}</select></label></div>`;
     $('#tab-prog').querySelectorAll('th[data-o]').forEach((h) => { const go = () => { const k = h.dataset.o; P.dir = P.sort === k ? -P.dir : (['f', 'p', 'a'].includes(k) ? -1 : 1); P.sort = k; P.page = 0; draw(); $('#tab-prog').querySelector(`th[data-o="${k}"]`)?.focus(); }; h.addEventListener('click', go); h.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }); });
+    $('#pg-pp').onchange = (e) => { P.pp = +e.target.value; P.page = 0; draw(); $('#pg-pp').focus(); };
     $('#pg-p').onclick = () => { P.page--; draw(); }; $('#pg-n').onclick = () => { P.page++; draw(); };
   };
   $('#p-q').addEventListener('input', (e) => { P.q = e.target.value; P.page = 0; draw(); });

@@ -100,7 +100,9 @@ td a { color: var(--acc); text-decoration: none; } td a:hover { text-decoration:
 .mini { display: inline-block; height: 8px; background: var(--bar); border-radius: 0 3px 3px 0; vertical-align: middle; min-width: 1px; }
 .filtri { display: flex; gap: .5rem; flex-wrap: wrap; margin: .4rem 0; }
 .filtri input, .filtri select { padding: .3rem .5rem; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
-.pager { display: flex; gap: .5rem; align-items: center; margin-top: .5rem; font-size: .85rem; }
+.pager { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; margin-top: .5rem; font-size: .85rem; }
+.pager-pp { margin-left: auto; color: var(--ink3); display: inline-flex; align-items: center; gap: .35rem; }
+.pager-pp select { font: inherit; padding: .2rem .35rem; border: 1px solid var(--line, #ccc); border-radius: 6px; background: var(--surface, #fff); color: inherit; }
 .pill { display: inline-block; padding: 0 .45rem; border-radius: 99px; font-size: .72rem; border: 1px solid var(--line); white-space: nowrap; }
 .pill.ok { color: var(--ok); border-color: var(--ok); } .pill.warn { color: var(--warn); border-color: var(--warn); }
 .caric { color: var(--ink3); }
