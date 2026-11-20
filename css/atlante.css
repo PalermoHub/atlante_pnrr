@@ -347,3 +347,5 @@ html[data-iframe] header.top, html[data-iframe] body:not(.home) .top, html[data-
 .calore td.clicca:hover { outline: 2px solid var(--ink); outline-offset: -2px; }
 .calore td.attivo { outline: 3px solid var(--ink); outline-offset: -3px; font-weight: 700; }
 canvas.disp.clicca { cursor: pointer; }
+
+#tab-prog td.num, #tab-prog th.num { width: 2.6rem; color: var(--ink3); font-variant-numeric: tabular-nums; padding-right: .4rem; }
