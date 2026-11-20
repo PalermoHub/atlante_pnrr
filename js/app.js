@@ -548,12 +548,16 @@ function confBarra(liv, id, F) {
 const CONF_COL = 6; /* fino a questo numero i comuni stanno in colonna, uno accanto all'altro; oltre, la tabella si gira: un comune per riga */
 const rapp = (a, b) => (b > 0 ? a / b : null);
 const pc1 = (v) => pct(v, 1);
-function metricheConf() {
+function metricheConf(D) {
   const m = [
     { k: 'pop', lab: 'Abitanti', c: 'Abitanti', f: (x) => x.pop, fmt: (v) => nf.format(v) },
     { k: 'n', lab: 'Progetti', c: 'Progetti', f: (x) => x.A.tot.n, fmt: (v) => nf.format(v), bar: 1 },
     { k: 'fin', lab: 'Finanziamento PNRR', c: 'Finanziamento', f: (x) => x.A.tot.fin, fmt: eur, bar: 1 },
-    { k: 'pc', lab: '€ per abitante', c: '€/abitante', f: (x) => (x.pop > 0 && x.A.tot.n ? x.A.tot.fin / x.pop : null), fmt: (v) => nf.format(Math.round(v)) + ' €', bar: 1 },
+    { k: 'pc', lab: '€ per abitante', c: '€/abitante', f: (x) => (x.pop > 0 && x.A.tot.n ? x.A.tot.fin / x.pop : null), fmt: (v) => nf.format(Math.round(v)) + ' €', bar: 1, fragile: 1 },
+    { k: 'pcnaz', sez: 'Posizione rispetto ai comuni italiani', lab: '€ per abitante: percentile tra tutti i comuni con progetti', c: 'Percentile It.', f: (x) => D.perc(D.tutti, x.pc), fmt: (v) => Math.round(100 * v) + '°', nonsum: 1, perc: 1 },
+    { k: 'fascia', lab: 'Fascia di popolazione', c: 'Fascia', f: (x) => (x.fascia >= 0 ? x.fascia : null), fmt: (v) => FASCE_POP[v][2], testo: 1, nonsum: 1 },
+    { k: 'pcpari', lab: '€ per abitante: percentile tra i comuni della stessa fascia', c: 'Percentile fascia', f: (x) => (x.fascia >= 0 ? D.perc(D.pari[x.fascia], x.pc) : null), fmt: (v) => Math.round(100 * v) + '°', nonsum: 1, perc: 1 },
+    { k: 'medpari', lab: '€ per abitante: mediana della stessa fascia', c: 'Mediana fascia', f: (x) => (x.fascia >= 0 && D.pari[x.fascia].length ? mediana(D.pari[x.fascia]) : null), fmt: (v) => nf.format(Math.round(v)) + ' €', nonsum: 1 },
     { k: 'pag', sez: 'Stato dei progetti', lab: 'Pagato (sul finanziamento)', c: 'Pagato', f: (x) => rapp(x.A.tot.pag, x.A.tot.fin), fmt: pc1, bar: 1, p: 1 },
     { k: 'agg', lab: 'Gara aggiudicata o oltre', c: 'Gara agg.', f: (x) => rapp(x.A.fase[1].fin, x.A.fase[0].fin), fmt: pc1, bar: 1, p: 1 },
     { k: 'lav', lab: 'Lavori o attività avviati o oltre', c: 'Lavori', f: (x) => rapp(x.A.fase[2].fin, x.A.fase[0].fin), fmt: pc1, bar: 1, p: 1 },
@@ -569,12 +573,23 @@ function metricheConf() {
   [...new Set(S.meta.sub.map(compDi))].sort().forEach((k, i) => m.push({ k, sez: i ? null : 'Finanziamento per componente', lab: labProg(k), c: k, f: (x) => x.A.comp[k]?.fin || 0, fmt: eur, bar: 1, vuoto: 1 }));
   return m;
 }
+const FASCE_POP = [[0, 1e3, 'fino a 1.000 ab.'], [1e3, 5e3, '1.000–5.000 ab.'], [5e3, 2e4, '5.000–20.000 ab.'], [2e4, 1e5, '20.000–100.000 ab.'], [1e5, 1e12, 'oltre 100.000 ab.']];
+const fasciaDi = (pop) => FASCE_POP.findIndex(([a, b]) => pop >= a && pop < b);
 let confSort = ['fin', -1];
+/* distribuzione del €/abitante tra i comuni italiani con progetti (con i filtri attivi), totale e per fascia di popolazione */
+function distribuzioneConf(F) {
+  const V = valoriC(F), tutti = [], pari = FASCE_POP.map(() => []);
+  for (const k of Object.keys(S.com)) { const c = S.com[k], v = V[k]; if (v?.n && c.pop > 0) { const x = v.fin / c.pop; tutti.push(x); pari[fasciaDi(c.pop)].push(x); } }
+  tutti.sort((a, b) => a - b); pari.forEach((a) => a.sort((x, y) => x - y));
+  /* percentile = quota di comuni con un valore più basso (come nella scheda) */
+  const perc = (arr, v) => { if (v == null || !arr.length) return null; let lo = 0, hi = arr.length; while (lo < hi) { const m = (lo + hi) >> 1; if (arr[m] < v) lo = m + 1; else hi = m; } return lo / arr.length; };
+  return { tutti, pari, perc };
+}
 function disegnaConfronto(F) {
-  const ids = comuniDi(F.k), Fs = { ...F, x: false }, nfil = nFiltri(F); let met = metricheConf();
-  const cols = ids.map((id) => { const c = S.com[id]; return { id, nome: c.nm, sig: S.prov[c.pv]?.sigla ?? '', pop: c.pop || 0, A: analisi(cells('c', id), F) }; });
+  const ids = comuniDi(F.k), Fs = { ...F, x: false }, nfil = nFiltri(F); const DI = distribuzioneConf(F); let met = metricheConf(DI);
+  const cols = ids.map((id) => { const c = S.com[id]; const A = analisi(cells('c', id), F), pop = c.pop || 0; return { id, nome: c.nm, sig: S.prov[c.pv]?.sigla ?? '', pop, A, pc: pop > 0 && A.tot.n ? A.tot.fin / pop : null, fascia: pop > 0 ? fasciaDi(pop) : -1 }; });
   let ins = null;
-  if (cols.length > 1) { const all = []; for (const id of ids) for (const v of cells('c', id)) all.push(v); ins = { nome: 'Insieme', sig: '', pop: cols.reduce((a, c) => a + c.pop, 0), A: analisi(all, F) }; }
+  if (cols.length > 1) { const all = []; for (const id of ids) for (const v of cells('c', id)) all.push(v); ins = { nome: 'Insieme', sig: '', pop: cols.reduce((a, c) => a + c.pop, 0), A: analisi(all, F), pc: null, fascia: -1 }; }
   /* componenti e stadi senza nemmeno un euro in nessun comune non si mostrano; l'intestazione di sezione passa alla prima riga rimasta */
   { const tutti = ins ? [...cols, ins] : cols; let pend = null, nuovo = [];
     for (const m of met) { if (m.sez) pend = m.sez; if (m.vuoto && !tutti.some((c) => (m.f(c) || 0) > 0)) continue; nuovo.push(pend ? { ...m, sez: pend } : m); pend = null; }
@@ -582,8 +597,8 @@ function disegnaConfronto(F) {
   const val = (c) => met.map((m) => m.f(c)); cols.forEach((c) => { c.v = val(c); }); if (ins) ins.v = val(ins);
   const mx = met.map((m, i) => (m.bar ? Math.max(0, ...cols.map((c) => c.v[i] ?? 0)) : 0));
   S.confDati = { cols, ins, met };
-  const cella = (c, i, w) => { const m = met[i], v = c.v[i]; const top = m.bar && c !== ins && mx[i] > 0 && v === mx[i] && cols.length > 1;
-    return `<td class="n${top ? ' max' : ''}">${v == null ? '–' : m.fmt(v)}${m.bar && v > 0 && mx[i] > 0 ? ` <span class="mini" style="width:${Math.max(1, w * v / mx[i]).toFixed(0)}px"></span>` : ''}</td>`; };
+  const cella = (c, i, w) => { const m = met[i], v = c.v[i]; const top = m.bar && !m.nonsum && c !== ins && mx[i] > 0 && v === mx[i] && cols.length > 1;
+    return `<td class="n${top ? ' max' : ''}">${v == null ? '–' : m.fmt(v)}${m.fragile && v != null && c.A.tot.n < 10 ? ' <sup title="Meno di 10 progetti: il dato per abitante è poco stabile">†</sup>' : ''}${m.bar && v > 0 && mx[i] > 0 ? ` <span class="mini" style="width:${Math.max(1, w * v / mx[i]).toFixed(0)}px"></span>` : ''}</td>`; };
   const nome = (c) => (c === ins ? `<b>Insieme</b>` : `<a href="${href('c', c.id, Fs)}">${esc(c.nome)}</a> <small>${esc(c.sig)}</small>`);
   const disegnaTab = () => {
     let h;
@@ -599,19 +614,30 @@ function disegnaConfronto(F) {
     $('#conf-tab').innerHTML = h;
     $('#conf-tab').querySelectorAll('th[data-ord]').forEach((t) => { const go2 = () => { const k = t.dataset.ord; confSort = [k, confSort[0] === k ? -confSort[1] : (k === 'nome' ? 1 : -1)]; disegnaTab(); $('#conf-tab').querySelector(`th[data-ord="${k}"]`)?.focus(); }; t.addEventListener('click', go2); t.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go2(); } }); });
   };
+  const lv = S.it?.liv, tl = lv ? lv.reduce((a, b) => a + b, 0) : 0;
+  const perimetro = !nfil && tl > 0 ? `<p class="nota conf-perim"><b>Perimetro:</b> in questa tabella entra solo il finanziamento localizzato a livello di comune, il ${(100 * lv[0] / tl).toLocaleString('it-IT', { maximumFractionDigits: 0 })} % di quello nazionale. Il resto è assegnato a province, regioni o all'ambito nazionale: un comune con pochi progetti qui non è un comune senza fondi.</p>` : '';
   $('#scheda').innerHTML = `<div class="testa"><div><h1>Confronto tra ${nComuni(cols.length)}</h1><p class="sotto">Comuni a confronto · ${nf.format(cols.reduce((a, c) => a + c.A.tot.n, 0))} progetti · estrazione del 13/06/2026</p></div></div>
   <div class="conf-az-riga"><button type="button" data-conf="esci">← Torna alla scheda</button><button type="button" data-conf="csv">Scarica CSV</button><button type="button" data-conf="svuota">Svuota il confronto</button></div>
   <div class="chips" role="group" aria-label="Comuni scelti">${(F.k || []).map((t) => `<button type="button" class="chip-conf" data-conf="rimuovi" data-tok="${t}" title="Togli dal confronto">${esc(tokEtich(t))} <span aria-hidden="true">×</span></button>`).join('')}</div>
   ${nfil ? chips(F) : ''}
+  ${spiegaConf(cols)}${perimetro}
   <div id="conf-tab"></div>
-  <p class="nota">${cols.length > CONF_COL ? 'Un comune per riga: clic sull\'intestazione di una colonna per ordinare. ' : ''}${ins ? '«Insieme» somma i comuni scelti. ' : ''}Pagato, Fermi e In ritardo sono quote del finanziamento; Gara aggiudicata, Lavori e Conclusi sono quote del finanziamento dei progetti con avanzamento rilevato, come nella scheda. ${nfil ? 'I filtri attivi valgono anche qui. ' : ''}Il valore più alto di ogni indicatore è in grassetto. Gli importi dei progetti localizzati solo a livello di provincia, regione o nazionale non compaiono nei comuni. <a href="#" id="l-metodo">Metodo e limiti</a>.</p>`;
+  <p class="nota">${cols.length > CONF_COL ? 'Un comune per riga: clic sull\'intestazione di una colonna per ordinare. ' : ''}${ins ? '«Insieme» somma i comuni scelti. ' : ''}Pagato, Fermi e In ritardo sono quote del finanziamento; Gara aggiudicata, Lavori e Conclusi sono quote del finanziamento dei progetti con avanzamento rilevato, come nella scheda. ${nfil ? 'I filtri attivi valgono anche qui. ' : ''}Il valore più alto di ogni indicatore è in grassetto. I percentili sono la quota di comuni italiani con un valore più basso (50° = mediana); † = meno di 10 progetti, dato per abitante poco stabile. Gli importi dei progetti localizzati solo a livello di provincia, regione o nazionale non compaiono nei comuni. <a href="#" id="l-metodo">Metodo e limiti</a>.</p>`;
   $('#l-metodo').addEventListener('click', (e) => { e.preventDefault(); apriInfo('metodo'); });
   disegnaTab();
 }
+/* scarto di €/abitante tra il comune più alto e il più basso, scomposto per missione: i contributi sommano allo scarto */
+function spiegaConf(cols) {
+  const c = cols.filter((x) => x.pc != null && x.pop > 0); if (c.length < 2) return '';
+  const hi = c.reduce((a, b) => (b.pc > a.pc ? b : a)), lo = c.reduce((a, b) => (b.pc < a.pc ? b : a)); if (hi === lo) return '';
+  const q = (v) => nf.format(Math.round(v)) + ' €';
+  const co = S.meta.missioni.map((k) => ({ k, d: (hi.A.mis[k]?.fin || 0) / hi.pop - (lo.A.mis[k]?.fin || 0) / lo.pop })).sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 2).filter((x) => Math.abs(x.d) >= 1);
+  return `<p class="conf-spiega"><b>Da dove viene la differenza.</b> ${esc(hi.nome)} ha ${q(hi.pc)} per abitante, ${esc(lo.nome)} ${q(lo.pc)}: ${q(hi.pc - lo.pc)} di scarto.${co.length ? ` Pesano soprattutto ${co.map((x) => `${esc(NOMI_MIS[x.k] || x.k)} (${x.d >= 0 ? '+' : '−'}${q(Math.abs(x.d))} per abitante)`).join(' e ')}.` : ''}</p>`;
+}
 function scaricaConfronto() {
   const D = S.confDati; if (!D) return; const c = (v) => '"' + String(v ?? '').replace(/"/g, '""') + '"';
-  const riga = (x, cod) => [cod, x.nome, x.sig, ...D.met.map((m, i) => { const v = x.v[i]; return v == null ? '' : m.p ? +(100 * v).toFixed(2) : m.k === 'pc' ? +v.toFixed(2) : v; })].map(c).join(';');
-  const head = ['Codice ISTAT', 'Comune', 'Provincia', ...D.met.map((m) => m.lab + (m.p ? ' (%)' : m.k === 'pc' ? '' : m.bar && m.k !== 'n' ? ' (€)' : ''))].map(c).join(';');
+  const riga = (x, cod) => [cod, x.nome, x.sig, ...D.met.map((m, i) => { const v = x.v[i]; return v == null ? '' : m.testo ? m.fmt(v) : m.p || m.perc ? +(100 * v).toFixed(2) : m.k === 'pc' || m.k === 'medpari' ? +v.toFixed(2) : v; })].map(c).join(';');
+  const head = ['Codice ISTAT', 'Comune', 'Provincia', ...D.met.map((m) => m.lab + (m.p ? ' (%)' : m.perc ? ' (percentile)' : m.k === 'pc' || m.testo ? '' : m.k === 'medpari' ? ' (€)' : m.bar && m.k !== 'n' ? ' (€)' : ''))].map(c).join(';');
   const righe = D.cols.map((x) => riga(x, x.id)); if (D.ins) righe.push(riga(D.ins, ''));
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + [head, ...righe].join('\n')], { type: 'text/csv' })); a.download = `pnrr_confronto_${D.cols.length}_comuni.csv`; a.click();
 }

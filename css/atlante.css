@@ -373,3 +373,6 @@ canvas.disp.clicca { cursor: pointer; }
 .conf-riga td:first-child, .conf-riga th:first-child { position: sticky; left: 0; background: var(--bg); }
 .conf-riga tr.ins td:first-child { background: var(--accbg); }
 .conf small { color: var(--ink3); }
+.conf-spiega { margin: .6rem 0; padding: .55rem .75rem; background: var(--accbg); border-left: 3px solid var(--acc); border-radius: 4px; font-size: .9rem; }
+.conf-perim { margin: .5rem 0; }
+.conf sup { color: var(--warn); cursor: help; }
