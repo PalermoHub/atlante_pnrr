@@ -562,14 +562,23 @@ function metricheConf() {
     { k: 'rit', lab: 'In ritardo sulla fine prevista', c: 'In ritardo', f: (x) => rapp(x.A.fl[2].fin, x.A.tot.fin), fmt: pc1, bar: 1, p: 1 },
   ];
   S.meta.missioni.forEach((k, i) => m.push({ k, sez: i ? null : 'Finanziamento per missione', lab: NOMI_MIS[k] || k, c: k, f: (x) => x.A.mis[k]?.fin || 0, fmt: eur, bar: 1 }));
+  /* avanzamento: dove si trova il finanziamento, stadio per stadio (non cumulativo) */
+  const corti = ['Da attivare', 'Senza gara né lavori', 'Gara aggiudicata', 'Lavori avviati', 'Concluso', 'Senza progetto (N/A)'];
+  STADI.forEach((lab, i) => m.push({ k: 'st' + i, sez: i ? null : 'Stato di avanzamento: finanziamento per stadio', lab, c: corti[i], f: (x) => x.A.st[i].fin, fmt: eur, bar: 1, vuoto: 1 }));
+  /* componenti del piano (M1C1, M1C2…) */
+  [...new Set(S.meta.sub.map(compDi))].sort().forEach((k, i) => m.push({ k, sez: i ? null : 'Finanziamento per componente', lab: labProg(k), c: k, f: (x) => x.A.comp[k]?.fin || 0, fmt: eur, bar: 1, vuoto: 1 }));
   return m;
 }
 let confSort = ['fin', -1];
 function disegnaConfronto(F) {
-  const ids = comuniDi(F.k), Fs = { ...F, x: false }, met = metricheConf(), nfil = nFiltri(F);
+  const ids = comuniDi(F.k), Fs = { ...F, x: false }, nfil = nFiltri(F); let met = metricheConf();
   const cols = ids.map((id) => { const c = S.com[id]; return { id, nome: c.nm, sig: S.prov[c.pv]?.sigla ?? '', pop: c.pop || 0, A: analisi(cells('c', id), F) }; });
   let ins = null;
   if (cols.length > 1) { const all = []; for (const id of ids) for (const v of cells('c', id)) all.push(v); ins = { nome: 'Insieme', sig: '', pop: cols.reduce((a, c) => a + c.pop, 0), A: analisi(all, F) }; }
+  /* componenti e stadi senza nemmeno un euro in nessun comune non si mostrano; l'intestazione di sezione passa alla prima riga rimasta */
+  { const tutti = ins ? [...cols, ins] : cols; let pend = null, nuovo = [];
+    for (const m of met) { if (m.sez) pend = m.sez; if (m.vuoto && !tutti.some((c) => (m.f(c) || 0) > 0)) continue; nuovo.push(pend ? { ...m, sez: pend } : m); pend = null; }
+    met = nuovo; }
   const val = (c) => met.map((m) => m.f(c)); cols.forEach((c) => { c.v = val(c); }); if (ins) ins.v = val(ins);
   const mx = met.map((m, i) => (m.bar ? Math.max(0, ...cols.map((c) => c.v[i] ?? 0)) : 0));
   S.confDati = { cols, ins, met };
