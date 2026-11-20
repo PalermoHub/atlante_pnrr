@@ -548,7 +548,7 @@ function confBarra(liv, id, F) {
 const CONF_COL = 6; /* fino a questo numero i comuni stanno in colonna, uno accanto all'altro; oltre, la tabella si gira: un comune per riga */
 const rapp = (a, b) => (b > 0 ? a / b : null);
 const pc1 = (v) => pct(v, 1);
-function metricheConf(D) {
+function metricheConf(D, conPro) {
   const m = [
     { k: 'pop', lab: 'Abitanti', c: 'Abitanti', f: (x) => x.pop, fmt: (v) => nf.format(v) },
     { k: 'n', lab: 'Progetti', c: 'Progetti', f: (x) => x.A.tot.n, fmt: (v) => nf.format(v), bar: 1 },
@@ -564,8 +564,21 @@ function metricheConf(D) {
     { k: 'conc', lab: 'Conclusi', c: 'Conclusi', f: (x) => rapp(x.A.fase[3].fin, x.A.fase[0].fin), fmt: pc1, bar: 1, p: 1 },
     { k: 'fer', lab: 'Fermi (da attivare o senza gara né lavori)', c: 'Fermi', f: (x) => rapp(x.A.st[0].fin + x.A.st[1].fin, x.A.tot.fin), fmt: pc1, bar: 1, p: 1 },
     { k: 'rit', lab: 'In ritardo sulla fine prevista', c: 'In ritardo', f: (x) => rapp(x.A.fl[2].fin, x.A.tot.fin), fmt: pc1, bar: 1, p: 1 },
+    { k: 'ferE', lab: 'Fermi, in euro', c: 'Fermi €', f: (x) => x.A.st[0].fin + x.A.st[1].fin, fmt: eur, bar: 1 },
+    { k: 'ritE', lab: 'In ritardo, in euro', c: 'In ritardo €', f: (x) => x.A.fl[2].fin, fmt: eur, bar: 1 },
   ];
   S.meta.missioni.forEach((k, i) => m.push({ k, sez: i ? null : 'Finanziamento per missione', lab: NOMI_MIS[k] || k, c: k, f: (x) => x.A.mis[k]?.fin || 0, fmt: eur, bar: 1 }));
+  nomiNat().forEach((nm, i) => m.push({ k: 'nat' + i, sez: i ? null : 'Che cosa è finanziato (tipo di intervento)', lab: nm, c: nm, f: (x) => x.A.nat[i]?.fin || 0, fmt: eur, bar: 1, vuoto: 1 }));
+  if (conPro) {
+    const at = (k, lab, c, f, fmt, extra = {}) => m.push({ k, lab, c, f: (x) => (x.pr ? f(x.pr) : null), fmt, ...extra });
+    at('att1n', 'Primo soggetto attuatore', 'Primo attuatore', (r) => r.top1n, (v) => esc(v), { sez: 'Chi realizza (dall\'elenco dei progetti)', testo: 1, nonsum: 1 });
+    at('att1', 'Quota del primo attuatore', 'Quota 1° att.', (r) => r.top1, pc1, { bar: 1 });
+    at('att5', 'Quota dei primi cinque attuatori', 'Quota 5 att.', (r) => r.top5, pc1, { bar: 1 });
+    at('hhi', 'Concentrazione (indice di Herfindahl, 0 = frammentato, 1 = un solo soggetto)', 'HHI', (r) => r.hhi, (v) => v.toLocaleString('it-IT', { maximumFractionDigits: 2, minimumFractionDigits: 2 }), { bar: 1 });
+    at('big', 'Progetto più grande, in quota del finanziamento', 'Progetto max', (r) => r.big, pc1, { bar: 1 });
+    at('com', 'Quota realizzata dal comune stesso (riconosciuto dal nome)', 'Comune att.', (r) => r.com, pc1, { bar: 1 });
+    at('priv', 'Quota senza soggetto pubblicato (incentivi a imprese e persone)', 'Senza soggetto', (r) => r.priv, pc1, { bar: 1 });
+  }
   /* avanzamento: dove si trova il finanziamento, stadio per stadio (non cumulativo) */
   const corti = ['Da attivare', 'Senza gara né lavori', 'Gara aggiudicata', 'Lavori avviati', 'Concluso', 'Senza progetto (N/A)'];
   STADI.forEach((lab, i) => m.push({ k: 'st' + i, sez: i ? null : 'Stato di avanzamento: finanziamento per stadio', lab, c: corti[i], f: (x) => x.A.st[i].fin, fmt: eur, bar: 1, vuoto: 1 }));
@@ -576,6 +589,26 @@ function metricheConf(D) {
 const FASCE_POP = [[0, 1e3, 'fino a 1.000 ab.'], [1e3, 5e3, '1.000–5.000 ab.'], [5e3, 2e4, '5.000–20.000 ab.'], [2e4, 1e5, '20.000–100.000 ab.'], [1e5, 1e12, 'oltre 100.000 ab.']];
 const fasciaDi = (pop) => FASCE_POP.findIndex(([a, b]) => pop >= a && pop < b);
 let confSort = ['fin', -1];
+const MAXDET = 60; /* l'elenco progetti si legge comune per comune: oltre questo numero non lo si scarica */
+function calcolaAtt(prog, F, nomi) {
+  const g = new Map(); let T = 0, big = 0;
+  for (const r of prog) { if (!progOk(r, F)) continue; const v = r[8] || 0, a = r[3] || '(soggetto non pubblicato)'; g.set(a, (g.get(a) || 0) + v); T += v; if (v > big) big = v; }
+  if (T <= 0) return null;
+  const ord = [...g].sort((a, b) => b[1] - a[1]); let hhi = 0, com = 0, priv = 0;
+  for (const [a, v] of g) { hhi += (v / T) ** 2; const u = a.toUpperCase(); if (nomi.some((n) => u.startsWith('COMUNE DI ' + n))) com += v; if (u.startsWith('(SOGGETTI PRIVATI') || u.startsWith('(SOGGETTO NON PUBBLICATO')) priv += v; }
+  return { top1n: ord[0][0], top1: ord[0][1] / T, top5: ord.slice(0, 5).reduce((a, x) => a + x[1], 0) / T, hhi, big: big / T, com: com / T, priv: priv / T };
+}
+const COL_ST = ['#9aa0a6', '#e0a13a', '#7fb0ee', '#3987e5', '#0f7b3f'];
+/* barre impilate al 100 %: profilo per missione e per stadio di ogni comune */
+function graficiConf(cols, ins) {
+  if (cols.length > 12) return '';
+  const righe = ins ? [...cols, ins] : cols;
+  const barra = (parti, tot) => (tot > 0 ? `<span class="sb">${parti.filter((p) => p.v > 0).map((p) => `<i style="width:${(100 * p.v / tot).toFixed(2)}%;background:${p.col}" title="${esc(p.lab)}: ${pct(p.v, tot)} · ${eur(p.v)}"></i>`).join('')}</span>` : '<span class="sb vuoto">nessun progetto</span>');
+  const blocco = (tit, voci, fv, tot) => `<div class="conf-graf" role="group" aria-label="${esc(tit)}"><h2>${esc(tit)} <small>quota del finanziamento</small></h2>${righe.map((c) => `<div class="sbr"><span class="sbn">${esc(c.nome)}</span>${barra(voci.map((v) => ({ v: fv(c, v), col: v.col, lab: v.lab })), tot(c))}</div>`).join('')}<ul class="sbl">${voci.map((v) => `<li><i style="background:${v.col}"></i>${esc(v.lab)}</li>`).join('')}</ul></div>`;
+  const mis = S.meta.missioni.map((k) => ({ k, col: COL_MIS[k], lab: NOMI_MIS[k] || k }));
+  const st = [0, 1, 2, 3, 4].map((i) => ({ i, col: COL_ST[i], lab: STADI[i] }));
+  return blocco('Profilo per missione', mis, (c, v) => c.A.mis[v.k]?.fin || 0, (c) => c.A.tot.fin) + blocco('Dove si trova il finanziamento', st, (c, v) => c.A.st[v.i].fin, (c) => c.A.st.slice(0, 5).reduce((a, t) => a + t.fin, 0));
+}
 /* distribuzione del €/abitante tra i comuni italiani con progetti (con i filtri attivi), totale e per fascia di popolazione */
 function distribuzioneConf(F) {
   const V = valoriC(F), tutti = [], pari = FASCE_POP.map(() => []);
@@ -586,7 +619,7 @@ function distribuzioneConf(F) {
   return { tutti, pari, perc };
 }
 function disegnaConfronto(F) {
-  const ids = comuniDi(F.k), Fs = { ...F, x: false }, nfil = nFiltri(F); const DI = distribuzioneConf(F); let met = metricheConf(DI);
+  const ids = comuniDi(F.k), Fs = { ...F, x: false }, nfil = nFiltri(F); const DI = distribuzioneConf(F), conPro = ids.length <= MAXDET; let met = metricheConf(DI, conPro);
   const cols = ids.map((id) => { const c = S.com[id]; const A = analisi(cells('c', id), F), pop = c.pop || 0; return { id, nome: c.nm, sig: S.prov[c.pv]?.sigla ?? '', pop, A, pc: pop > 0 && A.tot.n ? A.tot.fin / pop : null, fascia: pop > 0 ? fasciaDi(pop) : -1 }; });
   let ins = null;
   if (cols.length > 1) { const all = []; for (const id of ids) for (const v of cells('c', id)) all.push(v); ins = { nome: 'Insieme', sig: '', pop: cols.reduce((a, c) => a + c.pop, 0), A: analisi(all, F), pc: null, fascia: -1 }; }
@@ -596,9 +629,9 @@ function disegnaConfronto(F) {
     met = nuovo; }
   const val = (c) => met.map((m) => m.f(c)); cols.forEach((c) => { c.v = val(c); }); if (ins) ins.v = val(ins);
   const mx = met.map((m, i) => (m.bar ? Math.max(0, ...cols.map((c) => c.v[i] ?? 0)) : 0));
-  S.confDati = { cols, ins, met };
+  const D = S.confDati = { cols, ins, met };
   const cella = (c, i, w) => { const m = met[i], v = c.v[i]; const top = m.bar && !m.nonsum && c !== ins && mx[i] > 0 && v === mx[i] && cols.length > 1;
-    return `<td class="n${top ? ' max' : ''}">${v == null ? '–' : m.fmt(v)}${m.fragile && v != null && c.A.tot.n < 10 ? ' <sup title="Meno di 10 progetti: il dato per abitante è poco stabile">†</sup>' : ''}${m.bar && v > 0 && mx[i] > 0 ? ` <span class="mini" style="width:${Math.max(1, w * v / mx[i]).toFixed(0)}px"></span>` : ''}</td>`; };
+    return `<td class="n${top ? ' max' : ''}${m.testo ? ' txt' : ''}">${v == null ? '–' : m.fmt(v)}${m.fragile && v != null && c.A.tot.n < 10 ? ' <sup title="Meno di 10 progetti: il dato per abitante è poco stabile">†</sup>' : ''}${m.bar && v > 0 && mx[i] > 0 ? ` <span class="mini" style="width:${Math.max(1, w * v / mx[i]).toFixed(0)}px"></span>` : ''}</td>`; };
   const nome = (c) => (c === ins ? `<b>Insieme</b>` : `<a href="${href('c', c.id, Fs)}">${esc(c.nome)}</a> <small>${esc(c.sig)}</small>`);
   const disegnaTab = () => {
     let h;
@@ -621,10 +654,21 @@ function disegnaConfronto(F) {
   <div class="chips" role="group" aria-label="Comuni scelti">${(F.k || []).map((t) => `<button type="button" class="chip-conf" data-conf="rimuovi" data-tok="${t}" title="Togli dal confronto">${esc(tokEtich(t))} <span aria-hidden="true">×</span></button>`).join('')}</div>
   ${nfil ? chips(F) : ''}
   ${spiegaConf(cols)}${perimetro}
-  <div id="conf-tab"></div>
+  ${graficiConf(cols, ins)}
+  <div id="conf-att" class="nota"></div><div id="conf-tab"></div>
   <p class="nota">${cols.length > CONF_COL ? 'Un comune per riga: clic sull\'intestazione di una colonna per ordinare. ' : ''}${ins ? '«Insieme» somma i comuni scelti. ' : ''}Pagato, Fermi e In ritardo sono quote del finanziamento; Gara aggiudicata, Lavori e Conclusi sono quote del finanziamento dei progetti con avanzamento rilevato, come nella scheda. ${nfil ? 'I filtri attivi valgono anche qui. ' : ''}Il valore più alto di ogni indicatore è in grassetto. I percentili sono la quota di comuni italiani con un valore più basso (50° = mediana); † = meno di 10 progetti, dato per abitante poco stabile. Gli importi dei progetti localizzati solo a livello di provincia, regione o nazionale non compaiono nei comuni. <a href="#" id="l-metodo">Metodo e limiti</a>.</p>`;
   $('#l-metodo').addEventListener('click', (e) => { e.preventDefault(); apriInfo('metodo'); });
   disegnaTab();
+  if (conPro) {
+    $('#conf-att').textContent = 'Carico l\'elenco dei progetti per vedere chi li realizza…';
+    Promise.all(ids.map((id) => get(`data/comuni/${id}.json`).then((d) => d.progetti || []).catch(() => null))).then((P) => {
+      if (S.confDati !== D) return; /* nel frattempo la vista è cambiata */
+      $('#conf-att').textContent = P.some((x) => x === null) ? 'Non tutti gli elenchi dei progetti si sono caricati: le righe «Chi realizza» possono mancare.' : '';
+      cols.forEach((c, i) => { c.pr = P[i] ? calcolaAtt(P[i], F, [c.nome.toUpperCase()]) : null; c.v = val(c); });
+      if (ins) { ins.pr = calcolaAtt(P.flatMap((x) => x || []), F, cols.map((c) => c.nome.toUpperCase())); ins.v = val(ins); }
+      disegnaTab();
+    });
+  }
 }
 /* scarto di €/abitante tra il comune più alto e il più basso, scomposto per missione: i contributi sommano allo scarto */
 function spiegaConf(cols) {
