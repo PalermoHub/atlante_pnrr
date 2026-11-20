@@ -349,5 +349,8 @@ html[data-iframe] header.top, html[data-iframe] body:not(.home) .top, html[data-
 canvas.disp.clicca { cursor: pointer; }
 
 #tab-prog td.num, #tab-prog th.num { width: 2.6rem; color: var(--ink3); font-variant-numeric: tabular-nums; padding-right: .4rem; }
-#tab-prog tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--ink) 4%, transparent); }
-#tab-prog tbody tr:hover td { background: var(--accbg); }
+/* tabella progetti: le tinte vengono da --s1…--s7, quindi seguono la scala colore scelta e il tema (chiaro/scuro) */
+#tab-prog thead th { background: color-mix(in srgb, var(--s3) 22%, var(--surface)); border-bottom: 2px solid var(--s4); }
+#tab-prog tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--s2) 16%, var(--surface)); }
+#tab-prog tbody tr:hover td { background: color-mix(in srgb, var(--s3) 38%, var(--surface)); }
+#tab-prog tbody tr:hover td:first-child { box-shadow: inset 3px 0 0 var(--s5); }
