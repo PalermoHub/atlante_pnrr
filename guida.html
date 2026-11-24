@@ -50,7 +50,7 @@
   <p class="intro">L'Atlante del PNRR mette sulla mappa i 291.398 progetti del Piano Nazionale di Ripresa e Resilienza. Questa guida spiega a cosa serve, come si usa e che cosa i dati permettono di dire (e di non dire). Le immagini si ingrandiscono con un clic e si sfogliano come una galleria.</p>
 
   <nav class="indice" aria-label="In questa pagina">
-    <a href="#a-cosa-serve">A cosa serve</a><a href="#orientarsi">Orientarsi</a><a href="#cercare">Cercare un comune</a><a href="#scheda">La scheda</a><a href="#mappa">Colorare la mappa</a><a href="#lente">La lente</a><a href="#filtri">Filtrare</a><a href="#altre-pagine">Statistiche e relazione</a><a href="#telefono">Da telefono</a><a href="#strumenti">Info, tema, condividi</a><a href="#parole">Le parole dei dati</a><a href="#giovani">PNRR per giovane</a><a href="#sanita">PNRR per la salute</a><a href="#pa-digitale">PNRR per la PA digitale</a><a href="#limiti">Cosa i dati non dicono</a>
+    <a href="#a-cosa-serve">A cosa serve</a><a href="#orientarsi">Orientarsi</a><a href="#cercare">Cercare un comune</a><a href="#scheda">La scheda</a><a href="#mappa">Colorare la mappa</a><a href="#lente">La lente</a><a href="#filtri">Filtrare</a><a href="#altre-pagine">Statistiche e relazione</a><a href="#telefono">Da telefono</a><a href="#strumenti">Info, tema, condividi</a><a href="#parole">Le parole dei dati</a><a href="#giovani">PNRR per giovane</a><a href="#sanita">PNRR per la salute</a><a href="#pa-digitale">PNRR per la PA digitale</a><a href="#acqua">PNRR per l’acqua e il dissesto</a><a href="#limiti">Cosa i dati non dicono</a>
   </nav>
 
   <section class="capitolo" id="a-cosa-serve" aria-labelledby="t-serve"><h2 id="t-serve">A cosa serve</h2>
@@ -446,6 +446,50 @@
     </ul>
   </section>
 
+  <section class="capitolo" id="acqua" aria-labelledby="t-acq"><h2 id="t-acq">PNRR per l’acqua e il dissesto: come è calcolato</h2>
+    <p>Anche qui la scelta non è nostra: la <b>Missione 2, componente 4</b> si chiama «Tutela del territorio e della risorsa idrica» e raccoglie gli investimenti del PNRR per l’acqua e il rischio idrogeologico. Sono <b>8,76 miliardi</b> su <b>5.552 progetti</b>, pagati al 57,6% al 13 giugno 2026. I cinque gruppi con cui la leggiamo sono elencati sotto, con i codici delle sub-misure.</p>
+    <h3>Reti idriche e perdite di rete</h3>
+    <ul class="elenco">
+      <li><code>M2C4I4.01.00</code> Investimenti in infrastrutture idriche primarie per la sicurezza dell’approvvigionamento idrico (acquedotti e invasi)</li>
+      <li><code>M2C4I4.02.00</code> Riduzione delle perdite nelle reti di distribuzione dell’acqua</li>
+    </ul>
+    <h3>Alluvioni e rischio idrogeologico</h3>
+    <ul class="elenco">
+      <li><code>M2C4I2.01.02</code> Misure per la gestione del rischio di alluvione e per la riduzione del rischio idrogeologico</li>
+      <li><code>M2C4I2.01.A1</code> e <code>M2C4I2.01.A2</code> le stesse misure per gli interventi aggiudicati con procedure accentrate (PNC)</li>
+    </ul>
+    <h3>Irriguo e fognature</h3>
+    <ul class="elenco">
+      <li><code>M2C4I4.03.00</code> Investimenti nella resilienza dell’agrosistema irriguo per una migliore gestione delle risorse idriche</li>
+      <li><code>M2C4I4.04.00</code> Investimenti in fognatura e depurazione</li>
+    </ul>
+    <h3>Monitoraggio, bonifiche e natura</h3>
+    <ul class="elenco">
+      <li><code>M2C4I1.01.00</code> Sistema avanzato e integrato di monitoraggio e previsione dei rischi idrogeologici e idraulici</li>
+      <li><code>M2C4I3.01.00</code> Tutela e valorizzazione del verde urbano ed extraurbano</li>
+      <li><code>M2C4I3.02.01</code>, <code>M2C4I3.02.02</code>, <code>M2C4I3.02.03</code> Digitalizzazione e servizi dei parchi nazionali</li>
+      <li><code>M2C4I3.03.00</code> Rinaturazione dell’area del Po</li>
+      <li><code>M2C4I3.04.00</code> Bonifica del suolo dei siti orfani</li>
+      <li><code>M2C4I3.05.00</code> Ripristino e tutela dei fondali e degli habitat marini</li>
+    </ul>
+    <h3>Come si calcola</h3>
+    <ul class="elenco">
+      <li><b>Euro per abitante</b> = importo della componente attribuito al territorio, ripartito con la percentuale di localizzazione dichiarata, diviso per gli abitanti (ISTAT, popolazione residente al 1° gennaio 2024, la stessa fonte degli altri temi).</li>
+      <li><b>Comuni</b>: solo la quota localizzata nel comune. <b>Province</b>: i comuni più la quota localizzata in provincia. <b>Regioni</b>: i comuni più le province più la quota localizzata nella regione. <b>Italia</b>: tutti i livelli.</li>
+      <li>L’<b>83 %</b> della componente è localizzato in un comune, ma il <b>6,7 %</b> non è attribuibile a un singolo comune (interventi indicati a livello di provincia, regione o nazionale, come l’agenzia interregionale del Po): resta nella scheda di regione e Italia e <b>non è spalmato sui comuni</b>.</li>
+      <li><b>Comune come attuatore</b> = progetti il cui soggetto attuatore, nel campo «Soggetto attuatore» dei dati ReGiS, è un comune (nome che comincia per «COMUNE»). È una misura di <b>chi spende</b>: in Italia vale il 17,2 % dei soldi, pagato al 33,2%.</li>
+      <li><b>Quota per alluvioni</b> = importo delle sub-misure <code>M2C4I2.*</code> diviso il totale; <b>quota per le perdite</b> = <code>M2C4I4.02.00</code> diviso il totale.</li>
+    </ul>
+    <h3>Cosa non dice</h3>
+    <ul class="elenco">
+      <li>L’opera è contata <b>dove è indicata</b>, non dove sta il bacino: un intervento su un fiume o una rete serve anche i comuni vicini, che nei dati non compaiono. Il valore per abitante di un comune con un invaso o una cassa di espansione non dice quanto ricevono i suoi residenti.</li>
+      <li>Solo <b>2.893 comuni su 7.896</b> hanno almeno un progetto (36,6%): è il tema più concentrato fra quelli letti finora, con un Gini di 0,89 tra i comuni. Gli altri non sono «senza acqua»: semplicemente l’opera che li serve è indicata altrove.</li>
+      <li>La localizzazione dice <b>dove</b> è l’opera, non <b>chi</b> la realizza: il 17,2% dei soldi ha un comune come attuatore, il resto passa da ministeri, regioni, consorzi di bonifica e gestori del servizio idrico. Nella scheda il dato è accanto all’importo.</li>
+      <li>Il PNRR non copre tutta la spesa per l’acqua e il dissesto: mancano risorse ordinarie, fondi regionali, PON e investimenti dei gestori. Il tema dice quanto mette il PNRR, non quanto serve.</li>
+      <li>L’importo è quello <b>finanziato</b>, non quello speso: la quota pagata dice a che punto sono i pagamenti, non se l’opera è utile o è stata fatta bene.</li>
+    </ul>
+  </section>
+
   <section class="capitolo" id="limiti" aria-labelledby="t-lim"><h2 id="t-lim">Cosa i dati non dicono</h2>    <ul class="elenco">
       <li>I dati sono <b>dichiarati dai soggetti attuatori</b> in ReGiS e non sono verificati dall'atlante.</li>
       <li>L'estrazione è del <b>13 giugno 2026</b>, il programma si è chiuso il 30 giugno: non si vedono gli ultimi giorni, quindi parte dei progetti «in ritardo» si sarà conclusa subito dopo.</li>
@@ -460,7 +504,7 @@
 <script src="js/cima.js?v=2" defer></script>
 <script src="js/piede.js?v=1" defer></script>
 <script src="js/menu.js?v=6" defer></script>
-<script src="js/info.js?v=16" defer></script>
+<script src="js/info.js?v=17" defer></script>
 <script src="js/galleria.js?v=1" defer></script>
 </body>
 </html>

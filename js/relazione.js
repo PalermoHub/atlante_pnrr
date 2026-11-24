@@ -38,7 +38,7 @@
     host.append(w); return w;
   }
 
-  Promise.all(['italia', 'regioni', 'province', 'comuni', 'meta', 'cubo_c', 'cubo_i', 'cubo_r', 'verifiche', 'giovani', 'contesto', 'sanita', 'pa_digitale'].map(get)).then(([it, reg, prov, com, meta, cc, ci, cr, ver, gio, cont, san, pa]) => {
+  Promise.all(['italia', 'regioni', 'province', 'comuni', 'meta', 'cubo_c', 'cubo_i', 'cubo_r', 'verifiche', 'giovani', 'contesto', 'sanita', 'pa_digitale', 'acqua'].map(get)).then(([it, reg, prov, com, meta, cc, ci, cr, ver, gio, cont, san, pa, acq]) => {
     el('caric').remove();
 
     /* ================= calcoli di base ================= */
@@ -128,11 +128,15 @@
       pa_pag: { pa: 1, nome: 'Quota già pagata della PA digitale', fmt: (v) => pc(v, 0), desc: 'Pagato diviso assegnato per la Missione 1.1.', v: (o) => (o.pa && o.pa[1] > 0 ? o.pa[2] / o.pa[1] : null) },
       pa_serv: { pa: 1, nome: 'Quota per i servizi digitali al cittadino', fmt: (v) => pc(v, 0), desc: 'Quanta parte dei soldi va ai servizi digitali al cittadino: sito del comune, accessibilità, PagoPA e app IO, SPID/CIE/ANPR, avvisi pubblici.', v: (o) => (o.pa && o.pa[1] > 0 ? o.pa[3] / o.pa[1] : null) },
       pa_giust: { pa: 1, nome: 'Quota per giustizia e ministeri', fmt: (v) => pc(v, 0), desc: 'Quanta parte dei soldi va alla digitalizzazione interna di tribunali e ministeri, compreso l&apos;Ufficio del Processo.', v: (o) => (o.pa && o.pa[1] > 0 ? o.pa[13] / o.pa[1] : null) },
+      acq_pc: { acq: 1, nome: 'Euro per abitante (acqua e dissesto)', fmt: (v) => nf(Math.round(v)) + ' €', desc: 'Finanziamento della Missione 2.4 «Tutela del territorio e della risorsa idrica» diviso per gli abitanti. Nei comuni solo la quota localizzata nel comune: invasi, fiumi e acquedotti servono territori più larghi.', v: (o) => (o.acq && o.acq[0] > 0 && o.acq[1] > 0 ? o.acq[1] / o.acq[0] : null) },
+      acq_alluv: { acq: 1, nome: 'Quota per alluvioni e dissesto', fmt: (v) => pc(v, 0), desc: 'Quanta parte dei soldi va alle misure per il rischio di alluvione e idrogeologico.', v: (o) => (o.acq && o.acq[1] > 0 ? o.acq[7] / o.acq[1] : null) },
+      acq_pag: { acq: 1, nome: 'Quota già pagata (acqua e dissesto)', fmt: (v) => pc(v, 0), desc: 'Pagato diviso assegnato per la Missione 2.4.', v: (o) => (o.acq && o.acq[1] > 0 ? o.acq[2] / o.acq[1] : null) },
+      acq_com: { acq: 1, nome: 'Quota con un comune come attuatore', fmt: (v) => pc(v, 0), desc: 'Quanta parte dei soldi ha un comune come soggetto attuatore. Il resto passa da ministeri, regioni, consorzi di bonifica e gestori del servizio idrico.', v: (o) => (o.acq && o.acq[1] > 0 ? o.acq[18] / o.acq[1] : null) },
     };
     const DATI = {
-      c: () => Object.fromEntries(Object.entries(CF).map(([id, o]) => [id, { ...o, san: san.c[id], pa: pa.c[id] }])),
-      p: () => Object.fromEntries(provs.map((p) => [p.id, { fin: p.fin, pag: p.pag, conc: p.fs[4], rit: p.rit[1], pop: p.pop, gio: GIOP[p.id], san: san.p[p.id], pa: pa.p[p.id] }])),
-      r: () => Object.fromEntries(regs.map((r) => [r.id, { fin: r.fin, pag: r.pag, conc: r.fs[4], rit: r.rit[1], pop: r.pop, gio: GIOR[r.id], san: san.r[r.id], pa: pa.r[r.id] }])),
+      c: () => Object.fromEntries(Object.entries(CF).map(([id, o]) => [id, { ...o, san: san.c[id], pa: pa.c[id], acq: acq.c[id] }])),
+      p: () => Object.fromEntries(provs.map((p) => [p.id, { fin: p.fin, pag: p.pag, conc: p.fs[4], rit: p.rit[1], pop: p.pop, gio: GIOP[p.id], san: san.p[p.id], pa: pa.p[p.id], acq: acq.p[p.id] }])),
+      r: () => Object.fromEntries(regs.map((r) => [r.id, { fin: r.fin, pag: r.pag, conc: r.fs[4], rit: r.rit[1], pop: r.pop, gio: GIOR[r.id], san: san.r[r.id], pa: pa.r[r.id], acq: acq.r[r.id] }])),
     };
     const NOME = { c: (id) => `${CF[id]?.nm} (${prov[CF[id]?.pv]?.sigla || ''})`, p: (id) => prov[id]?.nome, r: (id) => reg[id]?.nome };
     let protocollo = false;
@@ -484,8 +488,8 @@
         formatta: eur0, conTip, nome: 'Euro per abitante per dimensione del comune',
       }), `Il valore più alto è nei comuni più piccoli (${eur0(e(DD[0].fin, DD[0].pop))}), il più basso tra ${DIM[2][0]} abitanti (${eur0(e(DD[2].fin, DD[2].pop))}); risale nelle grandi città (${eur0(e(DD[4].fin, DD[4].pop))}), che ospitano anche le opere sovracomunali. La quota di comuni con almeno un progetto è quasi il 100% in ogni classe: qui, a differenza della salute, la mappa non serve a trovare chi è rimasto fuori.`);
       fig(s, 'Che cosa è stato pagato', 'pagato ÷ assegnato per tipo di misura · Missione 1.1 intera', (h) => G.barre(h, {
-        voci: GR.map((n, i) => ({ nome: n, val: e(T.gp[i], T.g[i]), col: ['--c3', '--c2', '--c4', '--c5', '--s6', '--s4'][i], sub: `${eurC(T.gp[i])} pagati su ${eurC(T.g[i])}` })),
-        formatta: (v) => pc(v, 1), conTip, riferimento: e(T.pag, T.fin), rifNome: 'Italia', nome: 'Quota pagata per tipo di misura',
+        voci: GR.map((n, i) => ({ nome: n, val: e(pa.i[4 + 2 * i], pa.i[3 + 2 * i]), col: ['--c3', '--c2', '--c4', '--c5', '--s6', '--s4'][i], sub: `${eur(pa.i[4 + 2 * i])} pagati su ${eur(pa.i[3 + 2 * i])}` })),
+        formatta: (v) => pc(v, 1), conTip, riferimento: e(pa.i[2], pa.i[1]), rifNome: 'Italia', nome: 'Quota pagata per tipo di misura',
       }), `I servizi al cittadino sono la parte più avanti (${pc(e(pa.i[4], pa.i[3]), 1)}), la parte più indietro è ${grk[0].n} (${pc(grk[0].q, 1)}). Il cloud è stato finanziato prima ed è stato pagato meno: i soldi ci sono, i pagamenti no.`);
       P(s, `In tutto, <b>${mld(pa.i[18])}</b> della componente (${pc(e(pa.i[18], pa.i[1]), 1)}) non è attribuibile a un singolo comune: sono piattaforme e progetti indicati a livello nazionale o di regione, che nella scheda del comune non si vedono. La scheda del comune e quella della sua regione non tornano, e non devono tornare.`);
       calc(s, `Euro per abitante = importo della Missione 1.1 attribuito al territorio ÷ abitanti (<code>data/pa_digitale.json</code>, calcolato da <code>scrpits/pa_digitale.py</code>; abitanti ISTAT al 1° gennaio 2024, la stessa fonte degli altri temi). Nei comuni si conta solo la quota localizzata nel comune; nelle province i comuni più la quota provinciale; nelle regioni anche la quota regionale; l'Italia somma tutti i livelli. «Senza giustizia e ministeri» toglie le sub-misure <code>M1C1I1.06.*</code>, <code>M1C1I3.*</code> e <code>M1C1R*</code>. I sei gruppi sono elencati nella <a href="guida.html#pa-digitale">Guida</a>; gli importi vengono dagli stessi open data di Italia Domani usati dall'atlante.`);
@@ -494,6 +498,56 @@
         `La voce <b>giustizia e ministeri</b> (${pc(e(pa.i[13], pa.i[1]), 1)} della componente) è in gran parte personale e digitalizzazione interna: non passa dai comuni e non è un servizio ai cittadini. Sulla mappa si può escludere, ma nei totali della componente c'è.`,
         `L'importo è quello <b>finanziato</b>, non quello speso: la quota pagata dice a che punto sono i pagamenti, non se il servizio funziona. Quante persone usano SPID o PagoPA in un comune non è nei dati aperti.`,
         `La Missione 1 contiene anche reti ultraveloci, 5G, Transizione 4.0 e cultura: <b>non sono in questo tema</b>, che riguarda solo la pubblica amministrazione.`,
+      ]);
+    }
+
+    /* ================= 4 quinquies. Acqua e dissesto ================= */
+    {
+      const s = sezione('acqua', 'Quanto PNRR per l’acqua e il dissesto');
+      /* cinque gruppi della Missione 2.4, nell'ordine delle coppie fin/pag di data/acqua.json */
+      const GR = ['reti idriche', 'perdite di rete', 'alluvioni e dissesto', 'irriguo e fognature', 'monitoraggio e natura'];
+      const zero = () => ({ pop: 0, fin: 0, pag: 0, g: GR.map(() => 0), gp: GR.map(() => 0), comfin: 0, compag: 0, ncf: 0 });
+      const R = {}, T = zero();
+      for (const [id, r] of Object.entries(acq.r)) {
+        const k = reg[id]?.rip; if (!k) continue;
+        const a = R[k] || (R[k] = zero());
+        for (const t of [a, T]) { t.pop += r[0]; t.fin += r[1]; t.pag += r[2]; GR.forEach((_, i) => { t.g[i] += r[3 + 2 * i]; t.gp[i] += r[4 + 2 * i]; }); t.comfin += r[18] || 0; t.compag += r[19] || 0; t.ncf += r[16] || 0; }
+      }
+      const I = acq.i;
+      const e = (x, y) => (y > 0 ? x / y : 0), eur0 = (v) => nf(Math.round(v)) + ' €';
+      const CG = Object.entries(acq.c).map(([id, r]) => ({ id, nm: String(com[id]?.nm ?? ''), pop: r[0], fin: r[1], pag: r[2], alluv: r[7], comfin: r[18] }));
+      const con = CG.filter((c) => c.fin > 0).length, senza = CG.length - con;
+      const DIM = [['meno di 1.000 abitanti', 0, 1e3], ['1.000-5.000', 1e3, 5e3], ['5.000-20.000', 5e3, 2e4], ['20.000-100.000', 2e4, 1e5], ['oltre 100.000', 1e5, 1e12]];
+      const DD = DIM.map(() => ({ n: 0, pop: 0, fin: 0, con: 0 }));
+      CG.forEach((c) => { const i = DIM.findIndex(([, a, b]) => c.pop >= a && c.pop < b); if (i < 0) return; const d = DD[i]; d.n++; d.pop += c.pop; d.fin += c.fin; if (c.fin > 0) d.con++; });
+      const ordRip = ORD_RIP.filter((k) => R[k]);
+      const rk = ordRip.slice().sort((a, b) => e(R[a].fin, R[a].pop) - e(R[b].fin, R[b].pop));
+      const pk = ordRip.map((k) => ({ n: k, q: e(R[k].pag, R[k].fin) })).sort((a, b) => a.q - b.q);
+      const ck = ordRip.map((k) => ({ n: k, q: e(R[k].comfin, R[k].fin) })).sort((a, b) => a.q - b.q);
+      const fin = CG.map((c) => c.fin).sort((a, b) => a - b), totC = fin.reduce((a, b) => a + b, 0);
+      let gg = 0, cum = 0, prec = 0;
+      for (const v of fin) { cum += v / totC; gg += (1 / fin.length) * (cum + prec); prec = cum; }
+      const gini = 1 - gg, top10 = 1 - fin.slice(Math.floor(0.9 * fin.length)).reduce((a, b) => a + b, 0) / totC;
+      const alluvComuni = CG.filter((c) => c.alluv > 0).length;
+      P(s, `C'è una componente del Piano che si chiama «Tutela del territorio e della risorsa idrica»: è la <b>Missione 2.4</b>, con <b>${mld(I[1], 2)} di euro</b> e <b>${nf(I[13])} progetti</b>, pagati al <b>${pc(e(I[2], I[1]), 1)}</b> al 13 giugno 2026. Dentro c'è di tutto: acquedotti e invasi, riduzione delle perdite di rete, difesa dalle alluvioni, irrigazione, fognature, bonifica dei siti orfani, rinaturazione del Po, verde urbano.`);
+      P(s, `È il tema più concentrato letto finora: <b>${nf(con)} comuni su ${nf(CG.length)}</b> (${pc(con / CG.length, 1)}) hanno almeno un progetto, e ${nf(senza)} non ne hanno nessuno. Non è una svista: un invaso, un tratto di fiume, un acquedotto sono <b>opere di bacino</b>, e nei dati sono indicate in uno o pochi comuni anche se servono un territorio molto più largo. La concentrazione è alta anche tra chi ha progetti (Gini ${nf(gini, 2)}, il 10 % dei comuni con più fondi prende il ${pc(top10, 1)}).`);
+      P(s, `La domanda che questo tema permette di fare e gli altri no è <b>«chi spende»</b>. Solo il <b>${pc(e(I[18], I[1]), 1)}</b> dei soldi ha un comune come soggetto attuatore; il resto passa da ministeri, regioni, consorzi di bonifica, agenzie interregionali e gestori del servizio idrico. E la parte dei comuni è anche la più indietro nei pagamenti: <b>${pc(e(I[19], I[18]), 1)}</b> contro il ${pc(e(I[2], I[1]), 1)} del totale. La geografia di questa differenza è netta: nei comuni del ${ck[ck.length - 1].n} il comune è attuatore per il ${pc(ck[ck.length - 1].q, 1)} dei fondi, nelle ${ck[0].n} per il ${pc(ck[0].q, 1)}.`);
+      mappa(s, { def: 'acq_pc', livello: 'c' });
+      fig(s, 'Euro per abitante secondo la dimensione del comune', 'sotto: quota di comuni con almeno un progetto', (h) => G.colonne(h, {
+        voci: DIM.map(([n], i) => ({ nome: n.replace(' abitanti', ''), val: e(DD[i].fin, DD[i].pop), sotto: pc(e(DD[i].con, DD[i].n), 0) + ' con progetti', sub: `${nf(DD[i].con)} comuni su ${nf(DD[i].n)} con almeno un progetto · ${eur(DD[i].fin)} in tutto` })),
+        formatta: eur0, conTip, nome: 'Euro per abitante per dimensione del comune',
+      }), `Il valore per abitante è altissimo nei comuni piccoli (${eur0(e(DD[0].fin, DD[0].pop))}) e basso nelle grandi città (${eur0(e(DD[4].fin, DD[4].pop))}), ma la copertura è l'opposta: solo ${pc(e(DD[0].con, DD[0].n), 0)} dei comuni sotto i 1.000 abitanti ha un progetto, contro il ${pc(e(DD[4].con, DD[4].n), 0)} di quelli sopra i 100.000. Un'opera da decine di milioni in un paese di 800 abitanti produce un valore a testa enorme e non dice nulla su quanto ricevono i residenti.`);
+      fig(s, 'Pagato contro assegnato, per ripartizione', 'importi attribuibili al territorio · il divario è di oltre venti punti', (h) => G.colonne(h, {
+        voci: ordRip.map((k) => ({ nome: k, val: e(R[k].pag, R[k].fin), col: RIP[k], sub: `${eur(R[k].pag)} pagati su ${eur(R[k].fin)}` })),
+        formatta: (v) => pc(v, 1), conTip, nome: 'Quota pagata della Missione 2.4, per ripartizione',
+      }), `Il valore più alto è in ${pk[pk.length - 1].n} (${pc(pk[pk.length - 1].q, 1)}), il più basso nelle ${pk[0].n} (${pc(pk[0].q, 1)}). Come nel resto del Piano il Mezzogiorno ha più fondi per abitante e li ha pagati meno, ma qui pesa anche il tipo di opera: gli acquedotti e gli invasi si pagano a stati di avanzamento lenti.`);
+      P(s, `Anche qui i soldi arrivano dove ci sono le opere, non dove ci sono gli abitanti: nel ${rk[rk.length - 1]} sono ${eur0(e(R[rk[rk.length - 1]].fin, R[rk[rk.length - 1]].pop))} per abitante, nel ${rk[0]} ${eur0(e(R[rk[0]].fin, R[rk[0]].pop))}. E solo ${nf(alluvComuni)} comuni hanno un progetto delle misure per le alluvioni (${mld(I[7])}, pagate al ${pc(e(I[8], I[7]), 1)}): la difesa del suolo si fa per bacini, non per confini comunali.`);
+      calc(s, `Euro per abitante = importo della Missione 2.4 attribuito al territorio ÷ abitanti (<code>data/acqua.json</code>, calcolato da <code>scrpits/acqua.py</code>; abitanti ISTAT al 1° gennaio 2024, la stessa fonte degli altri temi). Nei comuni si conta solo la quota localizzata nel comune; nelle province i comuni più la quota provinciale; nelle regioni anche la quota regionale; l'Italia somma tutti i livelli. «Comune come attuatore» = progetti con soggetto attuatore il cui nome comincia per «COMUNE». I cinque gruppi sono elencati nella <a href="guida.html#acqua">Guida</a>; gli importi vengono dagli stessi open data di Italia Domani usati dall'atlante.`);
+      limiti(s, [
+        `L'opera è contata dove <b>è indicata</b>, non dove sta il bacino idrografico: un intervento sul fiume nel comune X serve anche i comuni a valle, che nei dati non compaiono. Il valore per abitante di un comune con un'invaso o una cassa di espansione non dice quanto ricevono i suoi residenti.`,
+        `Il <b>83 %</b> dei soldi arriva a un comune come localizzazione, ma solo il ${pc(e(I[18], I[1]), 1)} ha un comune come soggetto attuatore: la localizzazione dice <b>dove</b> è l'opera, non <b>chi</b> la realizza e la paga.`,
+        `L'importo è quello <b>finanziato</b>, non quello speso: la quota pagata dice a che punto sono i pagamenti, non se l'opera è utile o è stata fatta bene.`,
+        `Il PNRR non copre tutta la spesa per l'acqua e il dissesto: mancano le risorse ordinarie, i fondi regionali, i PON e le risorse dei gestori. Questo tema dice quanto mette il PNRR, non quanto serve.`,
       ]);
     }
 
@@ -577,6 +631,7 @@
       P(s, `Non si può nemmeno dire quanto «spettava» a una regione o a un comune. La dotazione ufficiale è fissata per misura, a livello nazionale: i ${mld(ver.senza_progetto)} senza progetto del capitolo sui conti non hanno un territorio. Per questo il confronto tra dotazione, finanziato e pagato c'è per l'Italia e per missione, ma non per regioni, province e comuni.`);
       P(s, `Anche il tema della salute ha un limite di geografia. La Missione 6 è la più concentrata del Piano: i soldi stanno dove stanno le aziende ospedaliere, e gli abitanti dei comuni vicini sono curati lì. L'euro per abitante di un comune con un policlinico non dice quanto ricevono i suoi residenti, e quello del paese accanto non dice che non hanno servizi. In più una parte dei fondi (fascicolo sanitario, telemedicina, assistenza domiciliare) è attribuita alla regione e non a un comune: non si può spalmare senza inventare una ripartizione che i dati non hanno.`);
       P(s, `Anche la PA digitale ha un limite di lettura. I bandi sono una <b>cifra per amministrazione</b> e non per abitante, quindi i comuni piccoli risultano molto più «finanziati» a testa senza aver ricevuto di più. Un terzo della componente è giustizia e ministeri, cioè in gran parte personale e digitalizzazione interna che non passa dai comuni. E i dati dicono quanti comuni hanno attivato un servizio (SPID, PagoPA, il cloud), non quante persone lo usano: il numero di cittadini che hanno davvero fatto una pratica online non è in questi file.`);
+      P(s, `Anche l'acqua ha un limite di geografia, e più forte degli altri. Le opere idriche e di difesa del suolo sono <b>di bacino</b>: un invaso, un tratto di fiume, un depuratore servono comuni che nei dati non compaiono, e il valore per abitante del comune in cui l'opera è indicata non dice quanto ricevono i suoi residenti. In più solo il ${pc(e(acq.i[18], acq.i[1]), 1)} dei soldi ha un comune come soggetto attuatore: la localizzazione dice dove sta l'opera, non chi la realizza e chi la paga. E i dati non dicono se le perdite di rete si sono ridotte o se il rischio di alluvione è diminuito: dicono quanti soldi sono stati assegnati e pagati.`);
       P(s, `Anche il confronto per età ha i suoi limiti. I residenti di 0-24 anni sono quelli del 1° gennaio 2024, l'ultimo dato ISTAT per singola età, mentre il totale degli abitanti nelle schede è del 2026: nei confronti tra anni diversi usiamo sempre la stessa fonte, ma i due totali non sono perfettamente sovrapponibili. E il PNRR non dice quante famiglie usano davvero un asilo o quante persone si iscrivono a un ITS: dice quanti posti e quante strutture sono state finanziate, non quante sono piene.`);
       P(s, `Ci sono solo indizi, da non scambiare per perdite. ${nf(cc.n)} progetti hanno il codice CUP «chiuso» ma risultano ancora «in corso», per ${nf(cc.mln, 0)} milioni di euro: forse sono stati interrotti, forse è solo una chiusura amministrativa. In più, ${nf(it.rit[0])} progetti sono «in ritardo» (${mld(it.rit[1])}, capitolo precedente) e ${nf(it.icc[0])} hanno l'iter concluso ma non sono ancora segnati come conclusi (${mld(it.icc[1])}). Sono soldi fermi o in attesa di una formalità, non soldi persi.`);
       calc(s, `Stati = campo «Stato Avanzamento Progetto» del file Progetti (estrazione del ${meta.estrazione}). CUP chiuso ma in corso = «Stato CUP» uguale a «Chiuso» e stato avanzamento «In Corso». Cifre raccolte in <code>data/verifiche.json</code> da <code>scrpits/verifiche_missioni.py</code>.`);
@@ -595,6 +650,7 @@
         `<b>Possiamo dire</b> che il PNRR per giovane cambia molto con la definizione e con il territorio: in senso largo il Sud riceve più dei suoi adulti, il Nord-ovest no. Non esiste un solo numero che risponda alla domanda.`,
         `<b>Possiamo dire</b> che per la salute vale il contrario di quel che si sente dire sui ritardi: il Sud ha più euro per abitante del Nord, ma ha pagato meno (circa venti punti di distanza nelle quote pagate).`,
         `<b>Possiamo dire</b> che la PA digitale arriva in quasi tutti i comuni (${nf(conPa)} su ${nf(CGPa.length)}) e che il Sud ha più euro per abitante del Nord, ma che quella differenza non misura una diseguaglianza: il bando è una cifra per amministrazione, e nei paesi piccoli pesa di più.`,
+        `<b>Possiamo dire</b> che sull'acqua e sul dissesto il tema più utile non è quanto arriva ma <b>chi spende</b>: solo il ${pc(e(acq.i[18], acq.i[1]), 1)} dei soldi ha un comune come soggetto attuatore, il resto passa da regioni, consorzi e gestori, e la parte dei comuni è la più indietro nei pagamenti (${pc(e(acq.i[19], acq.i[18]), 1)} contro il ${pc(e(acq.i[2], acq.i[1]), 1)}).`,
         `<b>Non possiamo dire</b> se il PNRR «ha funzionato»: i dati misurano soldi e stati amministrativi, non i risultati per i cittadini.`,
         `<b>Non possiamo dire</b> perché ci siano ritardi o divari: servirebbero informazioni sui singoli progetti e sugli enti.`,
         `<b>Non possiamo dire</b> che i dati siano giusti. Sono quelli dichiarati dagli enti. Dove abbiamo trovato scarti, li abbiamo scritti.`,

@@ -163,6 +163,14 @@ const INDIC = {
   pa_pag: { pa: 1, nome: 'Quota già pagata della Missione 1.1 «PA digitale» (%)', f: (c) => { const r = pa(c); return r && r[1] > 0 ? r[2] / r[1] : null; }, fmt: (v) => (100 * v).toFixed(0) + ' %' },
   pa_serv: { pa: 1, nome: 'Quota per i servizi digitali al cittadino (%)', f: (c) => { const r = pa(c); return r && r[1] > 0 ? r[3] / r[1] : null; }, fmt: (v) => (100 * v).toFixed(0) + ' %' },
   pa_giust: { pa: 1, nome: 'Quota per la digitalizzazione di giustizia e ministeri (%)', f: (c) => { const r = pa(c); return r && r[1] > 0 ? r[13] / r[1] : null; }, fmt: (v) => (100 * v).toFixed(0) + ' %' },
+  /* Acqua e dissesto: Missione 2 componente 4 (data/acqua.json, scrpits/acqua.py), indipendente dai filtri.
+     Riga: [abitanti, € M2C4, pagato, € reti, pag, € perdite, pag, € alluvioni, pag, € irriguo, pag,
+     € natura, pag, progetti, € conclusi, pag conclusi, € non attribuibile, pag, € attuatore comunale, pag] */
+  acq_pc: { acq: 1, nome: 'PNRR per l’acqua e il dissesto per abitante (€)', f: (c) => { const r = acq(c); return r && r[0] > 0 && r[1] > 0 ? r[1] / r[0] : null; }, fmt: (v) => nf.format(Math.round(v)) + ' €' },
+  acq_pag: { acq: 1, nome: 'Quota già pagata della Missione 2.4 «Acqua e dissesto» (%)', f: (c) => { const r = acq(c); return r && r[1] > 0 ? r[2] / r[1] : null; }, fmt: (v) => (100 * v).toFixed(0) + ' %' },
+  acq_alluv: { acq: 1, nome: 'Quota per il rischio di alluvione e idrogeologico (%)', f: (c) => { const r = acq(c); return r && r[1] > 0 ? r[7] / r[1] : null; }, fmt: (v) => (100 * v).toFixed(0) + ' %' },
+  acq_perd: { acq: 1, nome: 'Quota per la riduzione delle perdite di rete (%)', f: (c) => { const r = acq(c); return r && r[1] > 0 ? r[5] / r[1] : null; }, fmt: (v) => (100 * v).toFixed(0) + ' %' },
+  acq_com: { acq: 1, nome: 'Quota con un comune come soggetto attuatore (%)', f: (c) => { const r = acq(c); return r && r[1] > 0 ? r[18] / r[1] : null; }, fmt: (v) => (100 * v).toFixed(0) + ' %' },
   incrocio: { biv: 1, nome: 'Incrocio di due indicatori (carta a due variabili)', f: (c) => AX[S.by].f(c), fmt: (v) => AX[S.by].fmt(v) },
   dom: { nome: 'Missione prevalente (per importo)', cat: true, f: (c) => (c.fin > 0 ? c.dom : null), fmt: (k) => NOMI_MIS[k] || k },
 };
@@ -172,6 +180,8 @@ const gv = (c) => S.gio?.c[c.id];
 const san = (c) => (c.id == null ? S.san?.i : (S.san?.c[c.id] || S.san?.p[c.id] || S.san?.r[c.id] || null));
 /* riga del tema PA digitale: stesse chiavi di san, i codici non si sovrappongono */
 const pa = (c) => (c.id == null ? S.pa?.i : (S.pa?.c[c.id] || S.pa?.p[c.id] || S.pa?.r[c.id] || null));
+/* riga del tema acqua e dissesto */
+const acq = (c) => (c.id == null ? S.acq?.i : (S.acq?.c[c.id] || S.acq?.p[c.id] || S.acq?.r[c.id] || null));
 const AX = {
   fin_pc: { ...INDIC.fin_pc, nome: 'Euro per abitante' }, pag: { ...INDIC.pag, nome: 'Quota pagata' }, conc: { ...INDIC.conc, nome: 'Quota di importo concluso' }, rit: { ...INDIC.rit, nome: 'Quota in ritardo' },
   gio_quota: { ...INDIC.gio_quota, nome: 'Quota di residenti 0-24' },
@@ -189,6 +199,11 @@ const AX = {
   pa_pag: { ...INDIC.pa_pag, nome: 'Quota pagata (PA digitale)' },
   pa_serv: { ...INDIC.pa_serv, nome: 'Quota per i servizi al cittadino' },
   pa_giust: { ...INDIC.pa_giust, nome: 'Quota per giustizia e ministeri' },
+  acq_pc: { ...INDIC.acq_pc, nome: 'Euro per abitante (acqua e dissesto)' },
+  acq_pag: { ...INDIC.acq_pag, nome: 'Quota pagata (acqua e dissesto)' },
+  acq_alluv: { ...INDIC.acq_alluv, nome: 'Quota per alluvioni e dissesto' },
+  acq_perd: { ...INDIC.acq_perd, nome: 'Quota per le perdite di rete' },
+  acq_com: { ...INDIC.acq_com, nome: 'Quota con attuatore comunale' },
   /* contesto esterno (data/contesto.json, scrpits/contesto.py): non dipende dai filtri né dai progetti */
   reddito: { nome: 'Reddito imponibile medio per contribuente', f: (c) => S.cont?.c[c.id]?.[0] ?? null, fmt: (v) => nf.format(Math.round(v)) + ' €' },
   spop: { nome: 'Variazione dei residenti 2011→2024 (%)', f: (c) => { const r = S.cont?.c[c.id]; return r && r[4] > 0 && r[5] > 0 ? 100 * (r[5] - r[4]) / r[4] : null; }, fmt: (v) => (v > 0 ? '+' : v < 0 ? '−' : '') + nf.format(Math.round(Math.abs(v) * 10) / 10) + ' %' },
@@ -277,7 +292,7 @@ function aggiornaMappa() {
   const mio = S.cur.liv === 'c' ? S.clsMap[S.cur.id] : undefined, cn = S.cur.liv === 'c' ? S.com[S.cur.id].nm : '';
   setLegenda(I, (v.length ? `<ul class="cat">${cont.map((n, i) => `<li><button type="button" data-k="${i}" class="${S.cls?.has(i) ? 'on' : ''}${mio === i ? ' qui' : ''}" aria-pressed="${!!S.cls?.has(i)}" title="Mostra solo i comuni di questa classe"><i style="background:${r[Math.min(i, k - 1)]}"></i>${esc(lim(i))}<small>${nf.format(n)} comuni</small></button></li>`).join('')}</ul>` : '')
     + (mio !== undefined ? `<div class="leg-fascia"><b>${esc(cn)}</b>: ${esc(I.fmt(I.f(S.vals[S.cur.id])))} → fascia ${mio + 1} di ${nc}</div>` : S.cur.liv === 'c' ? `<div class="leg-fascia"><b>${esc(cn)}</b>: nessun progetto, resta grigio</div>` : '')
-    + `<div class="nota-leg">${S.cls ? '<button type="button" data-k="tutte" class="tutte">Mostra tutte le classi</button> · ' : 'Clic su una classe per isolarla · '}${S.adatta ? 'scala adattata al territorio' : 'scala su tutta Italia'}${nFiltri(F) ? (I.gio || I.san || I.pa ? ' · questo indicatore non risente dei filtri' : ' · con i filtri attivi') : ''}. Grigio: nessun progetto${S.cls ? ' o classe esclusa' : ''}.</div>`);
+    + `<div class="nota-leg">${S.cls ? '<button type="button" data-k="tutte" class="tutte">Mostra tutte le classi</button> · ' : 'Clic su una classe per isolarla · '}${S.adatta ? 'scala adattata al territorio' : 'scala su tutta Italia'}${nFiltri(F) ? (I.gio || I.san || I.pa || I.acq ? ' · questo indicatore non risente dei filtri' : ' · con i filtri attivi') : ''}. Grigio: nessun progetto${S.cls ? ' o classe esclusa' : ''}.</div>`);
   aggiornaQuadro();
 }
 /* Carta a due variabili: due indicatori a scelta (assi AX), tre classi ciascuno con terzili su tutti i comuni d'Italia */
@@ -858,7 +873,7 @@ function sanitaRiga(liv, id) {
       : `Nessun progetto della Missione 6 «Salute» localizzato in questo comune. Non vuol dire che il comune non abbia servizi sanitari: molti progetti (fascicolo sanitario, telemedicina, assistenza domiciliare) sono attribuiti alla regione e non a un singolo comune.`)
     : `Include ${pct(ncf, fin)} di fondi non attribuibili a un singolo comune (fascicolo sanitario, telemedicina, assistenza domiciliare), perché sono progetti indicati a livello ${liv === 'r' ? 'di regione, di provincia o nazionale' : liv === 'p' ? 'di provincia' : 'di regione, di provincia o nazionale'} e non di comune. ${nf.format(con)} comuni su ${nf.format(tutti)} hanno almeno un progetto.`;
   return `<h2>PNRR per la salute <small>Missione 6 · <a href="guida.html#sanita">come è calcolato</a></small></h2><div class="kpi">
-   <div><b>${fin > 0 ? e(fin / pop) : '0 €'}</b><span>per abitante</span><em>${fin > 0 ? `${eur(fin)} finanziati in ${nf.format(n)} progetti` : 'nessun importo localizzato'}</em></div>
+   <div><b>${fin > 0 ? e(fin / pop) : '0 €'}</b><span>per abitante</span><em>${fin > 0 ? `${eur(fin)} finanziati in ${nf.format(n)} progett${n === 1 ? 'o' : 'i'}` : 'nessun importo localizzato'}</em></div>
    <div><b>${fin > 0 ? pct(pag, fin) : '–'}</b><span>pagato (${eur(pag)})</span><em>pagamenti / finanziamento della Missione 6</em></div>
    <div><b>${fin > 0 ? pct(c1, fin) : '–'}</b><span>per la sanità di prossimità</span><em>${ncdc > 0 ? `${nf.format(ncdc)} Case della Comunità · 1 ogni ${nf.format(Math.round(pop / ncdc))} abitanti` : 'nessuna Casa della Comunità'}</em></div></div>
    <p class="nota">${nota}</p>`;
@@ -881,9 +896,31 @@ function paRiga(liv, id) {
       : `Nessun progetto della Missione 1.1 «PA digitale» localizzato in questo comune. È un caso raro: la componente arriva in quasi tutti i comuni italiani.`)
     : `Include ${pct(ncf, fin)} di fondi non attribuibili a un singolo comune, perché sono piattaforme e progetti indicati a livello ${liv === 'r' ? 'di regione' : liv === 'p' ? 'di provincia' : 'di regione, di provincia o nazionale'}. ${nf.format(con)} comuni su ${nf.format(tutti)} hanno almeno un progetto.`;
   return `<h2>PNRR per la PA digitale <small>Missione 1.1 · <a href="guida.html#pa-digitale">come è calcolato</a></small></h2><div class="kpi">
-   <div><b>${fin > 0 ? e(fin / pop) : '0 €'}</b><span>per abitante</span><em>${fin > 0 ? `${eur(fin)} finanziati${liv === 'c' ? ` in ${nf.format(n)} progetti` : ''}` : 'nessun importo localizzato'}</em></div>
+   <div><b>${fin > 0 ? e(fin / pop) : '0 €'}</b><span>per abitante</span><em>${fin > 0 ? `${eur(fin)} finanziati${liv === 'c' ? ` in ${nf.format(n)} progett${n === 1 ? 'o' : 'i'}` : ''}` : 'nessun importo localizzato'}</em></div>
    <div><b>${fin > 0 ? pct(pag, fin) : '–'}</b><span>pagato (${eur(pag)})</span><em>pagamenti / finanziamento della Missione 1.1</em></div>
    <div><b>${fin > 0 ? pct(serv, fin) : '–'}</b><span>per i servizi digitali al cittadino</span><em>${fin > 0 ? `giustizia e ministeri ${pct(giust, fin)}` : ''}</em></div></div>
+   <p class="nota">${nota}</p>`;
+}
+/* riga «PNRR per l'acqua e il dissesto» della scheda: Missione 2 componente 4 (data/acqua.json, scrpits/acqua.py),
+   non segue i filtri. Riga: [abitanti, € M2C4, pagato, € reti, pag, € perdite, pag, € alluvioni, pag,
+   € irriguo, pag, € natura, pag, progetti, € conclusi, pag conclusi, € non attribuibile, pag, € attuatore comunale, pag] */
+function acquaRiga(liv, id) {
+  if (!S.acq) return '';
+  const r = liv === 'c' ? S.acq.c[id] : liv === 'p' ? S.acq.p[id] : liv === 'r' ? S.acq.r[id] : S.acq.i;
+  if (!r || !(r[0] > 0)) return '';
+  const [pop, fin, pag, , , , , alluv, , , , , , n, , , ncf, , comfin] = r;
+  const e = (v) => nf.format(Math.round(v)) + ' €';
+  let con = 0, tutti = 0;
+  if (liv !== 'c') for (const [k, v] of Object.entries(S.acq.c)) { const cm = S.com[k]; if (!cm || (liv === 'r' && cm.rg !== id) || (liv === 'p' && cm.pv !== id)) continue; tutti++; if (v[1] > 0) con++; }
+  const nota = liv === 'c'
+    ? (fin > 0
+      ? `Solo gli importi localizzati nel comune. ${comfin > 0 ? `Il soggetto attuatore è un comune per ${pct(comfin, fin)} dell'importo: il resto passa da regioni, consorzi di bonifica e gestori del servizio idrico.` : `Nessuno dei progetti qui indicati ha un comune come soggetto attuatore: passano da regioni, consorzi di bonifica o gestori del servizio idrico.`} Un intervento su un fiume o una rete serve un territorio più largo del comune in cui è indicato.`
+      : `Nessun progetto della Missione 2.4 localizzato in questo comune. Non vuol dire che non ci siano opere: la missione arriva a 2.893 comuni su 7.896, e i bacini idrografici, gli invasi e le reti servono anche i comuni vicini.`)
+    : `Include ${pct(ncf, fin)} di fondi non attribuibili a un singolo comune, perché sono interventi indicati a livello ${liv === 'r' ? 'di regione' : liv === 'p' ? 'di provincia' : 'di regione, di provincia o nazionale'}. ${nf.format(con)} comuni su ${nf.format(tutti)} hanno almeno un progetto.`;
+  return `<h2>PNRR per l’acqua e il dissesto <small>Missione 2.4 · <a href="guida.html#acqua">come è calcolato</a></small></h2><div class="kpi">
+   <div><b>${fin > 0 ? e(fin / pop) : '0 €'}</b><span>per abitante</span><em>${fin > 0 ? `${eur(fin)} finanziati${liv === 'c' ? ` in ${nf.format(n)} progett${n === 1 ? 'o' : 'i'}` : ''}` : 'nessun importo localizzato'}</em></div>
+   <div><b>${fin > 0 ? pct(pag, fin) : '–'}</b><span>pagato (${eur(pag)})</span><em>pagamenti / finanziamento della Missione 2.4</em></div>
+   <div><b>${fin > 0 ? pct(alluv, fin) : '–'}</b><span>per alluvioni e rischio idrogeologico</span><em>${fin > 0 ? `attuatore comunale ${pct(comfin, fin)}` : ''}</em></div></div>
    <p class="nota">${nota}</p>`;
 }
 function disegnaScheda(liv, id, n, nome, F) {
@@ -901,6 +938,7 @@ function disegnaScheda(liv, id, n, nome, F) {
   h += giovaniRiga(liv, id);
   h += sanitaRiga(liv, id);
   h += paRiga(liv, id);
+  h += acquaRiga(liv, id);
   h += '<div id="analisi"></div>';
   /* imbuto: ogni riga è un filtro sullo stadio */
   h += `<h2>Dal finanziamento alla fine dei lavori <small>clic per filtrare</small></h2><div class="imbuto">`;
@@ -1140,8 +1178,8 @@ function iniziaProgetti(n, nome, F) {
 /* ---------- avvio ---------- */
 async function init() {
   try {
-    const [meta, it, reg, prov, com, bbox, ci, cr, cp, cc, ver, cupc, giovani, contesto, sanita, paDigitale] = await Promise.all(['meta', 'italia', 'regioni', 'province', 'comuni', 'bbox', 'cubo_i', 'cubo_r', 'cubo_p', 'cubo_c', 'verifiche', 'cup_chiusi', 'giovani', 'contesto', 'sanita', 'pa_digitale'].map((n) => get(`data/${n}.json`).catch((e) => { if (n === 'giovani' || n === 'contesto' || n === 'sanita' || n === 'pa_digitale') return null; throw e; })));
-    Object.assign(S, { meta, it, reg, prov, com, bbox, ver, cupc, gio: giovani, cont: contesto, san: sanita, pa: paDigitale }); S.cube = { i: ci, r: cr, p: cp, c: cc };
+    const [meta, it, reg, prov, com, bbox, ci, cr, cp, cc, ver, cupc, giovani, contesto, sanita, paDigitale, acqua] = await Promise.all(['meta', 'italia', 'regioni', 'province', 'comuni', 'bbox', 'cubo_i', 'cubo_r', 'cubo_p', 'cubo_c', 'verifiche', 'cup_chiusi', 'giovani', 'contesto', 'sanita', 'pa_digitale', 'acqua'].map((n) => get(`data/${n}.json`).catch((e) => { if (['giovani', 'contesto', 'sanita', 'pa_digitale', 'acqua'].includes(n)) return null; throw e; })));
+    Object.assign(S, { meta, it, reg, prov, com, bbox, ver, cupc, gio: giovani, cont: contesto, san: sanita, pa: paDigitale, acq: acqua }); S.cube = { i: ci, r: cr, p: cp, c: cc };
     /* gerarchia del piano per ogni sub-misura (indice delle celle) e dotazione ufficiale aggregata per livello */
     S.sx = { mis: meta.sub.map((c) => c.slice(0, 2)), comp: meta.sub.map(compDi), msr: meta.sub.map(msrDi), sub: meta.sub.slice(), mi: meta.sub.map((c) => meta.missioni.indexOf(c.slice(0, 2))) };
     S.dotL = { comp: {}, msr: {}, sub: {} };

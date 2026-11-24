@@ -355,11 +355,75 @@
         voci: [{ nome: 'Conclusi', val: e(pa.i[17], pa.i[16]), col: '--c2', sub: `${eur(pa.i[17])} pagati su ${eur(pa.i[16])} (stadio «concluso»)` },
                { nome: 'In corso', val: e(pa.i[2] - pa.i[17], pa.i[1] - pa.i[16]), col: '--c4', sub: `${eur(pa.i[2] - pa.i[17])} pagati su ${eur(pa.i[1] - pa.i[16])} (tutti gli altri stadi)` }],
         formatta: (v) => pc(v, 1), conTip, nome: 'Quota pagata dei progetti conclusi e di quelli in corso' }),
-        { sub: 'Missione 1.1 · pagato ÷ assegnato', nota: `I progetti conclusi valgono ${eur(pa.i[16])} e sono pagati al ${pc(e(pa.i[17], pa.i[16]), 1)}; quelli in corso valgono ${eur(pa.i[1] - pa.i[16])} e sono pagati al ${pc(e(pa.i[2] - pa.i[17], pa.i[1] - pa.i[16]), 1)}. La differenza è normale: un progetto concluso ha finito di essere pagato. Quasi un quarto della componente è già chiuso.` });
+        { sub: 'Missione 1.1 · pagato ÷ assegnato', nota: `I progetti conclusi valgono ${eur(pa.i[16])} e sono pagati per il ${pc(e(pa.i[17], pa.i[16]), 1)}; quelli in corso valgono ${eur(pa.i[1] - pa.i[16])} e sono pagati al ${pc(e(pa.i[2] - pa.i[17], pa.i[1] - pa.i[16]), 1)}. La differenza è normale: un progetto concluso ha finito di essere pagato. Quasi un quarto della componente è già chiuso.` });
       cap('g-pa', 'Come si concentrano i soldi tra i comuni', (h) => G.lorenz(h, {
         curva: lor.filter((_, i) => i % Math.ceil(lor.length / 400) === 0 || i === lor.length - 1), xNome: 'comuni, dal meno al più finanziato', yNome: 'quota cumulata dei fondi della Missione 1.1', conTip,
         evidenzia: [{ x: 0.9, y: 1 - top10Pa, titolo: 'Il 90% dei comuni con meno fondi', testo: `riceve il ${pc(1 - top10Pa, 1)} della Missione 1.1` }],
       }), { sub: `curva di Lorenz · Gini ${nf(giniPa, 2)} · importi localizzati nei comuni`, nota: `Il 10% dei comuni con più fondi riceve il ${pc(top10Pa, 1)} della componente localizzata nei comuni, la metà dei comuni con meno ne riceve il ${pc(meta50Pa, 1)}. La curva è un po' più piatta di quella del PNRR nel suo complesso (Gini ${nf(giniPa, 2)} contro ${nf(gini, 2)}), perché ogni comune riceve una quota di base — siti, servizi, PagoPA, SPID — e la parte «per tutti» arriva davvero a tutti. Ma le grandi città prendono comunque la fetta più grossa, con le piattaforme nazionali e i tribunali.` });
+    }).catch(() => {});
+    /* ---- acqua e dissesto: Missione 2 componente 4, dati ricalcolati da scrpits/acqua.py (data/acqua.json) ---- */
+    get('data/acqua.json').then((acq) => {
+      /* colonne di data/acqua.json: 0 abitanti, 1/2 finanziato e pagato M2C4, poi cinque coppie fin/pag
+         (3/4 reti idriche, 5/6 perdite di rete, 7/8 alluvioni, 9/10 irriguo e fognature, 11/12 monitoraggio e natura),
+         13 progetti, 14/15 conclusi, 16/17 non attribuibile ai comuni, 18/19 con attuatore comunale. */
+      const GR = ['reti idriche', 'perdite di rete', 'alluvioni e dissesto', 'irriguo e fognature', 'monitoraggio e natura'];
+      const zero = () => ({ n: 0, pop: 0, fin: 0, pag: 0, g: GR.map(() => 0), gp: GR.map(() => 0), comfin: 0, compag: 0, ncf: 0 });
+      const add = (t, r) => { t.n++; t.pop += r[0]; t.fin += r[1]; t.pag += r[2]; GR.forEach((_, i) => { t.g[i] += r[3 + 2 * i]; t.gp[i] += r[4 + 2 * i]; }); t.comfin += r[18] || 0; t.compag += r[19] || 0; t.ncf += r[16] || 0; };
+      const RR = {}, T = zero();
+      for (const [id, r] of Object.entries(acq.r)) { const k = reg[id]?.rip; if (!k) continue; add(RR[k] = RR[k] || zero(), r); add(T, r); }
+      const ordRip = Object.keys(RIP).filter((k) => RR[k]);
+      const e = (x, y) => (y > 0 ? x / y : 0), E = (v) => nf(Math.round(v)) + ' €';
+      const I = acq.i;
+      const CG = Object.entries(acq.c).map(([id, r]) => ({ id, pop: r[0], fin: r[1], pag: r[2], alluv: r[7], comfin: r[18] }));
+      const conProgetti = CG.filter((c) => c.fin > 0).length, totC = CG.reduce((s, c) => s + c.fin, 0);
+      const DIM = [['meno di 1.000', 0, 1e3], ['1.000-5.000', 1e3, 5e3], ['5.000-20.000', 5e3, 2e4], ['20.000-100.000', 2e4, 1e5], ['oltre 100.000', 1e5, 1e12]];
+      const DD = DIM.map(() => ({ n: 0, pop: 0, fin: 0, con: 0 }));
+      CG.forEach((c) => { const i = DIM.findIndex(([, a, b]) => c.pop >= a && c.pop < b); if (i < 0) return; const d = DD[i]; d.n++; d.pop += c.pop; d.fin += c.fin; if (c.fin > 0) d.con++; });
+      const ord = CG.slice().sort((a, b) => a.fin - b.fin);
+      let cum = 0; const lor = [[0, 0]];
+      ord.forEach((c, i) => { cum += c.fin; lor.push([(i + 1) / ord.length, totC > 0 ? cum / totC : 0]); });
+      let g = 0; for (let i = 1; i < lor.length; i++) g += (lor[i][0] - lor[i - 1][0]) * (lor[i][1] + lor[i - 1][1]);
+      const giniAcq = 1 - g, top10Acq = 1 - lor[Math.floor(0.9 * ord.length)][1], meta50Acq = lor[Math.floor(0.5 * ord.length)][1];
+      const rk = ordRip.slice().sort((a, b) => e(RR[a].fin, RR[a].pop) - e(RR[b].fin, RR[b].pop));
+      const pk = ordRip.map((k) => ({ n: k, q: e(RR[k].pag, RR[k].fin) })).sort((a, b) => a.q - b.q);
+      const ck = ordRip.map((k) => ({ n: k, q: e(RR[k].comfin, RR[k].fin) })).sort((a, b) => a.q - b.q);
+      const gk = GR.map((n, i) => ({ n, i, q: e(I[4 + 2 * i], I[3 + 2 * i]) })).sort((a, b) => a.q - b.q);
+      cap('g-acq', 'Euro per abitante, per ripartizione', (h) => G.colonne(h, {
+        voci: [...ordRip.map((k) => ({ nome: k, val: e(RR[k].fin, RR[k].pop), col: RIP[k], sotto: 'pagato ' + pc(e(RR[k].pag, RR[k].fin)), sub: `${eur(RR[k].fin)} su ${nf(RR[k].pop)} abitanti · alluvioni ${pc(e(RR[k].g[2], RR[k].fin))}` })),
+               { nome: 'Italia', val: e(I[1], I[0]), col: '--s7', sotto: 'pagato ' + pc(e(I[2], I[1])), sub: `${eur(I[1])} su ${nf(I[0])} abitanti · alluvioni ${pc(e(I[7], I[1]))}` }],
+        formatta: E, conTip, nome: 'PNRR per l’acqua e il dissesto per abitante' }),
+        { sub: 'Missione 2.4, importi attribuibili al territorio · sotto: quota pagata', nota: `Il valore più alto è in ${rk[rk.length - 1]} (${E(e(RR[rk[rk.length - 1]].fin, RR[rk[rk.length - 1]].pop))} per abitante), il più basso in ${rk[0]} (${E(e(RR[rk[0]].fin, RR[rk[0]].pop))}). Contano i grandi interventi: invasi, acquedotti, bonifiche e rinaturazione sono opere di bacino, non di comune, e bastano poche decine di milioni a spostare la media.` });
+      cap('g-acq', 'Di che cosa è fatta la componente', (h) => G.colonne(h, {
+        voci: GR.map((n, i) => ({ nome: n, val: I[3 + 2 * i], col: ['--c2', '--c3', '--c4', '--c5', '--c1'][i], sub: `${pc(e(I[3 + 2 * i], I[1]), 1)} del totale · pagato ${pc(e(I[4 + 2 * i], I[3 + 2 * i]), 1)}` })),
+        formatta: eur, conTip, nome: 'Finanziamento della Missione 2.4 per tipo di misura' }),
+        { sub: 'Missione 2.4 intera · sotto: quota sul totale e quota pagata', nota: `Il gruppo più grosso non è l’acqua ma il monitoraggio e la tutela della natura (${pc(e(I[11], I[1]), 1)}): sistema di monitoraggio idrogeologico, bonifica dei siti orfani, fondali marini, rinaturazione del Po, verde urbano e parchi. Seguono reti idriche (${pc(e(I[3], I[1]), 1)}), perdite di rete (${pc(e(I[5], I[1]), 1)}), irriguo e fognature (${pc(e(I[9], I[1]), 1)}) e alluvioni (${pc(e(I[7], I[1]), 1)}).` });
+      cap('g-acq', 'Che cosa è stato pagato', (h) => G.colonne(h, {
+        voci: GR.map((n, i) => ({ nome: n, val: e(I[4 + 2 * i], I[3 + 2 * i]), col: ['--c2', '--c3', '--c4', '--c5', '--c1'][i], sub: `${eur(I[4 + 2 * i])} pagati su ${eur(I[3 + 2 * i])}` })),
+        formatta: (v) => pc(v, 1), conTip, nome: 'Quota pagata per tipo di misura' }),
+        { sub: 'pagato ÷ assegnato, Missione 2.4 intera', nota: `In Italia è pagato il ${pc(e(I[2], I[1]), 1)}. Le parti più avanti sono ${gk[gk.length - 1].n} (${pc(gk[gk.length - 1].q, 1)}) e ${gk[gk.length - 2].n} (${pc(gk[gk.length - 2].q, 1)}); la più indietro è ${gk[0].n} (${pc(gk[0].q, 1)}), dove stanno il sistema di monitoraggio, le bonifiche e la rinaturazione del Po, tutti progetti partiti dopo.` });
+      cap('g-acq', 'Chi spende: il peso dei comuni', (h) => G.colonne(h, {
+        voci: [...ordRip.map((k) => ({ nome: k, val: e(RR[k].comfin, RR[k].fin), col: RIP[k], sotto: 'pagato ' + pc(e(RR[k].compag, RR[k].comfin)), sub: `${eur(RR[k].comfin)} su ${eur(RR[k].fin)} · di questa parte pagato ${pc(e(RR[k].compag, RR[k].comfin))}` })),
+               { nome: 'Italia', val: e(I[18], I[1]), col: '--s7', sotto: 'pagato ' + pc(e(I[19], I[18])), sub: `${eur(I[18])} su ${eur(I[1])} · pagato ${pc(e(I[19], I[18]))}` }],
+        formatta: (v) => pc(v, 1), conTip, nome: 'Quota del finanziamento con un comune come soggetto attuatore' }),
+        { sub: 'attuatore «COMUNE …» · sotto: quota pagata di quella parte', nota: `In Italia solo il ${pc(e(I[18], I[1]), 1)} dei soldi ha un comune come soggetto attuatore: il resto passa da ministeri, regioni, consorzi di bonifica, agenzie interregionali e gestori del servizio idrico. La parte dei comuni è anche la più indietro nei pagamenti (${pc(e(I[19], I[18]), 1)} contro il ${pc(e(I[2], I[1]), 1)} del totale). Geograficamente il divario è netto: ${ck[ck.length - 1].n} ${pc(ck[ck.length - 1].q, 1)}, ${ck[0].n} ${pc(ck[0].q, 1)}.` });
+      cap('g-acq', 'Il peso della dimensione del comune', (h) => G.colonne(h, {
+        voci: DIM.map(([n], i) => ({ nome: n, val: e(DD[i].fin, DD[i].pop), col: '--c1', sotto: pc(e(DD[i].con, DD[i].n), 0) + ' con progetti', sub: `${nf(DD[i].con)} comuni su ${nf(DD[i].n)} con almeno un progetto · ${eur(DD[i].fin)} in tutto` })),
+        formatta: E, conTip, nome: 'Euro per abitante per dimensione del comune' }),
+        { sub: 'solo importi localizzati nel comune · sotto: quota di comuni con almeno un progetto', nota: `I soldi vanno dove stanno le opere, non dove stanno gli abitanti: ${E(e(DD[0].fin, DD[0].pop))} per abitante sotto i 1.000 abitanti contro ${E(e(DD[4].fin, DD[4].pop))} sopra i 100.000, ma solo il ${pc(e(DD[0].con, DD[0].n), 0)} dei comuni piccoli ha un progetto contro il ${pc(e(DD[4].con, DD[4].n), 0)} dei grandi. Un invaso o un tratto di fiume in un paese di 800 abitanti fa un valore a testa enorme.` });
+      cap('g-acq', 'Pagato contro assegnato, per ripartizione', (h) => G.colonne(h, {
+        voci: [...ordRip.map((k) => ({ nome: k, val: e(RR[k].pag, RR[k].fin), col: RIP[k], sub: `${eur(RR[k].pag)} pagati su ${eur(RR[k].fin)}` })),
+               { nome: 'Italia', val: e(I[2], I[1]), col: '--s7', sub: `${eur(I[2])} pagati su ${eur(I[1])}` }],
+        formatta: (v) => pc(v, 1), conTip, nome: 'Quota pagata della Missione 2.4, per ripartizione' }),
+        { sub: 'pagato ÷ assegnato, importi attribuibili al territorio', nota: `Sugli importi attribuibili a un territorio è pagato il ${pc(e(T.pag, T.fin), 1)} (il ${pc(e(I[2], I[1]), 1)} sull’intera componente). Il divario è di oltre venti punti: ${pc(pk[pk.length - 1].q, 1)} in ${pk[pk.length - 1].n} contro ${pc(pk[0].q, 1)} in ${pk[0].n}. Come nel resto del Piano il Sud ha più fondi per abitante e li ha pagati meno, ma qui pesa anche il tipo di opera: le grandi infrastrutture idriche del Mezzogiorno si pagano a stati di avanzamento lenti.` });
+      cap('g-acq', 'Progetti conclusi e progetti in corso', (h) => G.colonne(h, {
+        voci: [{ nome: 'Conclusi', val: e(I[15], I[14]), col: '--c2', sub: `${eur(I[15])} pagati su ${eur(I[14])} (stadio «concluso»)` },
+               { nome: 'In corso', val: e(I[2] - I[15], I[1] - I[14]), col: '--c4', sub: `${eur(I[2] - I[15])} pagati su ${eur(I[1] - I[14])} (tutti gli altri stadi)` }],
+        formatta: (v) => pc(v, 1), conTip, nome: 'Quota pagata dei progetti conclusi e di quelli in corso' }),
+        { sub: 'Missione 2.4 · pagato ÷ assegnato', nota: `I progetti conclusi valgono ${eur(I[14])} e sono pagati per il ${pc(e(I[15], I[14]), 1)}; quelli in corso valgono ${eur(I[1] - I[14])} e sono pagati al ${pc(e(I[2] - I[15], I[1] - I[14]), 1)}. Il tema è più indietro degli altri letti finora: i progetti chiusi valgono solo il ${pc(e(I[14], I[1]), 1)} del totale.` });
+      cap('g-acq', 'Come si concentrano i soldi tra i comuni', (h) => G.lorenz(h, {
+        curva: lor.filter((_, i) => i % Math.ceil(lor.length / 400) === 0 || i === lor.length - 1), xNome: 'comuni, dal meno al più finanziato', yNome: 'quota cumulata dei fondi della Missione 2.4', conTip,
+        evidenzia: [{ x: 0.9, y: 1 - top10Acq, titolo: 'Il 90% dei comuni con meno fondi', testo: `riceve il ${pc(1 - top10Acq, 1)} della Missione 2.4` }],
+      }), { sub: `curva di Lorenz · Gini ${nf(giniAcq, 2)} · importi localizzati nei comuni`, nota: `Il 10% dei comuni con più fondi riceve il ${pc(top10Acq, 1)} della componente localizzata nei comuni, mentre la metà dei comuni non ha alcun progetto e resta a zero. È il tema più concentrato del Piano fra quelli letti finora (Gini ${nf(giniAcq, 2)}): ${nf(conProgetti)} comuni su ${nf(CG.length)} hanno un progetto, e le opere idriche e di difesa del suolo sono poche e grandi.` });
     }).catch(() => {});
 
   }).catch((e) => { el('caric').textContent = 'Errore di caricamento dei dati: ' + e.message; });
