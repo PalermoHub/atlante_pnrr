@@ -2,7 +2,7 @@
 
 Dove e come sono stati spesi i fondi del PNRR: una scheda per Italia, regione, provincia e comune, collegate fra loro, con mappa dei comuni, imbuto di avanzamento (finanziato → gara aggiudicata → lavori avviati → concluso → pagato), per missione, per natura, chi realizza, qualità dei dati e elenco dei progetti di ogni comune.
 
-Dati: [Italia Domani, Catalogo Open Data](https://www.italiadomani.gov.it/content/sogei-ng/it/it/catalogo-open-data.html) (CC-BY 4.0), estrazione del 13/06/2026. Confini dei comuni: ISTAT, tramite il repository ANNCSU. Popolazione: ISTAT, 1/1/2026; per il tema giovani anche ISTAT 1/1/2024 e 1/1/2022 (singole età). Reddito imponibile medio per contribuente: MEF, dichiarazioni dei redditi 2023, diffuso da ISTAT (`MEF_REDDITIIRPEF_COM`). Aree interne: ISTAT/SNAI 2020, SITUAS report 75 (`AREE_INT_2020`). NEET 15-29 anni: Eurostat `edat_lfse_22`, 2024 (regionale).
+Dati: [Italia Domani, Catalogo Open Data](https://www.italiadomani.gov.it/content/sogei-ng/it/it/catalogo-open-data.html) (CC-BY 4.0), estrazione del 13/06/2026. Confini dei comuni: ISTAT, tramite il repository ANNCSU. Popolazione: ISTAT, 1/1/2026; per il tema giovani anche ISTAT 1/1/2024 e 1/1/2022 (singole età). Reddito imponibile medio per contribuente: MEF, dichiarazioni dei redditi 2023, diffuso da ISTAT (`MEF_REDDITIIRPEF_COM`). Aree interne: ISTAT/SNAI 2020, SITUAS report 75 (`AREE_INT_2020`). Popolazione 2011 e 2024: ISTAT demo, RCS «Popolazione residente per cittadinanza». NEET 15-29 anni: Eurostat `edat_lfse_22`, 2024 (regionale).
 
 ## Pagine
 - `index.html`: mappa e schede (Italia, regione, provincia, comune).

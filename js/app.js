@@ -162,6 +162,7 @@ const AX = {
   gio_pag: { ...INDIC.gio_pag, nome: 'Quota pagata (misure per i giovani)' },
   /* contesto esterno (data/contesto.json, scrpits/contesto.py): non dipende dai filtri né dai progetti */
   reddito: { nome: 'Reddito imponibile medio per contribuente', f: (c) => S.cont?.c[c.id]?.[0] ?? null, fmt: (v) => nf.format(Math.round(v)) + ' €' },
+  spop: { nome: 'Variazione dei residenti 2011→2024 (%)', f: (c) => { const r = S.cont?.c[c.id]; return r && r[4] > 0 && r[5] > 0 ? 100 * (r[5] - r[4]) / r[4] : null; }, fmt: (v) => (v > 0 ? '+' : v < 0 ? '−' : '') + nf.format(Math.round(Math.abs(v) * 10) / 10) + ' %' },
   area: { nome: 'Aree interne (A polo → F ultraperiferico)', f: (c) => { const a = S.cont?.c[c.id]?.[2]; const i = a ? 'ABCDEF'.indexOf(a) : -1; return i >= 0 ? i + 1 : null; }, fmt: (v) => { if (Math.abs(v - Math.round(v)) > 1e-9) return nf.format(Math.round(v * 10) / 10) + ' / 6'; const a = 'ABCDEF'[Math.min(5, Math.max(0, Math.round(v) - 1))]; return `${a} · ${AREE_NOMI[a]}`; } },
 };
 S.bx = 'gio_quota'; S.by = 'gio_l';
