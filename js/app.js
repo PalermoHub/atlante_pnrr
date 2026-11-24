@@ -1008,7 +1008,11 @@ async function init() {
   addEventListener('hashchange', route);
   S.vista0 = vistaDaHash(); creaMappa(); route();
   /* ponte per la lente (js/lente-app.js), che vive in un file a parte */
-  window.AtlantePNRR = { S, go, get, evidenzia, parseHash, vaiComune: (id) => go('c', id, { ...F0(), k: S.cur?.F.k || null }) };
+  window.AtlantePNRR = { S, go, get, evidenzia, parseHash, vaiComune: (id) => go('c', id, { ...F0(), k: S.cur?.F.k || null }),
+    /* dalla ricerca: provincia o regione, tenendo i filtri e la selezione del confronto */
+    vaiTerritorio: (liv, id) => go(liv, id, { ...(S.cur?.F || F0()) }),
+    /* dalla ricerca: una voce del Piano (missione, componente, misura, sub-misura) si applica come filtro sul territorio in vista */
+    vaiPiano: (cod) => { const L = LIV[['M', 'C', 'I', 'S'].indexOf(/^M\d$/.test(cod) ? 'M' : /^M\d+C\d+$/.test(cod) ? 'C' : /^M\d+C\d+[IR]\d+\.\d+$/.test(cod) ? 'I' : 'S')]; const F = setProg({ ...(S.cur?.F || F0()) }, L, cod); go(S.cur?.liv || null, S.cur?.id || null, F); } };
   document.dispatchEvent(new Event('atlante-pronto'));
 }
 init();

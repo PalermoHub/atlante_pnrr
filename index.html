@@ -36,7 +36,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <script>try{if(self!==top||/[?&]embed=1/.test(location.search))document.documentElement.setAttribute("data-embed","")}catch(e){document.documentElement.setAttribute("data-embed","")}</script>
 <link rel="stylesheet" href="css/atlante.css?v=59">
-<link rel="stylesheet" href="css/guscio.css?v=15">
+<link rel="stylesheet" href="css/guscio.css?v=16">
 <link rel="stylesheet" href="css/statistiche.css?v=9">
 <link rel="stylesheet" href="css/lente-app.css?v=7">
 
@@ -61,10 +61,10 @@
     <div class="mapbar">
       <div class="cerca-riga">
       <div class="cerca">
-        <label class="sr" for="q-cerca">Cerca un comune</label>
+        <label class="sr" for="q-cerca">Cerca un comune, una regione o un tema del Piano</label>
         <svg class="cerca-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
-        <input id="q-cerca" type="search" placeholder="Cerca un comune…" autocomplete="off" enterkeyhint="go" role="combobox" aria-expanded="false" aria-controls="q-lista" aria-autocomplete="list">
-        <ul id="q-lista" role="listbox" aria-label="Comuni trovati" hidden></ul>
+        <input id="q-cerca" type="search" placeholder="Cerca comune, tema o parola…" autocomplete="off" enterkeyhint="go" role="combobox" aria-expanded="false" aria-controls="q-lista" aria-autocomplete="list">
+        <ul id="q-lista" role="listbox" aria-label="Risultati della ricerca" hidden></ul>
       </div>
       <button id="f-reset" class="azzera" type="button" title="Torna all'Italia e togli tutti i filtri"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v4.5h4.5"/></svg><span>Azzera</span></button>
       </div>
@@ -128,7 +128,7 @@
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pmtiles@4.3.0/dist/pmtiles.js"></script>
 <script src="js/tema.js?v=3"></script>
-<script src="js/guscio.js?v=8" defer></script>
+<script src="js/guscio.js?v=10" defer></script>
 <script src="js/tabelle.js?v=1" defer></script>
 <script src="js/cima.js?v=2" defer></script>
 <script src="js/piede.js?v=1" defer></script>
@@ -136,7 +136,7 @@
 <script src="js/info.js?v=10" defer></script>
 <script src="js/condividi.js?v=2" defer></script>
 <script src="js/grafici.js?v=8"></script>
-<script type="module" src="js/app.js?v=60"></script>
+<script type="module" src="js/app.js?v=61"></script>
 <script src="js/lente-app.js?v=7" defer></script>
 <script src="js/salva-png.js?v=4" defer></script>
 </body>
