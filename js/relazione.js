@@ -38,7 +38,7 @@
     host.append(w); return w;
   }
 
-  Promise.all(['italia', 'regioni', 'province', 'comuni', 'meta', 'cubo_c', 'cubo_i', 'cubo_r', 'verifiche', 'giovani', 'contesto', 'sanita'].map(get)).then(([it, reg, prov, com, meta, cc, ci, cr, ver, gio, cont, san]) => {
+  Promise.all(['italia', 'regioni', 'province', 'comuni', 'meta', 'cubo_c', 'cubo_i', 'cubo_r', 'verifiche', 'giovani', 'contesto', 'sanita', 'pa_digitale'].map(get)).then(([it, reg, prov, com, meta, cc, ci, cr, ver, gio, cont, san, pa]) => {
     el('caric').remove();
 
     /* ================= calcoli di base ================= */
@@ -123,11 +123,16 @@
       san_c1: { san: 1, nome: 'Quota per la sanità di prossimità', fmt: (v) => pc(v, 1), desc: 'Quanta parte della Missione 6 va alla componente 6.1: Case e Ospedali di Comunità, centrali operative, assistenza domiciliare, telemedicina. Il resto è su ospedali, grandi apparecchiature, fascicolo sanitario e ricerca.', v: (o) => (o.san && o.san[2] > 0 ? o.san[4] / o.san[2] : null) },
       san_pag: { san: 1, nome: 'Quota già pagata della Missione 6', fmt: (v) => pc(v, 1), desc: 'Pagato diviso assegnato per la Missione 6 «Salute».', v: (o) => (o.san && o.san[2] > 0 ? o.san[3] / o.san[2] : null) },
       san_cdc: { san: 1, nome: 'Abitanti per Casa della Comunità', fmt: (v) => nf(v) + ' ab.', desc: 'Abitanti del territorio diviso il numero di Case della Comunità finanziate (sub-misura M6C1I1.01.00). È una media, non un obiettivo di Piano.', v: (o) => (o.san && o.san[11] > 0 ? o.san[0] / o.san[11] : null) },
+      pa_pc: { pa: 1, nome: 'Euro per abitante (PA digitale)', fmt: (v) => nf(Math.round(v)) + ' €', desc: 'Finanziamento della Missione 1.1 «Digitalizzazione, innovazione e sicurezza nella PA» diviso per gli abitanti. Comprende anche giustizia e ministeri, che è in gran parte spesa per il personale dei tribunali.', v: (o) => (o.pa && o.pa[0] > 0 && o.pa[1] > 0 ? o.pa[1] / o.pa[0] : null) },
+      pa_pc2: { pa: 1, nome: 'Euro per abitante (PA digitale, senza giustizia e ministeri)', fmt: (v) => nf(Math.round(v)) + ' €', desc: 'La stessa componente senza le sub-misure di giustizia e ministeri: è la digitalizzazione che arriva ai comuni e ai cittadini. L&apos;Ufficio del Processo, che è spesa per il personale dei tribunali, è escluso.', v: (o) => { if (!o.pa || !(o.pa[0] > 0)) return null; const x = o.pa[1] - o.pa[13]; return x > 0 ? x / o.pa[0] : null; } },
+      pa_pag: { pa: 1, nome: 'Quota già pagata della PA digitale', fmt: (v) => pc(v, 0), desc: 'Pagato diviso assegnato per la Missione 1.1.', v: (o) => (o.pa && o.pa[1] > 0 ? o.pa[2] / o.pa[1] : null) },
+      pa_serv: { pa: 1, nome: 'Quota per i servizi digitali al cittadino', fmt: (v) => pc(v, 0), desc: 'Quanta parte dei soldi va ai servizi digitali al cittadino: sito del comune, accessibilità, PagoPA e app IO, SPID/CIE/ANPR, avvisi pubblici.', v: (o) => (o.pa && o.pa[1] > 0 ? o.pa[3] / o.pa[1] : null) },
+      pa_giust: { pa: 1, nome: 'Quota per giustizia e ministeri', fmt: (v) => pc(v, 0), desc: 'Quanta parte dei soldi va alla digitalizzazione interna di tribunali e ministeri, compreso l&apos;Ufficio del Processo.', v: (o) => (o.pa && o.pa[1] > 0 ? o.pa[13] / o.pa[1] : null) },
     };
     const DATI = {
-      c: () => Object.fromEntries(Object.entries(CF).map(([id, o]) => [id, { ...o, san: san.c[id] }])),
-      p: () => Object.fromEntries(provs.map((p) => [p.id, { fin: p.fin, pag: p.pag, conc: p.fs[4], rit: p.rit[1], pop: p.pop, gio: GIOP[p.id], san: san.p[p.id] }])),
-      r: () => Object.fromEntries(regs.map((r) => [r.id, { fin: r.fin, pag: r.pag, conc: r.fs[4], rit: r.rit[1], pop: r.pop, gio: GIOR[r.id], san: san.r[r.id] }])),
+      c: () => Object.fromEntries(Object.entries(CF).map(([id, o]) => [id, { ...o, san: san.c[id], pa: pa.c[id] }])),
+      p: () => Object.fromEntries(provs.map((p) => [p.id, { fin: p.fin, pag: p.pag, conc: p.fs[4], rit: p.rit[1], pop: p.pop, gio: GIOP[p.id], san: san.p[p.id], pa: pa.p[p.id] }])),
+      r: () => Object.fromEntries(regs.map((r) => [r.id, { fin: r.fin, pag: r.pag, conc: r.fs[4], rit: r.rit[1], pop: r.pop, gio: GIOR[r.id], san: san.r[r.id], pa: pa.r[r.id] }])),
     };
     const NOME = { c: (id) => `${CF[id]?.nm} (${prov[CF[id]?.pv]?.sigla || ''})`, p: (id) => prov[id]?.nome, r: (id) => reg[id]?.nome };
     let protocollo = false;
@@ -444,6 +449,54 @@
       ]);
     }
 
+    /* ================= 4 quater. PA digitale ================= */
+    {
+      const s = sezione('pa', 'Quanto PNRR per la PA digitale');
+      /* sei gruppi della Missione 1.1, nell'ordine delle coppie fin/pag di data/pa_digitale.json */
+      const GR = ['servizi al cittadino', 'cloud e piattaforme', 'cybersicurezza', 'facilitazione digitale', 'competenze e semplificazione', 'giustizia e ministeri'];
+      const zero = () => ({ pop: 0, fin: 0, pag: 0, g: GR.map(() => 0), gp: GR.map(() => 0), ncf: 0 });
+      const R = {}, T = zero();
+      for (const [id, r] of Object.entries(pa.r)) {
+        const k = reg[id]?.rip; if (!k) continue;
+        const a = R[k] || (R[k] = zero());
+        for (const t of [a, T]) { t.pop += r[0]; t.fin += r[1]; t.pag += r[2]; GR.forEach((_, i) => { t.g[i] += r[3 + 2 * i]; t.gp[i] += r[4 + 2 * i]; }); t.ncf += r[18]; }
+      }
+      const e = (x, y) => (y > 0 ? x / y : 0), eur0 = (v) => nf(Math.round(v)) + ' €', eurC = (v) => eur(v);
+      const CG = Object.entries(pa.c).map(([id, r]) => ({ id, nm: String(com[id]?.nm ?? ''), pop: r[0], fin: r[1], pag: r[2], giust: r[13] }));
+      const con = CG.filter((c) => c.fin > 0).length, senza = CG.length - con;
+      const comFin = CG.reduce((x, c) => x + c.fin, 0);
+      const med = (a) => { const v = a.slice().sort((x, y) => x - y); return v.length ? v[v.length >> 1] : 0; };
+      const mediana = med(CG.map((c) => c.fin)), media = e(comFin, CG.length);
+      const DIM = [['meno di 1.000 abitanti', 0, 1e3], ['1.000-5.000', 1e3, 5e3], ['5.000-20.000', 5e3, 2e4], ['20.000-100.000', 2e4, 1e5], ['oltre 100.000', 1e5, 1e12]];
+      const DD = DIM.map(() => ({ n: 0, pop: 0, fin: 0, con: 0 }));
+      CG.forEach((c) => { const i = DIM.findIndex(([, a, b]) => c.pop >= a && c.pop < b); if (i < 0) return; const d = DD[i]; d.n++; d.pop += c.pop; d.fin += c.fin; if (c.fin > 0) d.con++; });
+      const ordRip = ORD_RIP.filter((k) => R[k]);
+      const rk = ordRip.slice().sort((a, b) => e(R[a].fin, R[a].pop) - e(R[b].fin, R[b].pop));
+      const grk = GR.map((n, i) => ({ n, i, q: e(pa.i[4 + 2 * i], pa.i[3 + 2 * i]) })).sort((a, b) => a.q - b.q);
+      const top = CG.slice().sort((a, b) => b.fin - a.fin)[0];
+      P(s, `Nel tema sui giovani le misure le abbiamo scelte noi, in quello sulla salute le ha fissate il Piano con una missione intera. Qui le fissa il Piano: c'è una componente dedicata alla pubblica amministrazione, la <b>Missione 1.1 «Digitalizzazione, innovazione e sicurezza nella PA»</b>, con <b>${mld(pa.i[1], 2)} di euro</b> e <b>${nf(pa.i[15])} progetti</b>. Al 13 giugno 2026 ne era stato pagato il <b>${pc(e(pa.i[2], pa.i[1]), 1)}</b>. È il tema più diffuso del Piano: <b>${nf(con)} comuni su ${nf(CG.length)}</b> (${pc(con / CG.length, 1)}) hanno almeno un progetto, e solo ${nf(senza)} non ne hanno nessuno.`);
+      P(s, `Attenzione a come si legge. I bandi «PA digitale» non finanziano un'opera proporzionata agli abitanti: danno una <b>cifra per amministrazione</b>. L'importo mediano per comune è <b>${eurC(mediana)}</b>, la media ${eurC(media)}: quindi un paese di 800 abitanti e una città di 8.000 ricevono più o meno lo stesso, e diviso per gli abitanti il paese sembra aver ricevuto dieci volte tanto. In Italia sono <b>${eur0(e(pa.i[1], pa.i[0]))}</b> per abitante, ma per un comune ${DIM[0][0].replace(' abitanti', '')} sono <b>${eur0(e(DD[0].fin, DD[0].pop))}</b> e per uno tra ${DIM[2][0]} abitanti <b>${eur0(e(DD[2].fin, DD[2].pop))}</b>. Non è una diseguaglianza: è la forma del bando.`);
+      P(s, `Per la stessa ragione il Sud non è indietro nella distribuzione: al Sud sono <b>${eur0(e(R.Sud.fin, R.Sud.pop))}</b> per abitante e nelle Isole ${eur0(e(R.Isole.fin, R.Isole.pop))}, contro ${eur0(e(R['Nord-ovest'].fin, R['Nord-ovest'].pop))} nel Nord-ovest e ${eur0(e(R['Nord-est'].fin, R['Nord-est'].pop))} nel Nord-est. I comuni piccoli sono più diffusi nel Mezzogiorno, e ogni comune riceve comunque la sua parte. Nei pagamenti il divario è più stretto che nel resto del Piano: ${pc(e(R.Sud.pag, R.Sud.fin), 1)} al Sud contro ${pc(e(R['Nord-ovest'].pag, R['Nord-ovest'].fin), 1)} nel Nord-ovest.`);
+      P(s, `C'è però un pezzo che non c'entra con i servizi ai cittadini: <b>giustizia e ministeri</b> vale <b>${pc(e(pa.i[13], pa.i[1]), 1)}</b> della componente, ed è in gran parte spesa per il personale dell'Ufficio del Processo e digitalizzazione interna di singole amministrazioni. Nelle città sedi di tribunale questa voce pesa molto: a <b>${top.nm}</b>, il comune con più fondi della componente (${eurC(top.fin)}), giustizia e ministeri è il <b>${pc(e(top.giust, top.fin), 1)}</b> del totale. Per questo la mappa che segue può escluderla: sono due indicatori distinti, e quello «senza giustizia e ministeri» è il più adatto a raccontare la digitalizzazione che arriva ai comuni.`);
+      mappa(s, { def: 'pa_pc2', livello: 'c' });
+      fig(s, 'Euro per abitante secondo la dimensione del comune', 'sotto: quota di comuni con almeno un progetto', (h) => G.colonne(h, {
+        voci: DIM.map(([n], i) => ({ nome: n.replace(' abitanti', ''), val: e(DD[i].fin, DD[i].pop), sotto: pc(e(DD[i].con, DD[i].n), 0) + ' con progetti', sub: `${nf(DD[i].con)} comuni su ${nf(DD[i].n)} con almeno un progetto · ${eurC(DD[i].fin)} in tutto · ${nf(Math.round(e(DD[i].fin, DD[i].n)))} € per comune in media` })),
+        formatta: eur0, conTip, nome: 'Euro per abitante per dimensione del comune',
+      }), `Il valore più alto è nei comuni più piccoli (${eur0(e(DD[0].fin, DD[0].pop))}), il più basso tra ${DIM[2][0]} abitanti (${eur0(e(DD[2].fin, DD[2].pop))}); risale nelle grandi città (${eur0(e(DD[4].fin, DD[4].pop))}), che ospitano anche le opere sovracomunali. La quota di comuni con almeno un progetto è quasi il 100% in ogni classe: qui, a differenza della salute, la mappa non serve a trovare chi è rimasto fuori.`);
+      fig(s, 'Che cosa è stato pagato', 'pagato ÷ assegnato per tipo di misura · Missione 1.1 intera', (h) => G.barre(h, {
+        voci: GR.map((n, i) => ({ nome: n, val: e(T.gp[i], T.g[i]), col: ['--c3', '--c2', '--c4', '--c5', '--s6', '--s4'][i], sub: `${eurC(T.gp[i])} pagati su ${eurC(T.g[i])}` })),
+        formatta: (v) => pc(v, 1), conTip, riferimento: e(T.pag, T.fin), rifNome: 'Italia', nome: 'Quota pagata per tipo di misura',
+      }), `I servizi al cittadino sono la parte più avanti (${pc(e(pa.i[4], pa.i[3]), 1)}), la parte più indietro è ${grk[0].n} (${pc(grk[0].q, 1)}). Il cloud è stato finanziato prima ed è stato pagato meno: i soldi ci sono, i pagamenti no.`);
+      P(s, `In tutto, <b>${mld(pa.i[18])}</b> della componente (${pc(e(pa.i[18], pa.i[1]), 1)}) non è attribuibile a un singolo comune: sono piattaforme e progetti indicati a livello nazionale o di regione, che nella scheda del comune non si vedono. La scheda del comune e quella della sua regione non tornano, e non devono tornare.`);
+      calc(s, `Euro per abitante = importo della Missione 1.1 attribuito al territorio ÷ abitanti (<code>data/pa_digitale.json</code>, calcolato da <code>scrpits/pa_digitale.py</code>; abitanti ISTAT al 1° gennaio 2024, la stessa fonte degli altri temi). Nei comuni si conta solo la quota localizzata nel comune; nelle province i comuni più la quota provinciale; nelle regioni anche la quota regionale; l'Italia somma tutti i livelli. «Senza giustizia e ministeri» toglie le sub-misure <code>M1C1I1.06.*</code>, <code>M1C1I3.*</code> e <code>M1C1R*</code>. I sei gruppi sono elencati nella <a href="guida.html#pa-digitale">Guida</a>; gli importi vengono dagli stessi open data di Italia Domani usati dall'atlante.`);
+      limiti(s, [
+        `Il bando è una <b>cifra per amministrazione</b>, non per abitante: nei comuni piccoli l'euro per abitante è molto più alto senza che il comune abbia ricevuto di più. Il valore serve a confrontare i territori, non a dire chi è stato trattato meglio.`,
+        `La voce <b>giustizia e ministeri</b> (${pc(e(pa.i[13], pa.i[1]), 1)} della componente) è in gran parte personale e digitalizzazione interna: non passa dai comuni e non è un servizio ai cittadini. Sulla mappa si può escludere, ma nei totali della componente c'è.`,
+        `L'importo è quello <b>finanziato</b>, non quello speso: la quota pagata dice a che punto sono i pagamenti, non se il servizio funziona. Quante persone usano SPID o PagoPA in un comune non è nei dati aperti.`,
+        `La Missione 1 contiene anche reti ultraveloci, 5G, Transizione 4.0 e cultura: <b>non sono in questo tema</b>, che riguarda solo la pubblica amministrazione.`,
+      ]);
+    }
+
     /* ================= 5. Pochi comuni, molti soldi ================= */
     {
       const s = sezione('concentrazione', 'Pochi comuni prendono una fetta enorme');
@@ -523,6 +576,7 @@
       P(s, `Una domanda naturale è: quanti progetti non sono stati realizzati, e quanti soldi si sono persi? <b>I dati pubblici non permettono di rispondere.</b> Nel sistema ufficiale lo stato di un progetto ha solo tre valori: «in corso» (${nf(sp.in_corso)}), «concluso» (${nf(sp.concluso)}) e «da attivare» (${nf(sp.da_attivare)}). Non esistono «revocato», «definanziato» o «non realizzato»: un progetto abbandonato o tolto dal piano non lascia traccia con un suo stato.`);
       P(s, `Non si può nemmeno dire quanto «spettava» a una regione o a un comune. La dotazione ufficiale è fissata per misura, a livello nazionale: i ${mld(ver.senza_progetto)} senza progetto del capitolo sui conti non hanno un territorio. Per questo il confronto tra dotazione, finanziato e pagato c'è per l'Italia e per missione, ma non per regioni, province e comuni.`);
       P(s, `Anche il tema della salute ha un limite di geografia. La Missione 6 è la più concentrata del Piano: i soldi stanno dove stanno le aziende ospedaliere, e gli abitanti dei comuni vicini sono curati lì. L'euro per abitante di un comune con un policlinico non dice quanto ricevono i suoi residenti, e quello del paese accanto non dice che non hanno servizi. In più una parte dei fondi (fascicolo sanitario, telemedicina, assistenza domiciliare) è attribuita alla regione e non a un comune: non si può spalmare senza inventare una ripartizione che i dati non hanno.`);
+      P(s, `Anche la PA digitale ha un limite di lettura. I bandi sono una <b>cifra per amministrazione</b> e non per abitante, quindi i comuni piccoli risultano molto più «finanziati» a testa senza aver ricevuto di più. Un terzo della componente è giustizia e ministeri, cioè in gran parte personale e digitalizzazione interna che non passa dai comuni. E i dati dicono quanti comuni hanno attivato un servizio (SPID, PagoPA, il cloud), non quante persone lo usano: il numero di cittadini che hanno davvero fatto una pratica online non è in questi file.`);
       P(s, `Anche il confronto per età ha i suoi limiti. I residenti di 0-24 anni sono quelli del 1° gennaio 2024, l'ultimo dato ISTAT per singola età, mentre il totale degli abitanti nelle schede è del 2026: nei confronti tra anni diversi usiamo sempre la stessa fonte, ma i due totali non sono perfettamente sovrapponibili. E il PNRR non dice quante famiglie usano davvero un asilo o quante persone si iscrivono a un ITS: dice quanti posti e quante strutture sono state finanziate, non quante sono piene.`);
       P(s, `Ci sono solo indizi, da non scambiare per perdite. ${nf(cc.n)} progetti hanno il codice CUP «chiuso» ma risultano ancora «in corso», per ${nf(cc.mln, 0)} milioni di euro: forse sono stati interrotti, forse è solo una chiusura amministrativa. In più, ${nf(it.rit[0])} progetti sono «in ritardo» (${mld(it.rit[1])}, capitolo precedente) e ${nf(it.icc[0])} hanno l'iter concluso ma non sono ancora segnati come conclusi (${mld(it.icc[1])}). Sono soldi fermi o in attesa di una formalità, non soldi persi.`);
       calc(s, `Stati = campo «Stato Avanzamento Progetto» del file Progetti (estrazione del ${meta.estrazione}). CUP chiuso ma in corso = «Stato CUP» uguale a «Chiuso» e stato avanzamento «In Corso». Cifre raccolte in <code>data/verifiche.json</code> da <code>scrpits/verifiche_missioni.py</code>.`);
@@ -532,12 +586,15 @@
     /* ================= 9. Chiusura ================= */
     {
       const s = sezione('conclusione', 'Che cosa possiamo dire, e che cosa no');
+      /* numeri del tema PA digitale per la riga qui sotto */
+      const conPa = Object.values(pa.c).filter((r) => r[1] > 0).length, CGPa = Object.keys(pa.c);
       const u = H('ul'); [
         `<b>Possiamo dire</b> che, nei dati pubblici al ${meta.estrazione}, i progetti conclusi valgono ${pc(stg[4].fin / finSenzaNA, 1)} dei fondi dei progetti veri, e che il pagato è il ${pc(pagSenzaNA / finSenzaNA, 1)}.`,
         `<b>Possiamo dire</b> che il Sud e le Isole hanno una quota pagata più bassa delle altre zone, e che il tipo di progetti non basta a spiegarlo.`,
         `<b>Possiamo dire</b> che i fondi sono concentrati: pochi comuni e pochi enti ne ricevono una parte molto grande.`,
         `<b>Possiamo dire</b> che il PNRR per giovane cambia molto con la definizione e con il territorio: in senso largo il Sud riceve più dei suoi adulti, il Nord-ovest no. Non esiste un solo numero che risponda alla domanda.`,
         `<b>Possiamo dire</b> che per la salute vale il contrario di quel che si sente dire sui ritardi: il Sud ha più euro per abitante del Nord, ma ha pagato meno (circa venti punti di distanza nelle quote pagate).`,
+        `<b>Possiamo dire</b> che la PA digitale arriva in quasi tutti i comuni (${nf(conPa)} su ${nf(CGPa.length)}) e che il Sud ha più euro per abitante del Nord, ma che quella differenza non misura una diseguaglianza: il bando è una cifra per amministrazione, e nei paesi piccoli pesa di più.`,
         `<b>Non possiamo dire</b> se il PNRR «ha funzionato»: i dati misurano soldi e stati amministrativi, non i risultati per i cittadini.`,
         `<b>Non possiamo dire</b> perché ci siano ritardi o divari: servirebbero informazioni sui singoli progetti e sugli enti.`,
         `<b>Non possiamo dire</b> che i dati siano giusti. Sono quelli dichiarati dagli enti. Dove abbiamo trovato scarti, li abbiamo scritti.`,

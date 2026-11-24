@@ -292,6 +292,75 @@
         formatta: (v) => pc(v, 1), conTip, nome: 'Quota pagata dei progetti conclusi e di quelli in corso' }),
         { sub: 'Missione 6 · pagato ÷ assegnato', nota: `I progetti conclusi valgono ${eur(san.i[7])} e sono pagati al ${pc(e(san.i[8], san.i[7]), 1)}; quelli in corso valgono ${eur(san.i[2] - san.i[7])} e sono pagati al ${pc(e(san.i[3] - san.i[8], san.i[2] - san.i[7]), 1)}. La differenza è normale: un progetto concluso ha finito di essere pagato.` });
     }).catch(() => {});
+    /* ---- PA digitale: Missione 1 componente 1, dati ricalcolati da scrpits/pa_digitale.py (data/pa_digitale.json) ---- */
+    get('data/pa_digitale.json').then((pa) => {
+      /* colonne di data/pa_digitale.json: 0 abitanti, 1/2 finanziato e pagato M1C1, poi sei coppie fin/pag
+         (3/4 servizi, 5/6 cloud e piattaforme, 7/8 cybersicurezza, 9/10 facilitazione, 11/12 competenze e semplificazione,
+         13/14 giustizia e ministeri), 15 progetti, 16/17 finanziato e pagato dei progetti conclusi, 18/19 non attribuibile ai comuni. */
+      const GR = ['servizi al cittadino', 'cloud e piattaforme', 'cybersicurezza', 'facilitazione digitale', 'competenze e semplificazione', 'giustizia e ministeri'];
+      const zero = () => ({ n: 0, pop: 0, fin: 0, pag: 0, g: GR.map(() => 0), gp: GR.map(() => 0), nprog: 0, conc: 0, concp: 0, ncf: 0 });
+      const add = (t, r) => { t.n++; t.pop += r[0]; t.fin += r[1]; t.pag += r[2]; GR.forEach((_, i) => { t.g[i] += r[3 + 2 * i]; t.gp[i] += r[4 + 2 * i]; }); t.nprog += r[15]; t.conc += r[16]; t.concp += r[17]; t.ncf += r[18]; };
+      const RR = {}, T = zero();
+      for (const [id, r] of Object.entries(pa.r)) { const k = reg[id]?.rip; if (!k) continue; add(RR[k] = RR[k] || zero(), r); add(T, r); }
+      const ordRip = Object.keys(RIP).filter((k) => RR[k]);
+      const e = (x, y) => (y > 0 ? x / y : 0), E = (v) => nf(Math.round(v)) + ' €';
+      const CG = Object.entries(pa.c).map(([id, r]) => ({ id, pop: r[0], fin: r[1], pag: r[2], giust: r[13] }));
+      const conProgetti = CG.filter((c) => c.fin > 0).length, totC = CG.reduce((s, c) => s + c.fin, 0);
+      const DIM = [['meno di 1.000', 0, 1e3], ['1.000-5.000', 1e3, 5e3], ['5.000-20.000', 5e3, 2e4], ['20.000-100.000', 2e4, 1e5], ['oltre 100.000', 1e5, 1e12]];
+      const DD = DIM.map(() => ({ n: 0, pop: 0, fin: 0, con: 0 }));
+      CG.forEach((c) => { const i = DIM.findIndex(([, a, b]) => c.pop >= a && c.pop < b); if (i < 0) return; const d = DD[i]; d.n++; d.pop += c.pop; d.fin += c.fin; if (c.fin > 0) d.con++; });
+      /* concentrazione: comuni ordinati per importo della Missione 1.1 */
+      const ord = CG.slice().sort((a, b) => a.fin - b.fin);
+      let cum = 0; const lor = [[0, 0]];
+      ord.forEach((c, i) => { cum += c.fin; lor.push([(i + 1) / ord.length, totC > 0 ? cum / totC : 0]); });
+      let g = 0; for (let i = 1; i < lor.length; i++) g += (lor[i][0] - lor[i - 1][0]) * (lor[i][1] + lor[i - 1][1]);
+      const giniPa = 1 - g, top10Pa = 1 - lor[Math.floor(0.9 * ord.length)][1], meta50Pa = lor[Math.floor(0.5 * ord.length)][1];
+      /* classifiche usate nelle note: un'affermazione vale finché i numeri la reggono */
+      const rk = ordRip.slice().sort((a, b) => e(RR[a].fin, RR[a].pop) - e(RR[b].fin, RR[b].pop));
+      const pk = ordRip.map((k) => ({ n: k, q: e(RR[k].pag, RR[k].fin) })).sort((a, b) => a.q - b.q);
+      const gk = GR.map((n, i) => ({ n, i, q: e(pa.i[4 + 2 * i], pa.i[3 + 2 * i]) })).sort((a, b) => a.q - b.q);
+      const dk = DIM.map(([n], i) => ({ n, i, q: e(DD[i].fin, DD[i].pop) })).sort((a, b) => a.q - b.q);
+      cap('g-pa', 'Euro per abitante, per ripartizione', (h) => G.colonne(h, {
+        voci: [...ordRip.map((k) => ({ nome: k, val: e(RR[k].fin, RR[k].pop), col: RIP[k], sotto: 'pagato ' + pc(e(RR[k].pag, RR[k].fin)), sub: `${eur(RR[k].fin)} su ${nf(RR[k].pop)} abitanti · giustizia e ministeri ${pc(e(RR[k].g[5], RR[k].fin))}` })),
+               { nome: 'Italia', val: e(pa.i[1], pa.i[0]), col: '--s7', sotto: 'pagato ' + pc(e(pa.i[2], pa.i[1])), sub: `${eur(pa.i[1])} su ${nf(pa.i[0])} abitanti · ${pc(e(pa.i[13], pa.i[1]))} a giustizia e ministeri` }],
+        formatta: E, conTip, nome: 'PNRR per la PA digitale per abitante' }),
+        { sub: 'Missione 1.1, importi attribuibili al territorio (comuni più quote regionali) · sotto: quota pagata', nota: `Il valore più alto è in ${rk[rk.length - 1]} (${E(e(RR[rk[rk.length - 1]].fin, RR[rk[rk.length - 1]].pop))} per abitante), il più basso in ${rk[0]} (${E(e(RR[rk[0]].fin, RR[rk[0]].pop))}). Non è una scelta politica: i bandi «PA digitale» sono una cifra per amministrazione, non per abitante, e i comuni piccoli — più diffusi al Sud — ricevono molto di più a testa. Il Centro ha la quota più alta di giustizia e ministeri (${pc(e(RR.Centro.g[5], RR.Centro.fin))}), perché i tribunali stanno nelle città. Il confronto tra ripartizioni lascia fuori ${eur(pa.i[18])} di progetti indicati a livello nazionale (il ${pc(e(pa.i[18], pa.i[1]), 1)} della componente): per l'Italia intera il valore per abitante è ${E(e(pa.i[1], pa.i[0]))}.` });
+      cap('g-pa', 'Di che cosa è fatta la componente', (h) => G.colonne(h, {
+        voci: GR.map((n, i) => ({ nome: n, val: pa.i[3 + 2 * i], col: ['--c3', '--c2', '--c4', '--c5', '--s6', '--s4'][i], sub: `${pc(e(pa.i[3 + 2 * i], pa.i[1]), 1)} del totale · pagato ${pc(e(pa.i[4 + 2 * i], pa.i[3 + 2 * i]), 1)}` })),
+        formatta: eur, conTip, nome: 'Finanziamento della Missione 1.1 per tipo di misura' }),
+        { sub: 'Missione 1.1 intera · sotto: quota sul totale e quota pagata', nota: `La parte più grossa è giustizia e ministeri (${pc(e(pa.i[13], pa.i[1]), 1)}): dentro c'è l'Ufficio del Processo, che è spesa per il personale dei tribunali, e la digitalizzazione interna di INPS, Giustizia, Interno e Difesa. Seguono cloud e piattaforme (${pc(e(pa.i[5], pa.i[1]), 1)}) e i servizi al cittadino (${pc(e(pa.i[3], pa.i[1]), 1)}): sito, accessibilità, PagoPA e IO, SPID/CIE/ANPR, avvisi pubblici.` });
+      cap('g-pa', 'Che cosa è stato pagato', (h) => G.colonne(h, {
+        voci: GR.map((n, i) => ({ nome: n, val: e(pa.i[4 + 2 * i], pa.i[3 + 2 * i]), col: ['--c3', '--c2', '--c4', '--c5', '--s6', '--s4'][i], sub: `${eur(pa.i[4 + 2 * i])} pagati su ${eur(pa.i[3 + 2 * i])}` })),
+        formatta: (v) => pc(v, 1), conTip, nome: 'Quota pagata per tipo di misura' }),
+        { sub: 'pagato ÷ assegnato, Missione 1.1 intera', nota: `In Italia è stato pagato il ${pc(e(pa.i[2], pa.i[1]), 1)} della componente. I servizi al cittadino sono la parte più avanti (${pc(e(pa.i[4], pa.i[3]), 1)}) insieme a giustizia e ministeri (${pc(e(pa.i[14], pa.i[13]), 1)}); la parte più indietro è ${gk[0].n} (${pc(gk[0].q, 1)}), cioè il cloud e i progetti delle amministrazioni locali. I bandi per il cloud sono partiti prima e sono stati pagati meno: i soldi ci sono, i pagamenti no.` });
+      cap('g-pa', 'Il peso di giustizia e ministeri', (h) => G.colonne(h, {
+        voci: [...ordRip.map((k) => ({ nome: k, val: e(RR[k].g[5], RR[k].fin), col: RIP[k], sub: `${eur(RR[k].g[5])} su ${eur(RR[k].fin)}` })),
+               { nome: 'Italia', val: e(T.g[5], T.fin), col: '--s7', sub: `${eur(T.g[5])} su ${eur(T.fin)}` }],
+        formatta: (v) => pc(v, 1), conTip, nome: 'Quota della Missione 1.1 per giustizia e ministeri' }),
+        { sub: 'quota del finanziamento che va a tribunali e ministeri, non ai comuni', nota: `Al Sud e nelle Isole questa quota è più alta (${pc(e(RR.Sud.g[5], RR.Sud.fin), 1)} e ${pc(e(RR.Isole.g[5], RR.Isole.fin), 1)}) che al Nord-ovest: l'Ufficio del Processo è ripartito fra i comuni sedi di tribunale, e al Sud i tribunali pesano di più sul totale della componente. Senza questa parte il valore per abitante del Mezzogiorno scende molto: è un limite da tenere presente quando si legge la mappa.` });
+      cap('g-pa', 'Il peso della dimensione del comune', (h) => G.colonne(h, {
+        voci: DIM.map(([n], i) => ({ nome: n, val: e(DD[i].fin, DD[i].pop), col: '--c1', sotto: pc(e(DD[i].con, DD[i].n), 0) + ' con progetti', sub: `${nf(DD[i].con)} comuni su ${nf(DD[i].n)} con almeno un progetto · ${eur(DD[i].fin)} in tutto` })),
+        formatta: E, conTip, nome: 'Euro per abitante per dimensione del comune' }),
+        { sub: 'solo importi localizzati nel comune · sotto: quota di comuni con almeno un progetto', nota: `Qui il tema è l'opposto della salute: ci sono progetti in ${nf(conProgetti)} comuni su ${nf(CG.length)}, praticamente ovunque. Il valore per abitante più alto è nei comuni ${dk[dk.length - 1].n} (${E(dk[dk.length - 1].q)}), il più basso tra ${dk[0].n} (${E(dk[0].q)}). Il bando «siti e servizi digitali» è una somma quasi fissa per comune: divisa per poche centinaia di abitanti fa un numero grande, divisa per decine di migliaia fa un numero piccolo.` });
+      cap('g-pa', 'Una cifra per comune, non per abitante', (h) => G.colonne(h, {
+        voci: DIM.map(([n], i) => ({ nome: n, val: e(DD[i].fin, DD[i].n), col: '--c2', sotto: nf(DD[i].n) + ' comuni', sub: `${nf(DD[i].n)} comuni · ${eur(DD[i].fin)} in tutto · ${nf(Math.round(e(DD[i].fin, DD[i].n)))} € per comune in media` })),
+        formatta: (v) => nf(Math.round(v)) + ' €', conTip, nome: 'Importo medio per comune, per dimensione del comune' }),
+        { sub: 'media degli importi localizzati nel comune, senza dividere per gli abitanti', nota: `La media per comune cresce con la dimensione, ma molto meno che proporzionalmente: un comune sopra i 100.000 abitanti riceve in media ${E(e(DD[4].fin, DD[4].n))}, uno sotto i 1.000 ne riceve ${E(e(DD[0].fin, DD[0].n))}. Le grandi città hanno in più le opere di interesse sovracomunale (tribunali, grandi piattaforme) e i piccoli hanno il bando base.` });
+      cap('g-pa', 'Pagato contro assegnato, per ripartizione', (h) => G.colonne(h, {
+        voci: [...ordRip.map((k) => ({ nome: k, val: e(RR[k].pag, RR[k].fin), col: RIP[k], sub: `${eur(RR[k].pag)} pagati su ${eur(RR[k].fin)}` })),
+               { nome: 'Italia', val: e(pa.i[2], pa.i[1]), col: '--s7', sub: `${eur(pa.i[2])} pagati su ${eur(pa.i[1])}` }],
+        formatta: (v) => pc(v, 1), conTip, nome: 'Quota pagata della Missione 1.1, per ripartizione' }),
+        { sub: 'pagato ÷ assegnato, importi attribuibili al territorio', nota: `Sugli importi attribuibili a un territorio è pagato il ${pc(e(T.pag, T.fin), 1)} (il ${pc(e(pa.i[2], pa.i[1]), 1)} sull'intera componente). Il divario è di pochi punti e più stretto che nel resto del Piano: ${pc(pk[pk.length - 1].q, 1)} in ${pk[pk.length - 1].n} contro ${pc(pk[0].q, 1)} in ${pk[0].n}. Qui il Sud non è ultimo: la componente è fatta in gran parte di servizi e di spesa per il personale, che si pagano più in fretta delle opere.` });
+      cap('g-pa', 'Progetti conclusi e progetti in corso', (h) => G.colonne(h, {
+        voci: [{ nome: 'Conclusi', val: e(pa.i[17], pa.i[16]), col: '--c2', sub: `${eur(pa.i[17])} pagati su ${eur(pa.i[16])} (stadio «concluso»)` },
+               { nome: 'In corso', val: e(pa.i[2] - pa.i[17], pa.i[1] - pa.i[16]), col: '--c4', sub: `${eur(pa.i[2] - pa.i[17])} pagati su ${eur(pa.i[1] - pa.i[16])} (tutti gli altri stadi)` }],
+        formatta: (v) => pc(v, 1), conTip, nome: 'Quota pagata dei progetti conclusi e di quelli in corso' }),
+        { sub: 'Missione 1.1 · pagato ÷ assegnato', nota: `I progetti conclusi valgono ${eur(pa.i[16])} e sono pagati al ${pc(e(pa.i[17], pa.i[16]), 1)}; quelli in corso valgono ${eur(pa.i[1] - pa.i[16])} e sono pagati al ${pc(e(pa.i[2] - pa.i[17], pa.i[1] - pa.i[16]), 1)}. La differenza è normale: un progetto concluso ha finito di essere pagato. Quasi un quarto della componente è già chiuso.` });
+      cap('g-pa', 'Come si concentrano i soldi tra i comuni', (h) => G.lorenz(h, {
+        curva: lor.filter((_, i) => i % Math.ceil(lor.length / 400) === 0 || i === lor.length - 1), xNome: 'comuni, dal meno al più finanziato', yNome: 'quota cumulata dei fondi della Missione 1.1', conTip,
+        evidenzia: [{ x: 0.9, y: 1 - top10Pa, titolo: 'Il 90% dei comuni con meno fondi', testo: `riceve il ${pc(1 - top10Pa, 1)} della Missione 1.1` }],
+      }), { sub: `curva di Lorenz · Gini ${nf(giniPa, 2)} · importi localizzati nei comuni`, nota: `Il 10% dei comuni con più fondi riceve il ${pc(top10Pa, 1)} della componente localizzata nei comuni, la metà dei comuni con meno ne riceve il ${pc(meta50Pa, 1)}. La curva è un po' più piatta di quella del PNRR nel suo complesso (Gini ${nf(giniPa, 2)} contro ${nf(gini, 2)}), perché ogni comune riceve una quota di base — siti, servizi, PagoPA, SPID — e la parte «per tutti» arriva davvero a tutti. Ma le grandi città prendono comunque la fetta più grossa, con le piattaforme nazionali e i tribunali.` });
+    }).catch(() => {});
 
   }).catch((e) => { el('caric').textContent = 'Errore di caricamento dei dati: ' + e.message; });
 })();
