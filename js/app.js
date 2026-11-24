@@ -391,6 +391,8 @@ function creaMappa() {
     const v = INDIC[S.indic].f(c), cm = S.com[id];
     const mis = Object.entries(analisi(cells('c', id), S.cur.F).mis).filter(([, t]) => t.fin > 0).sort((a, b) => b[1].fin - a[1].fin);
     tip.innerHTML = `<b class="tip-nome">${esc(cm.nm)}</b><br><span class="tip-geo">${esc(S.prov[cm.pv]?.nome || '')} · ${esc(S.reg[cm.rg]?.nome || '')}</span><br><span class="tip-ind">${esc(INDIC[S.indic].nome.replace(/ \(.*/, ''))}: ${v == null ? 'nessun progetto' : INDIC[S.indic].fmt(v)}</span>${INDIC[S.indic].biv && AX[S.bx].f(c) != null ? `<br><span class="tip-ind">${esc(AX[S.bx].nome)}: ${esc(AX[S.bx].fmt(AX[S.bx].f(c)))}</span>` : ''}`
+      /* giovani: sotto i 50 residenti di 0-24 un solo progetto basta a produrre un valore enorme */
+      + (INDIC[S.indic].gio && (S.gio?.c[id]?.[0] ?? 0) < 50 ? `<br><span class="tip-nota">† Meno di 50 residenti di 0-24 anni: il valore per giovane è poco stabile.</span>` : '')
       + (mis.length ? `<table class="tip-mis"><caption>Finanziato per missione</caption>${mis.map(([k, t]) => `<tr><td>${esc(NOMI_MIS[k] || k)}</td><td>${eur(t.fin)}</td></tr>`).join('')}</table>` : '');
     /* sul telefono la legenda non sta più sulla mappa: la fascia di colore del comune sta qui, in forma compatta */
     if (senzaHover.matches && S.legTip) {
@@ -791,13 +793,16 @@ function giovaniRiga(liv, id) {
   if (!S.gio) return '';
   let r = null, nc = 0;
   if (liv === 'c') r = S.gio.c[id];
-  else { r = new Array(12).fill(0); for (const [k, v] of Object.entries(S.gio.c)) { const c = S.com[k]; if (!c || (liv === 'r' && c.rg !== id) || (liv === 'p' && c.pv !== id)) continue; for (let i = 0; i < 12; i++) r[i] += v[i]; nc++; } }
+  else { r = new Array(19).fill(0); for (const [k, v] of Object.entries(S.gio.c)) { const c = S.com[k]; if (!c || (liv === 'r' && c.rg !== id) || (liv === 'p' && c.pv !== id)) continue; for (let i = 0; i < v.length && i < 19; i++) r[i] += v[i]; nc++; } }
   if (!r || !(r[0] > 0)) return '';
   const [g, tot, s, l, altri, pag] = r, ad = tot - g, e = (v) => nf.format(Math.round(v)) + ' €';
+  /* residenti 0-24 nel 2022, anno dei bandi PNRR: colonna 12 del file, 0 quando il comune non c'era */
+  const g22 = r[12] || 0, varG = g22 > 0 ? (g - g22) / g22 : null;
+  const da22 = g22 > 0 ? ` · da ${nf.format(g22)} nel 2022 (${varG > 0 ? '+' : varG < 0 ? '−' : ''}${(100 * Math.abs(varG)).toFixed(1).replace('.', ',')}%)` : '';
   const ib = s > 0 || l > 0 ? `${s > 0 ? e(s / g) : '0 €'} – ${e(l / g)}` : 'nessuna misura';
   const dove = liv === 'c' ? 'localizzato nel comune' : `localizzato nei ${nf.format(nc)} comuni`;
   return `<h2>PNRR per giovane <small>0-24 anni · <a href="guida.html#giovani">come è calcolato</a></small></h2><div class="kpi">
-   <div><b>${nf.format(g)}</b><span>residenti di 0-24 anni</span><em>${(100 * g / tot).toFixed(1).replace('.', ',')} % dei residenti (ISTAT 1/1/2024)</em></div>
+   <div><b>${nf.format(g)}</b><span>residenti di 0-24 anni</span><em>${(100 * g / tot).toFixed(1).replace('.', ',')} % dei residenti (ISTAT 1/1/2024)${da22}</em></div>
    <div><b>${ib}${g < 50 ? ' <sup title="Meno di 50 residenti di 0-24 anni: un solo progetto basta a produrre un valore enorme">†</sup>' : ''}</b><span>per giovane: senso stretto – largo</span><em>${s > 0 ? `${eur(s)} stretto · pagato ${pct(pag, s)}` : l > 0 ? `solo misure miste: ${eur(l)}` : `nessun importo ${dove}`}</em></div>
    <div><b>${ad > 0 && altri > 0 ? e(altri / ad) : '–'}</b><span>per adulto (25 anni e più)</span><em>tutte le altre misure, ${eur(altri)}${liv === 'c' ? '' : ` · importi ${dove}`}</em></div></div>${g < 50 ? '<p class="nota">† Meno di 50 residenti di 0-24 anni: il valore per giovane è poco stabile.</p>' : ''}`;
 }

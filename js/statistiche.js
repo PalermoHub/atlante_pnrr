@@ -143,15 +143,35 @@
     /* ---- giovani 0-24: dati ricalcolati da scrpits/giovani.py (data/giovani.json) ---- */
     get('data/giovani.json').then((gio) => {
       const rip = (id) => reg[com[id]?.rg]?.rip;
-      const nuovo = () => ({ n: 0, g: 0, ad: 0, s: 0, l: 0, altri: 0, pag: 0, zl: 0, a: 0, sc: 0, u: 0, g05: 0, g618: 0, g1924: 0 });
-      const add = (t, r) => { t.n++; t.g += r[0]; t.ad += r[1] - r[0]; t.s += r[2]; t.l += r[3]; t.altri += r[4]; t.pag += r[5]; t.a += r[6]; t.sc += r[7]; t.u += r[8]; t.g05 += r[9]; t.g618 += r[10]; t.g1924 += r[11]; if (r[3] === 0) t.zl++; };
-      const R = {}, D = {}, T = nuovo(); const DIM = [['meno di 1.000', 0, 1e3], ['1.000-5.000', 1e3, 5e3], ['5.000-20.000', 5e3, 2e4], ['20.000-100.000', 2e4, 1e5], ['oltre 100.000', 1e5, 1e12]];
+      /* colonne di data/giovani.json: 0 giovani 2024, 1 abitanti 2024, 2/3 euro stretti/larghi, 4 altre misure,
+         5 pagato stretto, 6-8 stretti per asilo/scuola/università, 9-11 giovani per fascia,
+         12/13 giovani e abitanti 2022, 14-16 pagato per fascia, 17/18 finanziato e pagato dei progetti conclusi.
+         Le colonne nuove si aggiungono solo in coda: gli indici qui sopra non vanno spostati. */
+      const nuovo = () => ({ n: 0, g: 0, tot: 0, ad: 0, s: 0, l: 0, altri: 0, pag: 0, zl: 0, a: 0, sc: 0, u: 0, g05: 0, g618: 0, g1924: 0, g22: 0, t22: 0, ap: 0, scp: 0, up: 0, conc: 0, concp: 0 });
+      const add = (t, r) => { t.n++; t.g += r[0]; t.tot += r[1]; t.ad += r[1] - r[0]; t.s += r[2]; t.l += r[3]; t.altri += r[4]; t.pag += r[5]; t.a += r[6]; t.sc += r[7]; t.u += r[8]; t.g05 += r[9]; t.g618 += r[10]; t.g1924 += r[11]; t.g22 += r[12] || 0; t.t22 += r[13] || 0; t.ap += r[14] || 0; t.scp += r[15] || 0; t.up += r[16] || 0; t.conc += r[17] || 0; t.concp += r[18] || 0; if (r[3] === 0) t.zl++; };
+      const R = {}, D = {}, T = nuovo(), V = {}, TV = nuovo(); const CG = [];
+      const DIM = [['meno di 1.000', 0, 1e3], ['1.000-5.000', 1e3, 5e3], ['5.000-20.000', 5e3, 2e4], ['20.000-100.000', 2e4, 1e5], ['oltre 100.000', 1e5, 1e12]];
       for (const [id, r] of Object.entries(gio.c)) {
-        const k = rip(id); if (!k) continue; add(R[k] = R[k] || nuovo(), r); add(T, r);
+        const k = rip(id); if (!k) continue; CG.push([id, r]); add(R[k] = R[k] || nuovo(), r); add(T, r);
         const d = DIM.findIndex(([, a, b]) => r[1] >= a && r[1] < b); add(D[d] = D[d] || nuovo(), r);
+        /* confronto 2022-2024: solo i comuni che nel 2022 esistevano già (sei sono nati dopo) */
+        if (r[12] > 0) { add(V[k] = V[k] || nuovo(), r); add(TV, r); }
       }
       const e = (x, y) => (y > 0 ? x / y : 0), E = (v) => nf(Math.round(v)) + ' €', X = (v) => nf(v, 2) + '×';
+      const var0 = (a, b) => (a > 0 ? 100 * (b - a) / a : 0), SGN = (v) => (v > 0 ? '+' : v < 0 ? '−' : '') + nf(Math.abs(v), 1) + '%';
+      const calo = (t) => (t.g22 > 0 ? 1000 * (t.g22 - t.g) / t.g22 : 0);
       const ordRip = Object.keys(RIP).filter((k) => R[k]);
+      /* comuni con almeno 50 residenti 0-24: sotto quella soglia un solo progetto produce valori enormi (fino a maxEG) */
+      const EG = CG.filter(([, r]) => r[0] >= 50).map(([, r]) => r[2] / r[0]).sort((a, b) => a - b);
+      const sommaEG = EG.reduce((s, v) => s + v, 0) || 1;
+      let cum = 0, giniEG = 0, prec = 0;
+      EG.forEach((v, i) => { cum += v; const q0 = i / EG.length, q1 = (i + 1) / EG.length; giniEG += (q1 - q0) * (cum / sommaEG + prec); prec = cum / sommaEG; });
+      giniEG = 1 - giniEG;
+      const taglio = EG.length - Math.floor(0.1 * EG.length);
+      const top10EG = EG.slice(taglio).reduce((s, v) => s + v, 0) / sommaEG, metaEG = EG.slice(0, Math.floor(EG.length / 2)).reduce((s, v) => s + v, 0) / sommaEG;
+      const lorEG = [[0, 0]]; { let c2 = 0; EG.forEach((v, i) => { c2 += v; if (i % Math.max(1, Math.ceil(EG.length / 300)) === 0 || i === EG.length - 1) lorEG.push([(i + 1) / EG.length, c2 / sommaEG]); }); }
+      const maxEG = CG.reduce((m, [, r]) => Math.max(m, r[0] >= 50 ? r[2] / r[0] : 0), 0);
+      const maxTuttiEG = CG.reduce((m, [, r]) => Math.max(m, r[0] > 0 ? r[2] / r[0] : 0), 0);
       cap('g-gio', 'Euro per giovane, per ripartizione', (h) => G.colonne(h, {
         voci: [...ordRip.map((k) => ({ nome: k, val: e(R[k].l, R[k].g), sotto: 'adulti ' + E(e(R[k].altri, R[k].ad)), sub: `senso stretto ${E(e(R[k].s, R[k].g))} · adulti ${E(e(R[k].altri, R[k].ad))}`, col: RIP[k] })),
                { nome: 'Italia', val: e(T.l, T.g), sotto: 'adulti ' + E(e(T.altri, T.ad)), sub: `senso stretto ${E(e(T.s, T.g))} · adulti ${E(e(T.altri, T.ad))}`, col: '--s7' }],
@@ -170,6 +190,41 @@
         voci: [['0-5 anni', 'asili', T.a, T.g05], ['6-18 anni', 'scuola', T.sc, T.g618], ['19-24 anni', 'università e lavoro', T.u, T.g1924]].map(([n, s, v, p]) => ({ nome: n, val: e(v, p), sotto: s, sub: `${eur(v)} su ${nf(p)} residenti`, col: '--c3' })),
         formatta: E, conTip, nome: 'Euro per giovane per fascia d\'età, senso stretto' }),
         { sub: 'misure in senso stretto, sui residenti di ciascuna fascia', nota: 'Università e ITS servono bacini più larghi del comune: nei comuni sede il valore per giovane residente è sovrastimato, altrove sottostimato.' });
+      cap('g-gio', 'I giovani calano, e i comuni piccoli ne perdono di più', (h) => G.barre(h, {
+        voci: [...ordRip.map((k) => ({ nome: k, val: calo(V[k]), col: RIP[k], sub: `da ${nf(V[k].g22)} a ${nf(V[k].g)} (${SGN(var0(V[k].g22, V[k].g))})`, righe: [['Residenti di tutte le età', SGN(var0(V[k].t22, V[k].tot))]] })),
+               { nome: 'Italia', val: calo(TV), col: '--s7', sub: `da ${nf(TV.g22)} a ${nf(TV.g)} (${SGN(var0(TV.g22, TV.g))})`, righe: [['Residenti di tutte le età', SGN(var0(TV.t22, TV.tot))]] }],
+        formatta: (v) => nf(Math.round(v)) + ' per 1.000', conTip, nome: 'Giovani 0-24 in meno ogni 1.000 dal 2022 al 2024' }),
+        { sub: 'residenti 0-24 nel 2022 (anno dei bandi PNRR) e nel 2024', nota: `In Italia i residenti 0-24 sono passati da ${nf(TV.g22)} a ${nf(TV.g)} (${SGN(var0(TV.g22, TV.g))}), mentre i residenti di tutte le età sono ${SGN(var0(TV.t22, TV.tot))}. Il calo è più forte al Sud e nelle Isole. Popolazione ISTAT al 1° gennaio, singole età; sei comuni nati dopo il 2022 restano fuori dal confronto.` });
+      cap('g-gio', 'La perdita di giovani per dimensione del comune', (h) => G.barre(h, {
+        voci: DIM.map(([n], i) => ({ nome: n, val: D[i] ? calo(D[i]) : 0, col: '--c1', sub: D[i] ? `da ${nf(D[i].g22)} a ${nf(D[i].g)} (${SGN(var0(D[i].g22, D[i].g))})` : '', righe: D[i] ? [['Residenti di tutte le età', SGN(var0(D[i].t22, D[i].tot))]] : [] })),
+        formatta: (v) => nf(Math.round(v)) + ' per 1.000', conTip, nome: 'Giovani 0-24 in meno ogni 1.000, per dimensione del comune' }),
+        { sub: 'abitanti del comune nel 2024 · per 1.000 residenti 0-24 del 2022', nota: 'I comuni sotto i 1.000 abitanti perdono più giovani di tutti gli altri, e sono anche quelli in cui calano di più i residenti di tutte le età. Nei comuni piccoli il denominatore è piccolo: pochi giovani in meno spostano molto la percentuale.' });
+      cap('g-gio', 'Pagato contro assegnato, per ripartizione', (h) => G.colonne(h, {
+        voci: [...ordRip.map((k) => ({ nome: k, val: e(R[k].pag, R[k].s), col: RIP[k], sub: `${eur(R[k].pag)} pagati su ${eur(R[k].s)} assegnati` })),
+               { nome: 'Italia', val: e(T.pag, T.s), col: '--s7', sub: `${eur(T.pag)} pagati su ${eur(T.s)} assegnati` }],
+        formatta: (v) => pc(v, 1), conTip, nome: 'Quota pagata delle misure per i giovani, per ripartizione' }),
+        { sub: 'pagato ÷ assegnato, misure per i giovani in senso stretto', nota: `In Italia è stato pagato il ${pc(e(T.pag, T.s), 1)}. Il Nord-est è al ${pc(e(R['Nord-est'].pag, R['Nord-est'].s), 1)}, il Nord-ovest al ${pc(e(R['Nord-ovest'].pag, R['Nord-ovest'].s), 1)}; le Isole al ${pc(e(R['Isole'].pag, R['Isole'].s), 1)}. Come per il PNRR nel suo complesso, il pagato è più basso dove i progetti sono più indietro, non dove sono stati assegnati meno soldi.` });
+      cap('g-gio', 'Pagato contro assegnato, per fascia d\'età', (h) => G.colonne(h, {
+        voci: [['0-5 anni', 'asili', T.ap, T.a], ['6-18 anni', 'scuola', T.scp, T.sc], ['19-24 anni', 'università e lavoro', T.up, T.u]].map(([n, s, pg, f]) => ({ nome: n, val: e(pg, f), sotto: s, sub: `${eur(pg)} pagati su ${eur(f)} assegnati`, col: '--c3' })),
+        formatta: (v) => pc(v, 1), conTip, nome: 'Quota pagata per fascia d\'età' }),
+        { sub: 'misure in senso stretto, pagato ÷ assegnato', nota: `Le misure per i più piccoli sono le più avanti (${pc(e(T.ap, T.a), 1)}), quelle per i 19-24 anni le più indietro (${pc(e(T.up, T.u), 1)}): università, ITS e borse di studio pagano a stati di avanzamento più lenti degli asili.` });
+      cap('g-gio', 'Progetti conclusi e progetti in corso', (h) => G.colonne(h, {
+        voci: [{ nome: 'Conclusi', val: e(T.concp, T.conc), col: '--c2', sub: `${eur(T.concp)} pagati su ${eur(T.conc)} (stadio «concluso»)` },
+               { nome: 'In corso', val: e(T.pag - T.concp, T.s - T.conc), col: '--c4', sub: `${eur(T.pag - T.concp)} pagati su ${eur(T.s - T.conc)} (tutti gli altri stadi)` }],
+        formatta: (v) => pc(v, 1), conTip, nome: 'Quota pagata dei progetti conclusi e di quelli in corso' }),
+        { sub: 'misure per i giovani in senso stretto · pagato ÷ assegnato', nota: `I progetti conclusi valgono ${eur(T.conc)} e risultano pagati all'${pc(e(T.concp, T.conc), 1)}; quelli in corso valgono ${eur(T.s - T.conc)} e sono pagati al ${pc(e(T.pag - T.concp, T.s - T.conc), 1)}. La differenza è normale: un progetto concluso ha finito di essere pagato, uno in corso no.` });
+      cap('g-gio', 'Come si distribuiscono gli euro per giovane tra i comuni', (h) => G.lorenz(h, {
+        curva: lorEG, xNome: 'comuni, dal meno al più finanziato per giovane', yNome: 'quota cumulata degli euro per giovane', conTip,
+        evidenzia: [{ x: 0.9, y: 1 - top10EG, titolo: 'Il 90% dei comuni', testo: `riceve il ${pc(1 - top10EG, 1)} degli euro per giovane` }],
+      }), { sub: `curva di Lorenz · Gini ${nf(giniEG, 2)} · comuni con almeno 50 residenti 0-24`, nota: `Il 10% dei comuni con più euro per giovane ne riceve il ${pc(top10EG, 1)}, mentre la metà dei comuni con meno euro ne riceve il ${pc(metaEG, 1)}. Un solo asilo o una sola scuola possono pesare molto in un comune piccolo.` });
+      cap('g-gio', 'La mediana, comune per comune', (h) => G.colonne(h, {
+        voci: DIM.map(([n], i) => {
+          const vv = CG.filter(([, r]) => r[1] >= DIM[i][1] && r[1] < DIM[i][2] && r[0] >= 50);
+          const media = e(vv.reduce((s, [, r]) => s + r[2], 0), vv.reduce((s, [, r]) => s + r[0], 0));
+          return { nome: n, val: mediana(vv.map(([, r]) => r[2] / r[0])), col: '--c1', sub: `${nf(vv.length)} comuni · media ${E(media)}` };
+        }),
+        formatta: E, conTip, nome: 'Mediana degli euro per giovane, per dimensione del comune' }),
+        { sub: 'metà dei comuni sta sopra, metà sotto · almeno 50 residenti 0-24', nota: `La media ponderata è più alta della mediana perché pochi comuni con un progetto grande tirano su il valore: ${E(e(T.s, T.g))} contro ${E(mediana(EG))} per giovane in Italia. Tra i comuni con almeno 50 residenti 0-24 il caso estremo arriva a ${E(maxEG)} per giovane; sotto quella soglia si arriva a ${E(maxTuttiEG)}, e per questo li teniamo fuori dal calcolo. Un progetto non basta a dire che i giovani di quel comune ricevano quei soldi.` });
     }).catch(() => {});
   }).catch((e) => { el('caric').textContent = 'Errore di caricamento dei dati: ' + e.message; });
 })();
