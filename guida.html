@@ -50,7 +50,7 @@
   <p class="intro">L'Atlante del PNRR mette sulla mappa i 291.398 progetti del Piano Nazionale di Ripresa e Resilienza. Questa guida spiega a cosa serve, come si usa e che cosa i dati permettono di dire (e di non dire). Le immagini si ingrandiscono con un clic e si sfogliano come una galleria.</p>
 
   <nav class="indice" aria-label="In questa pagina">
-    <a href="#a-cosa-serve">A cosa serve</a><a href="#orientarsi">Orientarsi</a><a href="#cercare">Cercare un comune</a><a href="#scheda">La scheda</a><a href="#mappa">Colorare la mappa</a><a href="#lente">La lente</a><a href="#filtri">Filtrare</a><a href="#altre-pagine">Statistiche e relazione</a><a href="#telefono">Da telefono</a><a href="#strumenti">Info, tema, condividi</a><a href="#parole">Le parole dei dati</a><a href="#giovani">PNRR per giovane</a><a href="#limiti">Cosa i dati non dicono</a>
+    <a href="#a-cosa-serve">A cosa serve</a><a href="#orientarsi">Orientarsi</a><a href="#cercare">Cercare un comune</a><a href="#scheda">La scheda</a><a href="#mappa">Colorare la mappa</a><a href="#lente">La lente</a><a href="#filtri">Filtrare</a><a href="#altre-pagine">Statistiche e relazione</a><a href="#telefono">Da telefono</a><a href="#strumenti">Info, tema, condividi</a><a href="#parole">Le parole dei dati</a><a href="#giovani">PNRR per giovane</a><a href="#sanita">PNRR per la salute</a><a href="#limiti">Cosa i dati non dicono</a>
   </nav>
 
   <section class="capitolo" id="a-cosa-serve" aria-labelledby="t-serve"><h2 id="t-serve">A cosa serve</h2>
@@ -344,6 +344,48 @@
     <p class="nota">Idea di partenza: Piero Boccardo, <a href="https://groundtruth.space/contributi/pnrr-giovani-2026/" target="_blank" rel="noopener">«Quanto PNRR per ogni giovane»</a> (Ground Truth, 24 novembre 2026). I nostri numeri sono ricalcolati con una classificazione propria.</p>
   </section>
 
+  <section class="capitolo" id="sanita" aria-labelledby="t-san"><h2 id="t-san">PNRR per la salute: come è calcolato</h2>
+    <p>Qui la scelta delle misure non è nostra: la <b>Missione 6 «Salute»</b> è una delle sette missioni del Piano e raccoglie tutti gli investimenti sanitari. È divisa in due componenti, e la differenza fra le due è la cosa più interessante da guardare.</p>
+    <h3>6.1 · Reti di prossimità, strutture e telemedicina per l'assistenza territoriale</h3>
+    <ul class="elenco">
+      <li><code>M6C1I1.01.00</code> Case della Comunità e presa in carico della persona</li>
+      <li><code>M6C1I1.02.01</code> Casa come primo luogo di cura (assistenza domiciliare)</li>
+      <li><code>M6C1I1.02.02</code> Centrali operative territoriali (COT)</li>
+      <li><code>M6C1I1.02.03</code> Telemedicina per un migliore supporto ai pazienti cronici</li>
+      <li><code>M6C1I1.03.00</code> Rafforzamento dell'assistenza sanitaria intermedia e delle sue strutture (Ospedali di Comunità)</li>
+    </ul>
+    <h3>6.2 · Innovazione, ricerca e digitalizzazione del servizio sanitario</h3>
+    <ul class="elenco">
+      <li><code>M6C2I1.01.01</code> Ammodernamento del parco tecnologico e digitale ospedaliero (digitalizzazione)</li>
+      <li><code>M6C2I1.01.02</code> Ammodernamento del parco tecnologico e digitale ospedaliero (grandi apparecchiature)</li>
+      <li><code>M6C2I1.02.00</code> Verso un ospedale sicuro e sostenibile</li>
+      <li><code>M6C2I1.03.01</code> Infrastruttura tecnologica e strumenti per la raccolta, l'elaborazione e l'analisi dei dati (fascicolo sanitario elettronico)</li>
+      <li><code>M6C2I1.03.02</code> Infrastruttura tecnologica: potenziamento, modello predittivo, SDK</li>
+      <li><code>M6C2I2.01.00</code> Rafforzamento e potenziamento della ricerca biomedica del SSN</li>
+      <li><code>M6C2I2.02.01</code> Borse aggiuntive in formazione di medicina generale</li>
+      <li><code>M6C2I2.02.02</code> Corso di formazione in infezioni ospedaliere</li>
+      <li><code>M6C2I2.02.03</code> Corso di formazione manageriale</li>
+      <li><code>M6C2I2.02.04</code> Contratti di formazione medico-specialistica</li>
+    </ul>
+    <h3>Come si calcola</h3>
+    <ul class="elenco">
+      <li><b>Euro per abitante</b> = importo della Missione 6 attribuito al territorio, ripartito con la percentuale di localizzazione dichiarata, diviso per gli abitanti (ISTAT, popolazione residente al 1° gennaio 2024).</li>
+      <li><b>Comuni</b>: solo la quota localizzata nel comune. <b>Province</b>: i comuni che ne fanno parte più la quota localizzata in provincia. <b>Regioni</b>: i comuni più la provincia più la quota localizzata nella regione. <b>Italia</b>: tutti i livelli.</li>
+      <li>La quota regionale (circa 3,3 miliardi su 14,9) comprende fascicolo sanitario, telemedicina e assistenza domiciliare, che sono programmi regionali: <b>compare solo nella scheda della regione</b> e non è spalmata sui comuni. Per questo la scheda del comune e quella della sua regione non tornano, e non devono tornare.</li>
+      <li><b>Quota di prossimità</b> = importo della componente 6.1 diviso il totale della Missione 6. Dice quanta parte dei soldi va all'assistenza sul territorio invece che a ospedali, macchine e digitalizzazione.</li>
+      <li><b>Case della Comunità</b>: si contano i progetti della sub-misura <code>M6C1I1.01.00</code> localizzati nel territorio. «Abitanti per Casa della Comunità» è una media, non un obiettivo di Piano: non ci sono, nei dati aperti, i target per comune.</li>
+      <li><b>Residenti di 65 anni e più</b>: stessa fonte e stessa data (ISTAT, singole età al 1° gennaio 2024). Serve come misura approssimativa del bisogno: non è una misura di salute.</li>
+    </ul>
+    <h3>Cosa non dice</h3>
+    <ul class="elenco">
+      <li>L'opera è localizzata <b>dove sta</b> (ospedale, azienda sanitaria, Casa della Comunità), non dove vivono i pazienti. Un policlinico in una città serve un'intera regione: gli euro per abitante di quel comune sono gonfiati e quelli dei comuni vicini sbagliati per difetto.</li>
+      <li>Un comune su cinque ha almeno un progetto della Missione 6: negli altri l'indicatore segna zero o resta grigio. Non vuol dire che non ci siano servizi sanitari, ma che il PNRR non ne ha finanziato uno lì.</li>
+      <li>L'importo è quello <b>finanziato</b>, non quello speso: la quota pagata dice a che punto sono i pagamenti, non se l'opera funziona.</li>
+      <li>Il PNRR non copre l'intera spesa sanitaria, e nemmeno gli investimenti sanitari: sanità ordinaria, edilizia sanitaria e infrastrutture finanziate da altre fonti non compaiono qui.</li>
+      <li>Il bisogno sanitario non si misura con l'età. Quota di anziani e reddito sono le uniche variabili di contesto che abbiamo per comune: servono a farsi una domanda, non a dare una risposta.</li>
+    </ul>
+  </section>
+
   <section class="capitolo" id="limiti" aria-labelledby="t-lim"><h2 id="t-lim">Cosa i dati non dicono</h2>
     <ul class="elenco">
       <li>I dati sono <b>dichiarati dai soggetti attuatori</b> in ReGiS e non sono verificati dall'atlante.</li>
@@ -359,7 +401,7 @@
 <script src="js/cima.js?v=2" defer></script>
 <script src="js/piede.js?v=1" defer></script>
 <script src="js/menu.js?v=6" defer></script>
-<script src="js/info.js?v=14" defer></script>
+<script src="js/info.js?v=15" defer></script>
 <script src="js/galleria.js?v=1" defer></script>
 </body>
 </html>

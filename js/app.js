@@ -148,11 +148,20 @@ const INDIC = {
   gio_rapp: { gio: 1, nome: 'Euro per giovane rispetto agli euro per adulto (rapporto)', f: (c) => { const r = S.gio?.c[c.id]; if (!r || r[0] <= 0 || r[1] - r[0] <= 0 || r[3] <= 0 || r[4] <= 0) return null; return (r[3] / r[0]) / (r[4] / (r[1] - r[0])); }, fmt: (v) => v.toFixed(2).replace('.', ',') + '×' },
   gio_quota: { gio: 1, nome: 'Quota di residenti di 0-24 anni (%)', f: (c) => { const r = S.gio?.c[c.id]; return r && r[1] > 0 ? r[0] / r[1] : null; }, fmt: (v) => (100 * v).toFixed(1).replace('.', ',') + ' %' },
   gio_pag: { gio: 1, nome: 'Quota già pagata delle misure esclusive per i giovani (%)', f: (c) => { const r = S.gio?.c[c.id]; return r && r[2] > 0 ? r[5] / r[2] : null; }, fmt: (v) => (100 * v).toFixed(0) + ' %' },
+  /* Salute: Missione 6 del Piano (data/sanita.json, scrpits/sanita.py), indipendente dai filtri.
+     Riga: [abitanti, 65+, € M6, pagato M6, € M6C1, pagato M6C1, € M6C2, € conclusi, pagato conclusi, progetti, € Case della Comunità, n Case della Comunità] */
+  san_pc: { san: 1, nome: 'PNRR per la salute per abitante (€)', f: (c) => { const r = san(c); return r && r[0] > 0 && r[2] > 0 ? r[2] / r[0] : null; }, fmt: (v) => nf.format(Math.round(v)) + ' €' },
+  san_c1: { san: 1, nome: 'Quota della Missione 6 per la sanità di prossimità (%)', f: (c) => { const r = san(c); return r && r[2] > 0 ? r[4] / r[2] : null; }, fmt: (v) => (100 * v).toFixed(0) + ' %' },
+  san_pag: { san: 1, nome: 'Quota già pagata della Missione 6 «Salute» (%)', f: (c) => { const r = san(c); return r && r[2] > 0 ? r[3] / r[2] : null; }, fmt: (v) => (100 * v).toFixed(0) + ' %' },
+  san_cdc: { san: 1, nome: 'Abitanti per Casa della Comunità', f: (c) => { const r = san(c); return r && r[11] > 0 ? r[0] / r[11] : null; }, fmt: (v) => nf.format(Math.round(v)) + ' ab.' },
+  san_o65: { san: 1, nome: 'Quota di residenti di 65 anni e più (%)', f: (c) => { const r = san(c); return r && r[0] > 0 ? r[1] / r[0] : null; }, fmt: (v) => (100 * v).toFixed(1).replace('.', ',') + ' %' },
   incrocio: { biv: 1, nome: 'Incrocio di due indicatori (carta a due variabili)', f: (c) => AX[S.by].f(c), fmt: (v) => AX[S.by].fmt(v) },
   dom: { nome: 'Missione prevalente (per importo)', cat: true, f: (c) => (c.fin > 0 ? c.dom : null), fmt: (k) => NOMI_MIS[k] || k },
 };
 /* Assi dell'incrocio: gli indicatori numerici di INDIC; per i giovani lo zero conta (comuni con molti giovani e nessun euro), per gli altri «nessun progetto» resta senza colore */
 const gv = (c) => S.gio?.c[c.id];
+/* riga del tema salute: i codici di comune (6 cifre), provincia (3) e regione (1-2) non si sovrappongono */
+const san = (c) => (c.id == null ? S.san?.i : (S.san?.c[c.id] || S.san?.p[c.id] || S.san?.r[c.id] || null));
 const AX = {
   fin_pc: { ...INDIC.fin_pc, nome: 'Euro per abitante' }, pag: { ...INDIC.pag, nome: 'Quota pagata' }, conc: { ...INDIC.conc, nome: 'Quota di importo concluso' }, rit: { ...INDIC.rit, nome: 'Quota in ritardo' },
   gio_quota: { ...INDIC.gio_quota, nome: 'Quota di residenti 0-24' },
@@ -160,6 +169,11 @@ const AX = {
   gio_s: { nome: 'Euro per giovane (stretto)', f: (c) => { const r = gv(c); return r && r[0] > 0 ? r[2] / r[0] : null; }, fmt: INDIC.gio_s.fmt },
   gio_rapp: { nome: 'Euro per giovane / euro per adulto', f: (c) => { const r = gv(c); return r && r[0] > 0 && r[1] - r[0] > 0 && r[4] > 0 ? (r[3] / r[0]) / (r[4] / (r[1] - r[0])) : null; }, fmt: INDIC.gio_rapp.fmt },
   gio_pag: { ...INDIC.gio_pag, nome: 'Quota pagata (misure per i giovani)' },
+  san_pc: { ...INDIC.san_pc, nome: 'Euro per abitante (Missione 6, salute)' },
+  san_c1: { ...INDIC.san_c1, nome: 'Quota sulla sanità di prossimità' },
+  san_pag: { ...INDIC.san_pag, nome: 'Quota pagata (Missione 6)' },
+  san_cdc: { ...INDIC.san_cdc, nome: 'Abitanti per Casa della Comunità' },
+  san_o65: { ...INDIC.san_o65, nome: 'Quota di residenti 65 e più' },
   /* contesto esterno (data/contesto.json, scrpits/contesto.py): non dipende dai filtri né dai progetti */
   reddito: { nome: 'Reddito imponibile medio per contribuente', f: (c) => S.cont?.c[c.id]?.[0] ?? null, fmt: (v) => nf.format(Math.round(v)) + ' €' },
   spop: { nome: 'Variazione dei residenti 2011→2024 (%)', f: (c) => { const r = S.cont?.c[c.id]; return r && r[4] > 0 && r[5] > 0 ? 100 * (r[5] - r[4]) / r[4] : null; }, fmt: (v) => (v > 0 ? '+' : v < 0 ? '−' : '') + nf.format(Math.round(Math.abs(v) * 10) / 10) + ' %' },
@@ -248,7 +262,7 @@ function aggiornaMappa() {
   const mio = S.cur.liv === 'c' ? S.clsMap[S.cur.id] : undefined, cn = S.cur.liv === 'c' ? S.com[S.cur.id].nm : '';
   setLegenda(I, (v.length ? `<ul class="cat">${cont.map((n, i) => `<li><button type="button" data-k="${i}" class="${S.cls?.has(i) ? 'on' : ''}${mio === i ? ' qui' : ''}" aria-pressed="${!!S.cls?.has(i)}" title="Mostra solo i comuni di questa classe"><i style="background:${r[Math.min(i, k - 1)]}"></i>${esc(lim(i))}<small>${nf.format(n)} comuni</small></button></li>`).join('')}</ul>` : '')
     + (mio !== undefined ? `<div class="leg-fascia"><b>${esc(cn)}</b>: ${esc(I.fmt(I.f(S.vals[S.cur.id])))} → fascia ${mio + 1} di ${nc}</div>` : S.cur.liv === 'c' ? `<div class="leg-fascia"><b>${esc(cn)}</b>: nessun progetto, resta grigio</div>` : '')
-    + `<div class="nota-leg">${S.cls ? '<button type="button" data-k="tutte" class="tutte">Mostra tutte le classi</button> · ' : 'Clic su una classe per isolarla · '}${S.adatta ? 'scala adattata al territorio' : 'scala su tutta Italia'}${nFiltri(F) ? (I.gio ? ' · questo indicatore non risente dei filtri' : ' · con i filtri attivi') : ''}. Grigio: nessun progetto${S.cls ? ' o classe esclusa' : ''}.</div>`);
+    + `<div class="nota-leg">${S.cls ? '<button type="button" data-k="tutte" class="tutte">Mostra tutte le classi</button> · ' : 'Clic su una classe per isolarla · '}${S.adatta ? 'scala adattata al territorio' : 'scala su tutta Italia'}${nFiltri(F) ? (I.gio || I.san ? ' · questo indicatore non risente dei filtri' : ' · con i filtri attivi') : ''}. Grigio: nessun progetto${S.cls ? ' o classe esclusa' : ''}.</div>`);
   aggiornaQuadro();
 }
 /* Carta a due variabili: due indicatori a scelta (assi AX), tre classi ciascuno con terzili su tutti i comuni d'Italia */
@@ -811,6 +825,29 @@ function giovaniRiga(liv, id) {
    <div><b>${ib}${g < 50 ? ' <sup title="Meno di 50 residenti di 0-24 anni: un solo progetto basta a produrre un valore enorme">†</sup>' : ''}</b><span>per giovane: senso stretto – largo</span><em>${s > 0 ? `${eur(s)} stretto · pagato ${pct(pag, s)}` : l > 0 ? `solo misure miste: ${eur(l)}` : `nessun importo ${dove}`}</em></div>
    <div><b>${ad > 0 && altri > 0 ? e(altri / ad) : '–'}</b><span>per adulto (25 anni e più)</span><em>tutte le altre misure, ${eur(altri)}${liv === 'c' ? '' : ` · importi ${dove}`}</em></div></div>${g < 50 ? '<p class="nota">† Meno di 50 residenti di 0-24 anni: il valore per giovane è poco stabile.</p>' : ''}`;
 }
+/* riga «PNRR per la salute» della scheda: Missione 6 (data/sanita.json, scrpits/sanita.py), non segue i filtri.
+   Riga: [abitanti, 65+, € M6, pagato M6, € M6C1, pagato M6C1, € M6C2, € conclusi, pagato conclusi,
+   progetti, € Case della Comunità, n Case della Comunità, € non attribuibile ai comuni, pagato non attribuibile] */
+function sanitaRiga(liv, id) {
+  if (!S.san) return '';
+  const r = liv === 'c' ? S.san.c[id] : liv === 'p' ? S.san.p[id] : liv === 'r' ? S.san.r[id] : S.san.i;
+  if (!r || !(r[0] > 0)) return '';
+  const [pop, o65, fin, pag, c1, , , , , n, , ncdc, ncf] = r;
+  const e = (v) => nf.format(Math.round(v)) + ' €';
+  /* quanti comuni del territorio hanno almeno un progetto della Missione 6 */
+  let con = 0, tutti = 0;
+  if (liv !== 'c') for (const [k, v] of Object.entries(S.san.c)) { const cm = S.com[k]; if (!cm || (liv === 'r' && cm.rg !== id) || (liv === 'p' && cm.pv !== id)) continue; tutti++; if (v[2] > 0) con++; }
+  const nota = liv === 'c'
+    ? (fin > 0
+      ? `Solo gli importi localizzati nel comune. Un ospedale o una Casa della Comunità servono anche i comuni vicini: il valore per abitante dice dove è stata finanziata l'opera, non quanto ne ricevono i residenti.`
+      : `Nessun progetto della Missione 6 «Salute» localizzato in questo comune. Non vuol dire che il comune non abbia servizi sanitari: molti progetti (fascicolo sanitario, telemedicina, assistenza domiciliare) sono attribuiti alla regione e non a un singolo comune.`)
+    : `Include ${pct(ncf, fin)} di fondi non attribuibili a un singolo comune (fascicolo sanitario, telemedicina, assistenza domiciliare), perché sono progetti indicati a livello ${liv === 'r' ? 'di regione, di provincia o nazionale' : liv === 'p' ? 'di provincia' : 'di regione, di provincia o nazionale'} e non di comune. ${nf.format(con)} comuni su ${nf.format(tutti)} hanno almeno un progetto.`;
+  return `<h2>PNRR per la salute <small>Missione 6 · <a href="guida.html#sanita">come è calcolato</a></small></h2><div class="kpi">
+   <div><b>${fin > 0 ? e(fin / pop) : '0 €'}</b><span>per abitante</span><em>${fin > 0 ? `${eur(fin)} finanziati in ${nf.format(n)} progetti` : 'nessun importo localizzato'}</em></div>
+   <div><b>${fin > 0 ? pct(pag, fin) : '–'}</b><span>pagato (${eur(pag)})</span><em>pagamenti / finanziamento della Missione 6</em></div>
+   <div><b>${fin > 0 ? pct(c1, fin) : '–'}</b><span>per la sanità di prossimità</span><em>${ncdc > 0 ? `${nf.format(ncdc)} Case della Comunità · 1 ogni ${nf.format(Math.round(pop / ncdc))} abitanti` : 'nessuna Casa della Comunità'}</em></div></div>
+   <p class="nota">${nota}</p>`;
+}
 function disegnaScheda(liv, id, n, nome, F) {
   const A = analisi(cells(liv, id), F), T = A.tot, nfil = nFiltri(F);
   const livNome = { null: 'Italia', r: 'Regione', p: 'Provincia', c: 'Comune' }[liv];
@@ -824,6 +861,7 @@ function disegnaScheda(liv, id, n, nome, F) {
    <div><b>${pct(A.fase[3].fin, base.fin)}</b><span>importo dei progetti conclusi</span><em>${nf.format(A.fase[3].n)} progetti · su quelli con avanzamento rilevato</em></div></div>`;
   h += posizione(liv, id, n, F);
   h += giovaniRiga(liv, id);
+  h += sanitaRiga(liv, id);
   h += '<div id="analisi"></div>';
   /* imbuto: ogni riga è un filtro sullo stadio */
   h += `<h2>Dal finanziamento alla fine dei lavori <small>clic per filtrare</small></h2><div class="imbuto">`;
@@ -1063,8 +1101,8 @@ function iniziaProgetti(n, nome, F) {
 /* ---------- avvio ---------- */
 async function init() {
   try {
-    const [meta, it, reg, prov, com, bbox, ci, cr, cp, cc, ver, cupc, giovani, contesto] = await Promise.all(['meta', 'italia', 'regioni', 'province', 'comuni', 'bbox', 'cubo_i', 'cubo_r', 'cubo_p', 'cubo_c', 'verifiche', 'cup_chiusi', 'giovani', 'contesto'].map((n) => get(`data/${n}.json`).catch((e) => { if (n === 'giovani' || n === 'contesto') return null; throw e; })));
-    Object.assign(S, { meta, it, reg, prov, com, bbox, ver, cupc, gio: giovani, cont: contesto }); S.cube = { i: ci, r: cr, p: cp, c: cc };
+    const [meta, it, reg, prov, com, bbox, ci, cr, cp, cc, ver, cupc, giovani, contesto, sanita] = await Promise.all(['meta', 'italia', 'regioni', 'province', 'comuni', 'bbox', 'cubo_i', 'cubo_r', 'cubo_p', 'cubo_c', 'verifiche', 'cup_chiusi', 'giovani', 'contesto', 'sanita'].map((n) => get(`data/${n}.json`).catch((e) => { if (n === 'giovani' || n === 'contesto' || n === 'sanita') return null; throw e; })));
+    Object.assign(S, { meta, it, reg, prov, com, bbox, ver, cupc, gio: giovani, cont: contesto, san: sanita }); S.cube = { i: ci, r: cr, p: cp, c: cc };
     /* gerarchia del piano per ogni sub-misura (indice delle celle) e dotazione ufficiale aggregata per livello */
     S.sx = { mis: meta.sub.map((c) => c.slice(0, 2)), comp: meta.sub.map(compDi), msr: meta.sub.map(msrDi), sub: meta.sub.slice(), mi: meta.sub.map((c) => meta.missioni.indexOf(c.slice(0, 2))) };
     S.dotL = { comp: {}, msr: {}, sub: {} };

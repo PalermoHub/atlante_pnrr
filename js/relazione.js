@@ -38,7 +38,7 @@
     host.append(w); return w;
   }
 
-  Promise.all(['italia', 'regioni', 'province', 'comuni', 'meta', 'cubo_c', 'cubo_i', 'cubo_r', 'verifiche', 'giovani', 'contesto'].map(get)).then(([it, reg, prov, com, meta, cc, ci, cr, ver, gio, cont]) => {
+  Promise.all(['italia', 'regioni', 'province', 'comuni', 'meta', 'cubo_c', 'cubo_i', 'cubo_r', 'verifiche', 'giovani', 'contesto', 'sanita'].map(get)).then(([it, reg, prov, com, meta, cc, ci, cr, ver, gio, cont, san]) => {
     el('caric').remove();
 
     /* ================= calcoli di base ================= */
@@ -119,11 +119,15 @@
       gio_s: { gio: 1, nome: 'Euro per giovane (senso stretto)', fmt: (v) => nf(Math.round(v)) + ' €', desc: 'Solo le misure quasi esclusive per i giovani, divise per i residenti di 0-24 anni (ISTAT 1/1/2024).', v: (o) => (o.gio && o.gio[0] > 0 ? o.gio[2] / o.gio[0] : null) },
       gio_quota: { gio: 1, nome: 'Quota di residenti 0-24', fmt: (v) => pc(v, 1), desc: 'Quanta parte degli abitanti ha tra 0 e 24 anni (ISTAT 1/1/2024).', v: (o) => (o.gio && o.gio[1] > 0 ? o.gio[0] / o.gio[1] : null) },
       gio_pag: { gio: 1, nome: 'Quota pagata delle misure per i giovani', fmt: (v) => pc(v, 1), desc: 'Pagato diviso assegnato per le misure quasi esclusive per i giovani.', v: (o) => (o.gio && o.gio[2] > 0 ? o.gio[5] / o.gio[2] : null) },
+      san_pc: { san: 1, nome: 'Euro per abitante (Missione 6, salute)', fmt: (v) => nf(v) + ' €', desc: 'Finanziamento della Missione 6 «Salute» diviso per gli abitanti. Nei comuni solo la quota localizzata nel comune; nelle regioni anche i fondi attribuiti alla regione (fascicolo sanitario, telemedicina, assistenza domiciliare).', v: (o) => (o.san && o.san[0] > 0 && o.san[2] > 0 ? o.san[2] / o.san[0] : null) },
+      san_c1: { san: 1, nome: 'Quota per la sanità di prossimità', fmt: (v) => pc(v, 1), desc: 'Quanta parte della Missione 6 va alla componente 6.1: Case e Ospedali di Comunità, centrali operative, assistenza domiciliare, telemedicina. Il resto è su ospedali, grandi apparecchiature, fascicolo sanitario e ricerca.', v: (o) => (o.san && o.san[2] > 0 ? o.san[4] / o.san[2] : null) },
+      san_pag: { san: 1, nome: 'Quota già pagata della Missione 6', fmt: (v) => pc(v, 1), desc: 'Pagato diviso assegnato per la Missione 6 «Salute».', v: (o) => (o.san && o.san[2] > 0 ? o.san[3] / o.san[2] : null) },
+      san_cdc: { san: 1, nome: 'Abitanti per Casa della Comunità', fmt: (v) => nf(v) + ' ab.', desc: 'Abitanti del territorio diviso il numero di Case della Comunità finanziate (sub-misura M6C1I1.01.00). È una media, non un obiettivo di Piano.', v: (o) => (o.san && o.san[11] > 0 ? o.san[0] / o.san[11] : null) },
     };
     const DATI = {
-      c: () => CF,
-      p: () => Object.fromEntries(provs.map((p) => [p.id, { fin: p.fin, pag: p.pag, conc: p.fs[4], rit: p.rit[1], pop: p.pop, gio: GIOP[p.id] }])),
-      r: () => Object.fromEntries(regs.map((r) => [r.id, { fin: r.fin, pag: r.pag, conc: r.fs[4], rit: r.rit[1], pop: r.pop, gio: GIOR[r.id] }])),
+      c: () => Object.fromEntries(Object.entries(CF).map(([id, o]) => [id, { ...o, san: san.c[id] }])),
+      p: () => Object.fromEntries(provs.map((p) => [p.id, { fin: p.fin, pag: p.pag, conc: p.fs[4], rit: p.rit[1], pop: p.pop, gio: GIOP[p.id], san: san.p[p.id] }])),
+      r: () => Object.fromEntries(regs.map((r) => [r.id, { fin: r.fin, pag: r.pag, conc: r.fs[4], rit: r.rit[1], pop: r.pop, gio: GIOR[r.id], san: san.r[r.id] }])),
     };
     const NOME = { c: (id) => `${CF[id]?.nm} (${prov[CF[id]?.pv]?.sigla || ''})`, p: (id) => prov[id]?.nome, r: (id) => reg[id]?.nome };
     let protocollo = false;
@@ -395,6 +399,51 @@
       P(s, `L'idea di confrontare il PNRR con l'età dei residenti viene dal contributo di Piero Boccardo, <a href="https://groundtruth.space/contributi/pnrr-giovani-2026/" rel="noopener">«Quanto PNRR per ogni giovane»</a> (Ground Truth). I numeri di questa pagina sono ricalcolati da noi con una classificazione nostra e non coincidono con i suoi: il confronto sensato è sull'ordine di grandezza, non sulla cifra singola.`);
     }
 
+
+    /* ================= 4 ter. Salute ================= */
+    {
+      const s = sezione('sanita', 'Quanto PNRR per la salute');
+      /* aggregati per ripartizione dalle righe di regione (comuni più quota regionale), come data/sanita.json */
+      const R = {}, T = { n: 0, pop: 0, o65: 0, fin: 0, pag: 0, c1: 0, c2: 0, conc: 0, concp: 0, ncdc: 0, ncf: 0 };
+      for (const [id, r] of Object.entries(san.r)) {
+        const k = reg[id]?.rip; if (!k) continue;
+        const a = R[k] || (R[k] = { n: 0, pop: 0, o65: 0, fin: 0, pag: 0, c1: 0, c2: 0, conc: 0, concp: 0, ncdc: 0, ncf: 0 });
+        for (const t of [a, T]) { t.n++; t.pop += r[0]; t.o65 += r[1]; t.fin += r[2]; t.pag += r[3]; t.c1 += r[4]; t.c2 += r[6]; t.conc += r[7]; t.concp += r[8]; t.ncdc += r[11]; t.ncf += r[12] || 0; }
+      }
+      const CG = Object.entries(san.c).map(([id, r]) => ({ id, nm: String(com[id]?.nm ?? ''), pop: r[0], fin: r[2], pag: r[3] }));
+      const con = CG.filter((c) => c.fin > 0).length, senza = CG.length - con;
+      const e = (x, y) => (y > 0 ? x / y : 0), eur0 = (v) => nf(Math.round(v)) + ' €';
+      const ordRip = ORD_RIP.filter((k) => R[k]);
+      const roma = CG.slice().sort((a, b) => b.fin - a.fin)[0];
+      const ord = CG.slice().sort((a, b) => a.fin - b.fin);
+      const quotaDa = (q) => { const k = Math.floor(ord.length * q); return ord.slice(k).reduce((x, c) => x + c.fin, 0) / totC; };
+      const totC = CG.reduce((x, c) => x + c.fin, 0);
+      const top10 = quotaDa(0.9);
+      P(s, `La salute è l'unico tema di questa lettura in cui la scelta delle misure non è nostra: il Piano ha una <b>missione 6 «Salute»</b>, con dentro <b>${nf(san.i[9])} progetti</b> e <b>${mld(san.i[2], 2)} di euro</b>. È divisa in due: la componente <b>6.1</b> porta l'assistenza sul territorio (Case della Comunità, Ospedali di Comunità, centrali operative, assistenza domiciliare, telemedicina), la <b>6.2</b> resta su ospedali, grandi apparecchiature, fascicolo sanitario e ricerca. È il tema più concentrato del Piano: <b>${nf(con)} comuni su ${nf(CG.length)}</b> (${pc(con / CG.length, 1)}) hanno almeno un progetto, e ${nf(senza)} non ne hanno nessuno.`);
+      P(s, `Il conto più semplice è l'euro per abitante: in Italia sono <b>${eur0(e(san.i[2], san.i[0]))}</b> per la Missione 6, con il <b>${pc(e(san.i[3], san.i[2]), 1)}</b> già pagato (${eur0(e(T.fin, T.pop))} guardando solo gli importi attribuibili a un territorio, perché ${mld(san.i[2] - T.fin)} sono progetti indicati a livello nazionale). Il confronto tra ripartizioni va però fatto con attenzione, perché qui — al contrario dei giovani — il Sud non è indietro nella distribuzione: al Sud sono <b>${eur0(e(R.Sud.fin, R.Sud.pop))}</b> per abitante e nelle Isole ${eur0(e(R.Isole.fin, R.Isole.pop))}, contro ${eur0(e(R['Nord-est'].fin, R['Nord-est'].pop))} nel Nord-est. Contano anche i ${mld(T.ncf)} attribuiti alle regioni e non a un singolo comune — fascicolo sanitario, telemedicina, assistenza domiciliare — che vanno in gran parte al Mezzogiorno e che nella scheda del comune non si vedono.`);
+      P(s, `Il divario vero non è dove i soldi sono assegnati, ma quanti ne sono stati pagati: <b>${pc(e(R['Nord-ovest'].pag, R['Nord-ovest'].fin), 1)}</b> nel Nord-ovest, ${pc(e(R['Nord-est'].pag, R['Nord-est'].fin), 1)} nel Nord-est, ${pc(e(R.Isole.pag, R.Isole.fin), 1)} nelle Isole e <b>${pc(e(R.Sud.pag, R.Sud.fin), 1)}</b> al Sud. Circa venti punti di distanza.`);
+      mappa(s, { def: 'san_pc', livello: 'c' });
+      fig(s, 'Il denaro segue il bisogno?', 'comuni da 1.000 abitanti in su, divisi in quattro gruppi di uguale numero per quota di residenti over 65', (h) => {
+        const an = CG.filter((c) => c.pop >= 1000).map((c) => ({ o: san.c[c.id][1] / c.pop, fin: c.fin, pop: c.pop }));
+        an.sort((a, b) => a.o - b.o);
+        const QQ = [0, 1, 2, 3].map((i) => an.slice(Math.floor(i * an.length / 4), Math.floor((i + 1) * an.length / 4)));
+        const NM = ['1° quartile', '2° quartile', '3° quartile', '4° quartile'];
+        G.colonne(h, {
+          voci: QQ.map((q, i) => ({ nome: NM[i], val: e(q.reduce((x, y) => x + y.fin, 0), q.reduce((x, y) => x + y.pop, 0)), col: i < 2 ? '--c2' : '--c4', sotto: `65+ ${pc(q.reduce((x, y) => x + y.o, 0) / q.length, 1)}`, sub: `${nf(q.length)} comuni · ${pc(q.reduce((x, y) => x + y.o, 0) / q.length, 1)} di residenti over 65 · ${eur0(e(q.reduce((x, y) => x + y.fin, 0), q.reduce((x, y) => x + y.pop, 0)))} per abitante` })),
+          formatta: eur0, conTip, nome: 'Euro per abitante per quartile di residenti anziani',
+        });
+      }, `Gli euro per abitante crescono dal primo al terzo quartile e poi calano. Non è una curva del bisogno: è soprattutto l'effetto della dimensione del comune, perché i paesi più piccoli — quelli con la quota di anziani più alta — non hanno né ospedali né Case della Comunità. Un ospedale serve un territorio, non i soli abitanti del comune in cui si trova.`);
+      P(s, `La concentrazione è la stessa che si vede nel resto del Piano, ma più forte: il <b>10%</b> dei comuni con più fondi prende il <b>${pc(top10, 1)}</b> della Missione 6 arrivata ai comuni, e <b>${roma.nm}</b> da sola il ${pc(roma.fin / totC, 1)}. Non è una scelta: è dove stanno le aziende ospedaliere e i policlinici. Per questo il valore per abitante dei comuni piccoli va letto come «quanto è stato finanziato qui», non come «quanto ricevono i residenti».`);
+      calc(s, `Euro per abitante = importo della Missione 6 attribuito al territorio ÷ abitanti (<code>data/sanita.json</code>, calcolato da <code>scrpits/sanita.py</code>; abitanti ISTAT al 1° gennaio 2024, singole età). Nei comuni si conta solo la quota localizzata nel comune; nelle province i comuni più la quota provinciale; nelle regioni anche la quota regionale; l'Italia somma tutti i livelli. La quota di prossimità è la componente 6.1 divisa il totale. Gli importi vengono dagli stessi open data di Italia Domani usati dall'atlante; le sub-misure sono elencate nella <a href="guida.html#sanita">Guida</a>.`);
+      limiti(s, [
+        `L'opera è contata dove <b>sta</b> (ospedale, azienda sanitaria, Casa della Comunità), non dove vivono i pazienti: un policlinico serve un'intera regione, e i comuni vicini risultano senza fondi anche se i loro abitanti sono curati lì.`,
+        `Un comune su cinque ha almeno un progetto: negli altri l'indicatore è zero, e zero non significa «nessun servizio sanitario», ma «nessun progetto PNRR localizzato qui».`,
+        `La quota regionale (circa ${mld(T.ncf)} in tutta Italia) non è spalmata sui comuni: compare solo nella scheda della regione. Per questo la scheda del comune e quella della sua regione non tornano, e non devono tornare.`,
+        `Il bisogno sanitario non si misura con l'età: quota di anziani e reddito sono le sole variabili di contesto disponibili per comune. Servono a farsi una domanda, non a dare una risposta.`,
+        `L'importo è quello <b>finanziato</b>, non quello speso: la quota pagata dice a che punto sono i pagamenti, non se le opere funzionano.`,
+      ]);
+    }
+
     /* ================= 5. Pochi comuni, molti soldi ================= */
     {
       const s = sezione('concentrazione', 'Pochi comuni prendono una fetta enorme');
@@ -473,6 +522,7 @@
       const sp = ver.stati_progetti, cc = ver.cup_chiuso_in_corso;
       P(s, `Una domanda naturale è: quanti progetti non sono stati realizzati, e quanti soldi si sono persi? <b>I dati pubblici non permettono di rispondere.</b> Nel sistema ufficiale lo stato di un progetto ha solo tre valori: «in corso» (${nf(sp.in_corso)}), «concluso» (${nf(sp.concluso)}) e «da attivare» (${nf(sp.da_attivare)}). Non esistono «revocato», «definanziato» o «non realizzato»: un progetto abbandonato o tolto dal piano non lascia traccia con un suo stato.`);
       P(s, `Non si può nemmeno dire quanto «spettava» a una regione o a un comune. La dotazione ufficiale è fissata per misura, a livello nazionale: i ${mld(ver.senza_progetto)} senza progetto del capitolo sui conti non hanno un territorio. Per questo il confronto tra dotazione, finanziato e pagato c'è per l'Italia e per missione, ma non per regioni, province e comuni.`);
+      P(s, `Anche il tema della salute ha un limite di geografia. La Missione 6 è la più concentrata del Piano: i soldi stanno dove stanno le aziende ospedaliere, e gli abitanti dei comuni vicini sono curati lì. L'euro per abitante di un comune con un policlinico non dice quanto ricevono i suoi residenti, e quello del paese accanto non dice che non hanno servizi. In più una parte dei fondi (fascicolo sanitario, telemedicina, assistenza domiciliare) è attribuita alla regione e non a un comune: non si può spalmare senza inventare una ripartizione che i dati non hanno.`);
       P(s, `Anche il confronto per età ha i suoi limiti. I residenti di 0-24 anni sono quelli del 1° gennaio 2024, l'ultimo dato ISTAT per singola età, mentre il totale degli abitanti nelle schede è del 2026: nei confronti tra anni diversi usiamo sempre la stessa fonte, ma i due totali non sono perfettamente sovrapponibili. E il PNRR non dice quante famiglie usano davvero un asilo o quante persone si iscrivono a un ITS: dice quanti posti e quante strutture sono state finanziate, non quante sono piene.`);
       P(s, `Ci sono solo indizi, da non scambiare per perdite. ${nf(cc.n)} progetti hanno il codice CUP «chiuso» ma risultano ancora «in corso», per ${nf(cc.mln, 0)} milioni di euro: forse sono stati interrotti, forse è solo una chiusura amministrativa. In più, ${nf(it.rit[0])} progetti sono «in ritardo» (${mld(it.rit[1])}, capitolo precedente) e ${nf(it.icc[0])} hanno l'iter concluso ma non sono ancora segnati come conclusi (${mld(it.icc[1])}). Sono soldi fermi o in attesa di una formalità, non soldi persi.`);
       calc(s, `Stati = campo «Stato Avanzamento Progetto» del file Progetti (estrazione del ${meta.estrazione}). CUP chiuso ma in corso = «Stato CUP» uguale a «Chiuso» e stato avanzamento «In Corso». Cifre raccolte in <code>data/verifiche.json</code> da <code>scrpits/verifiche_missioni.py</code>.`);
@@ -487,6 +537,7 @@
         `<b>Possiamo dire</b> che il Sud e le Isole hanno una quota pagata più bassa delle altre zone, e che il tipo di progetti non basta a spiegarlo.`,
         `<b>Possiamo dire</b> che i fondi sono concentrati: pochi comuni e pochi enti ne ricevono una parte molto grande.`,
         `<b>Possiamo dire</b> che il PNRR per giovane cambia molto con la definizione e con il territorio: in senso largo il Sud riceve più dei suoi adulti, il Nord-ovest no. Non esiste un solo numero che risponda alla domanda.`,
+        `<b>Possiamo dire</b> che per la salute vale il contrario di quel che si sente dire sui ritardi: il Sud ha più euro per abitante del Nord, ma ha pagato meno (circa venti punti di distanza nelle quote pagate).`,
         `<b>Non possiamo dire</b> se il PNRR «ha funzionato»: i dati misurano soldi e stati amministrativi, non i risultati per i cittadini.`,
         `<b>Non possiamo dire</b> perché ci siano ritardi o divari: servirebbero informazioni sui singoli progetti e sugli enti.`,
         `<b>Non possiamo dire</b> che i dati siano giusti. Sono quelli dichiarati dagli enti. Dove abbiamo trovato scarti, li abbiamo scritti.`,

@@ -226,5 +226,72 @@
         formatta: E, conTip, nome: 'Mediana degli euro per giovane, per dimensione del comune' }),
         { sub: 'metà dei comuni sta sopra, metà sotto · almeno 50 residenti 0-24', nota: `La media ponderata è più alta della mediana perché pochi comuni con un progetto grande tirano su il valore: ${E(e(T.s, T.g))} contro ${E(mediana(EG))} per giovane in Italia. Tra i comuni con almeno 50 residenti 0-24 il caso estremo arriva a ${E(maxEG)} per giovane; sotto quella soglia si arriva a ${E(maxTuttiEG)}, e per questo li teniamo fuori dal calcolo. Un progetto non basta a dire che i giovani di quel comune ricevano quei soldi.` });
     }).catch(() => {});
+    /* ---- salute: Missione 6 del Piano, dati ricalcolati da scrpits/sanita.py (data/sanita.json) ---- */
+    get('data/sanita.json').then((san) => {
+      /* colonne di data/sanita.json: 0 abitanti, 1 residenti 65+, 2/3 finanziato e pagato M6,
+         4/5 finanziato e pagato M6C1 (prossimità), 6 finanziato M6C2, 7/8 finanziato e pagato dei progetti conclusi,
+         9 progetti, 10/11 finanziato e numero di Case della Comunità, 12/13 quota non attribuibile ai comuni. */
+      const zero = () => ({ n: 0, pop: 0, o65: 0, fin: 0, pag: 0, c1: 0, c2: 0, conc: 0, concp: 0, nprog: 0, ncdc: 0, ncf: 0 });
+      const add = (t, r) => { t.n++; t.pop += r[0]; t.o65 += r[1]; t.fin += r[2]; t.pag += r[3]; t.c1 += r[4]; t.c2 += r[6]; t.conc += r[7]; t.concp += r[8]; t.nprog += r[9]; t.ncdc += r[11]; t.ncf += r[12] || 0; };
+      const RR = {}, T = zero();
+      for (const [id, r] of Object.entries(san.r)) { const k = reg[id]?.rip; if (!k) continue; add(RR[k] = RR[k] || zero(), r); add(T, r); }
+      const ordRip = Object.keys(RIP).filter((k) => RR[k]);
+      const e = (x, y) => (y > 0 ? x / y : 0), E = (v) => nf(Math.round(v)) + ' €';
+      /* comuni: solo la parte di Missione 6 localizzata nel comune */
+      const CG = Object.entries(san.c).map(([id, r]) => ({ id, pop: r[0], o65: r[1], fin: r[2], pag: r[3], c1: r[4], ncdc: r[11] }));
+      const totC = CG.reduce((s, c) => s + c.fin, 0), conProgetti = CG.filter((c) => c.fin > 0).length;
+      const DIM = [['meno di 1.000', 0, 1e3], ['1.000-5.000', 1e3, 5e3], ['5.000-20.000', 5e3, 2e4], ['20.000-100.000', 2e4, 1e5], ['oltre 100.000', 1e5, 1e12]];
+      const DD = DIM.map(() => ({ n: 0, pop: 0, fin: 0, con: 0 }));
+      CG.forEach((c) => { const i = DIM.findIndex(([, a, b]) => c.pop >= a && c.pop < b); if (i < 0) return; const d = DD[i]; d.n++; d.pop += c.pop; d.fin += c.fin; if (c.fin > 0) d.con++; });
+      /* concentrazione: comuni ordinati per importo della Missione 6 (gli 8 comuni su 10 a zero pesano) */
+      const ord = CG.slice().sort((a, b) => a.fin - b.fin);
+      let cum = 0; const lor = [[0, 0]];
+      ord.forEach((c, i) => { cum += c.fin; lor.push([(i + 1) / ord.length, totC > 0 ? cum / totC : 0]); });
+      let g = 0; for (let i = 1; i < lor.length; i++) g += (lor[i][0] - lor[i - 1][0]) * (lor[i][1] + lor[i - 1][1]);
+      const gini = 1 - g, top10 = 1 - lor[Math.floor(0.9 * ord.length)][1], meta10 = lor[Math.floor(0.5 * ord.length)][1];
+      /* il bisogno: comuni da 1.000 abitanti in su, divisi in quartili di residenti 65+ */
+      const an = CG.filter((c) => c.pop >= 1000).map((c) => ({ o: c.o65 / c.pop, fin: c.fin, pop: c.pop, pag: c.pag }));
+      an.sort((a, b) => a.o - b.o);
+      const QQ = [0, 1, 2, 3].map((i) => an.slice(Math.floor(i * an.length / 4), Math.floor((i + 1) * an.length / 4)));
+      const NOMI_Q = ['1° quartile · meno anziani', '2° quartile', '3° quartile', '4° quartile · più anziani'];
+      cap('g-san', 'Euro per abitante, per ripartizione', (h) => G.colonne(h, {
+        voci: [...ordRip.map((k) => ({ nome: k, val: e(RR[k].fin, RR[k].pop), col: RIP[k], sotto: 'pagato ' + pc(e(RR[k].pag, RR[k].fin)), sub: `${eur(RR[k].fin)} su ${nf(RR[k].pop)} abitanti · prossimità ${pc(e(RR[k].c1, RR[k].fin))} · ${eur(RR[k].fin / RR[k].pop)} per abitante` })),
+               { nome: 'Italia', val: e(T.fin, T.pop), col: '--s7', sotto: 'pagato ' + pc(e(T.pag, T.fin)), sub: `${eur(T.fin)} su ${nf(T.pop)} abitanti · prossimità ${pc(e(T.c1, T.fin))}` }],
+        formatta: E, conTip, nome: 'PNRR per la salute per abitante' }),
+        { sub: 'Missione 6, importi attribuibili al territorio (comuni più quota regionale) · sotto: quota pagata', nota: `L'ordine è quasi l'opposto di quello dei giovani: qui il Sud e le Isole ricevono più per abitante del Nord-est (${E(e(RR.Sud.fin, RR.Sud.pop))} contro ${E(e(RR['Nord-est'].fin, RR['Nord-est'].pop))}). Pesano i ${eur(T.ncf)} attribuiti alle regioni e non a un singolo comune (fascicolo sanitario, telemedicina, assistenza domiciliare), che vanno in gran parte al Mezzogiorno e che nella scheda del comune non compaiono. Restano fuori da questo confronto i ${eur(san.i[2] - T.fin)} di progetti indicati a livello nazionale.` });
+      cap('g-san', 'Quanta parte va alla sanità di prossimità', (h) => G.colonne(h, {
+        voci: [...ordRip.map((k) => ({ nome: k, val: e(RR[k].c1, RR[k].fin), col: RIP[k], sub: `${eur(RR[k].c1)} per Case e Ospedali di Comunità, COT, assistenza domiciliare e telemedicina` })),
+               { nome: 'Italia', val: e(T.c1, T.fin), col: '--s7', sub: `${eur(T.c1)} di sanità territoriale su ${eur(T.fin)}` }],
+        formatta: (v) => pc(v, 1), conTip, nome: 'Quota della Missione 6 per la sanità di prossimità' }),
+        { sub: 'M6C1 (territorio) sul totale della Missione 6', nota: `La Missione 6 è divisa in due: la componente 1 porta l'assistenza sul territorio (Case della Comunità, Ospedali di Comunità, centrali operative, assistenza domiciliare, telemedicina), la componente 2 resta su ospedali, grandi apparecchiature, fascicolo sanitario e ricerca. Il Nord-est destina alla prossimità ${pc(e(RR['Nord-est'].c1, RR['Nord-est'].fin), 1)} dei fondi, il Centro ${pc(e(RR.Centro.c1, RR.Centro.fin), 1)}.` });
+      cap('g-san', 'Prossimità e ospedali: euro per abitante', (h) => G.colonne(h, {
+        voci: [...ordRip.map((k) => ({ nome: k, val: e(RR[k].c1, RR[k].pop), col: RIP[k], sotto: 'prossimità', sub: `prossimità ${eur(RR[k].c1 / RR[k].pop)} per abitante` })),
+               ...ordRip.map((k) => ({ nome: k, val: e(RR[k].c2, RR[k].pop), col: '--s5', sotto: 'ospedali', sub: `ospedali, innovazione e ricerca ${eur(RR[k].c2 / RR[k].pop)} per abitante` }))],
+        formatta: E, conTip, nome: 'Euro per abitante: prossimità e ospedali' }),
+        { sub: 'prima colonna: M6C1 territorio · seconda: M6C2 ospedali, innovazione, ricerca', nota: `Ogni ripartizione ha due colonne: la prima è la sanità di prossimità, la seconda ospedali, grandi apparecchiature, fascicolo sanitario e ricerca. Non sono soldi alternativi: sono due modi di spendere, e il rapporto fra i due cambia di regione in regione.` });
+      cap('g-san', 'Pagato contro assegnato, per ripartizione', (h) => G.colonne(h, {
+        voci: [...ordRip.map((k) => ({ nome: k, val: e(RR[k].pag, RR[k].fin), col: RIP[k], sub: `${eur(RR[k].pag)} pagati su ${eur(RR[k].fin)}` })),
+               { nome: 'Italia', val: e(T.pag, T.fin), col: '--s7', sub: `${eur(T.pag)} pagati su ${eur(T.fin)}` }],
+        formatta: (v) => pc(v, 1), conTip, nome: 'Quota pagata della Missione 6, per ripartizione' }),
+        { sub: 'pagato ÷ assegnato, importi attribuibili al territorio', nota: `In Italia è stato pagato il ${pc(e(T.pag, T.fin), 1)} della Missione 6. Il divario è netto: Nord-ovest ${pc(e(RR['Nord-ovest'].pag, RR['Nord-ovest'].fin), 1)}, Nord-est ${pc(e(RR['Nord-est'].pag, RR['Nord-est'].fin), 1)}, Isole ${pc(e(RR.Isole.pag, RR.Isole.fin), 1)}, Sud ${pc(e(RR.Sud.pag, RR.Sud.fin), 1)}. Come nel resto del Piano, il Sud ha più fondi per abitante e li ha pagati meno.` });
+      cap('g-san', 'Il peso della dimensione del comune', (h) => G.colonne(h, {
+        voci: DIM.map(([n], i) => ({ nome: n, val: e(DD[i].fin, DD[i].pop), sotto: pc(e(DD[i].con, DD[i].n)), sub: `${nf(DD[i].con)} comuni su ${nf(DD[i].n)} con almeno un progetto · ${eur(DD[i].fin)} in tutto` })),
+        formatta: E, conTip, nome: 'Euro per abitante per dimensione del comune' }),
+        { sub: 'solo importi localizzati nel comune · sotto: quota di comuni con almeno un progetto', nota: `La sanità è la missione più concentrata: solo ${nf(conProgetti)} comuni su ${nf(CG.length)} (${pc(conProgetti / CG.length, 1)}) hanno almeno un progetto. Sopra i 100.000 abitanti ce l'hanno tutti, sotto i mille meno dell'uno per cento. Ospedali e Case della Comunità si costruiscono dove ci sono le aziende sanitarie, non dove ci sono i residenti.` });
+      cap('g-san', 'Il denaro segue il bisogno?', (h) => G.colonne(h, {
+        voci: QQ.map((q, i) => ({ nome: NOMI_Q[i].split(' · ')[0], val: e(q.reduce((s, x) => s + x.fin, 0), q.reduce((s, x) => s + x.pop, 0)), col: i < 2 ? '--c2' : '--c4', sotto: `65+ ${pc(q.reduce((s, x) => s + x.o, 0) / q.length, 1)}`, sub: `${NOMI_Q[i]} · ${nf(q.length)} comuni · ${pc(q.reduce((s, x) => s + x.o, 0) / q.length, 1)} di residenti over 65` })),
+        formatta: E, conTip, nome: 'Euro per abitante per quartile di residenti anziani' }),
+        { sub: 'comuni da 1.000 abitanti in su, divisi in quattro gruppi di uguale numero', nota: `Gli euro per abitante salgono dal primo al terzo quartile e poi calano: ${E(e(QQ[0].reduce((s, x) => s + x.fin, 0), QQ[0].reduce((s, x) => s + x.pop, 0)))} dove gli anziani sono il ${pc(QQ[0].reduce((s, x) => s + x.o, 0) / QQ[0].length, 1)} dei residenti e ${E(e(QQ[3].reduce((s, x) => s + x.fin, 0), QQ[3].reduce((s, x) => s + x.pop, 0)))} dove sono il ${pc(QQ[3].reduce((s, x) => s + x.o, 0) / QQ[3].length, 1)}. Non è una misura del bisogno: è soprattutto l'effetto della dimensione del comune. Un ospedale serve un'area, non i soli abitanti del comune in cui si trova.` });
+      cap('g-san', 'Come si concentrano i soldi tra i comuni', (h) => G.lorenz(h, {
+        curva: lor.filter((_, i) => i % Math.ceil(lor.length / 400) === 0 || i === lor.length - 1), xNome: 'comuni, dal meno al più finanziato', yNome: 'quota cumulata dei fondi della Missione 6', conTip,
+        evidenzia: [{ x: 0.9, y: 1 - top10, titolo: 'Il 90% dei comuni con meno fondi', testo: `riceve il ${pc(1 - top10, 1)} della Missione 6` }],
+      }), { sub: `curva di Lorenz · Gini ${nf(gini, 2)} · importi localizzati nei comuni`, nota: `Il 10% dei comuni con più fondi riceve il ${pc(top10, 1)} della Missione 6 localizzata nei comuni, la metà dei comuni con meno ne riceve il ${pc(meta10, 1)}. Il comune con più fondi in assoluto è una città capoluogo con l'azienda ospedaliera: per questo il valore per abitante dei comuni piccoli non va letto come «quanto ricevono i residenti».` });
+      cap('g-san', 'Progetti conclusi e progetti in corso', (h) => G.colonne(h, {
+        voci: [{ nome: 'Conclusi', val: e(san.i[8], san.i[7]), col: '--c2', sub: `${eur(san.i[8])} pagati su ${eur(san.i[7])} (stadio «concluso»)` },
+               { nome: 'In corso', val: e(san.i[3] - san.i[8], san.i[2] - san.i[7]), col: '--c4', sub: `${eur(san.i[3] - san.i[8])} pagati su ${eur(san.i[2] - san.i[7])} (tutti gli altri stadi)` }],
+        formatta: (v) => pc(v, 1), conTip, nome: 'Quota pagata dei progetti conclusi e di quelli in corso' }),
+        { sub: 'Missione 6 · pagato ÷ assegnato', nota: `I progetti conclusi valgono ${eur(san.i[7])} e sono pagati al ${pc(e(san.i[8], san.i[7]), 1)}; quelli in corso valgono ${eur(san.i[2] - san.i[7])} e sono pagati al ${pc(e(san.i[3] - san.i[8], san.i[2] - san.i[7]), 1)}. La differenza è normale: un progetto concluso ha finito di essere pagato.` });
+    }).catch(() => {});
+
   }).catch((e) => { el('caric').textContent = 'Errore di caricamento dei dati: ' + e.message; });
 })();
