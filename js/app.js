@@ -746,6 +746,16 @@ async function disegnaSagoma(liv, id, n) {
     host.innerHTML = `<svg viewBox="-2 -2 ${sg.w + 4} ${sg.h + 4}" role="img" aria-label="Sagoma del territorio"><path d="${sg.d}" fill-rule="evenodd"/></svg>`;
   } catch (e) { /* la sagoma è un abbellimento: senza, la scheda funziona uguale */ }
 }
+/* riga «giovani 0-24» della scheda di un comune: dati di data/giovani.json (non seguono i filtri) */
+function giovaniRiga(liv, id) {
+  const r = liv === 'c' ? S.gio?.c[id] : null; if (!r || !(r[0] > 0)) return '';
+  const [g, tot, s, l, altri, pag] = r, ad = tot - g, e = (v) => nf.format(Math.round(v)) + ' €';
+  const ib = s > 0 || l > 0 ? `${s > 0 ? e(s / g) : '0 €'} – ${e(l / g)}` : 'nessuna misura';
+  return `<h2>PNRR per giovane <small>0-24 anni · <a href="guida.html#giovani">come è calcolato</a></small></h2><div class="kpi">
+   <div><b>${nf.format(g)}</b><span>residenti di 0-24 anni</span><em>${(100 * g / tot).toFixed(1).replace('.', ',')} % dei residenti (ISTAT 1/1/2024)</em></div>
+   <div><b>${ib}</b><span>per giovane: senso stretto – largo</span><em>${s > 0 ? `${eur(s)} stretto · pagato ${pct(pag, s)}` : l > 0 ? `solo misure miste: ${eur(l)}` : 'nessun importo localizzato nel comune'}</em></div>
+   <div><b>${ad > 0 && altri > 0 ? e(altri / ad) : '–'}</b><span>per adulto (25 anni e più)</span><em>tutte le altre misure, ${eur(altri)}</em></div></div>`;
+}
 function disegnaScheda(liv, id, n, nome, F) {
   const A = analisi(cells(liv, id), F), T = A.tot, nfil = nFiltri(F);
   const livNome = { null: 'Italia', r: 'Regione', p: 'Provincia', c: 'Comune' }[liv];
@@ -758,6 +768,7 @@ function disegnaScheda(liv, id, n, nome, F) {
    <div><b>${pct(T.pag, T.fin)}</b><span>pagato (${eur(T.pag)})</span><em>pagamenti / finanziamento PNRR</em></div>
    <div><b>${pct(A.fase[3].fin, base.fin)}</b><span>importo dei progetti conclusi</span><em>${nf.format(A.fase[3].n)} progetti · su quelli con avanzamento rilevato</em></div></div>`;
   h += posizione(liv, id, n, F);
+  h += giovaniRiga(liv, id);
   h += '<div id="analisi"></div>';
   /* imbuto: ogni riga è un filtro sullo stadio */
   h += `<h2>Dal finanziamento alla fine dei lavori <small>clic per filtrare</small></h2><div class="imbuto">`;
