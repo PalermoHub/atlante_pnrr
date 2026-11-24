@@ -330,6 +330,7 @@
     <ul class="elenco">
       <li>I bandi del PNRR sono del 2022: per questo la scheda del comune mostra anche i residenti di 0-24 anni al 1° gennaio 2022 e la variazione fino al 2024 (stessa fonte ISTAT, singole età). Il confronto serve a non leggere i soldi del 2022 con la popolazione di due anni dopo.</li>
       <li>Nella carta a due variabili l'asse «Reddito imponibile medio per contribuente» viene dalle dichiarazioni dei redditi delle persone fisiche (MEF, anno d'imposta 2023, diffuso da ISTAT nel dataflow <code>MEF_REDDITIIRPEF_COM</code>): è il reddito imponibile diviso per il numero di contribuenti del comune. Incrociarlo con gli euro per giovane dice dove il PNRR arriva di più o di meno rispetto al reddito, non se il comune ne avesse «bisogno».</li>
+      <li>Il dato sui <b>NEET</b> (giovani 15-29 anni che non studiano e non lavorano) viene da Eurostat, dataset <code>edat_lfse_22</code>, anno 2024: è regionale (NUTS 2) e non comunale, quindi compare solo nella relazione e non sulla mappa. Per l'Italia è il 15,2%; le regioni italiane sono NUTS 2, con Bolzano e Trento contate separatamente.</li>
       <li>L'asse «Aree interne» usa la classificazione ISTAT/SNAI del 2020 (SITUAS, report 75): <b>A</b> polo, <b>B</b> polo intercomunale, <b>C</b> cintura, <b>D</b> intermedio, <b>E</b> periferico, <b>F</b> ultraperiferico, in ordine di distanza dai servizi essenziali (ospedale, scuola superiore, stazione). Sulla mappa l'asse è numerato da 1 (A) a 6 (F), così si può incrociare con gli euro per giovane. Usiamo lo snapshot del report al 1° gennaio 2025 perché è l'ultimo con gli stessi codici comune dei dati PNRR: dopo la riforma sarda e le fusioni del 2026 i codici cambiano.</li>
     </ul>
     <h3>Cosa non dice</h3>
@@ -357,7 +358,7 @@
 <script src="js/cima.js?v=2" defer></script>
 <script src="js/piede.js?v=1" defer></script>
 <script src="js/menu.js?v=6" defer></script>
-<script src="js/info.js?v=12" defer></script>
+<script src="js/info.js?v=13" defer></script>
 <script src="js/galleria.js?v=1" defer></script>
 </body>
 </html>

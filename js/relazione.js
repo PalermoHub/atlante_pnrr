@@ -38,7 +38,7 @@
     host.append(w); return w;
   }
 
-  Promise.all(['italia', 'regioni', 'province', 'comuni', 'meta', 'cubo_c', 'cubo_i', 'cubo_r', 'verifiche', 'giovani'].map(get)).then(([it, reg, prov, com, meta, cc, ci, cr, ver, gio]) => {
+  Promise.all(['italia', 'regioni', 'province', 'comuni', 'meta', 'cubo_c', 'cubo_i', 'cubo_r', 'verifiche', 'giovani', 'contesto'].map(get)).then(([it, reg, prov, com, meta, cc, ci, cr, ver, gio, cont]) => {
     el('caric').remove();
 
     /* ================= calcoli di base ================= */
@@ -369,6 +369,15 @@
       const sPag = e(T.pag, T.s);
       P(s, `Nel PNRR non esiste una «missione giovani». Non c'è una riga del Piano che dica quanto spetta a chi ha meno di 25 anni: le misure che li riguardano sono sparse fra asili, scuole, università, borse di studio, servizio civile e altro. Per provare a misurarle abbiamo fatto una scelta nostra, e la dichiariamo. In <b>senso stretto</b> contiamo <b>sedici</b> sub-misure quasi esclusive per i giovani (asili, scuole, ITS, borse di studio, alloggi per studenti, sistema duale). In <b>senso largo</b> aggiungiamo <b>nove</b> misure miste, che servono anche agli adulti (servizio civile, dottorati, sport e inclusione, formazione dei docenti). I due risultati si leggono come un intervallo, non come due risposte che si contraddicono.`);
       P(s, `Il conto è semplice: gli euro dei progetti localizzati in un comune diviso i suoi residenti di 0-24 anni. In Italia fanno <b>${eur0(e(T.s, T.g))} per giovane</b> in senso stretto e <b>${eur0(e(T.l, T.g))}</b> in senso largo. Per gli adulti, con tutte le altre misure, sono ${eur0(e(T.altri, T.ad))}: in media il giovane riceve ${X(e(e(T.l, T.g), e(T.altri, T.ad)))} dell'adulto. Il dato nazionale però nasconde differenze grandi: al Sud il rapporto è <b>${X(e(e(R.Sud.l, R.Sud.g), e(R.Sud.altri, R.Sud.ad)))}</b> in senso largo (${X(e(e(R.Sud.s, R.Sud.g), e(R.Sud.altri, R.Sud.ad)))} in senso stretto), nelle Isole ${X(e(e(R.Isole.l, R.Isole.g), e(R.Isole.altri, R.Isole.ad)))}, mentre nel Nord-ovest scende a ${X(e(e(R['Nord-ovest'].l, R['Nord-ovest'].g), e(R['Nord-ovest'].altri, R['Nord-ovest'].ad)))}. La risposta alla domanda «il PNRR fa più per i giovani o per gli adulti?» dipende da dove si guarda e da cosa si conta.`);
+      /* dato di contesto regionale (Eurostat): non entra nella mappa dei comuni */
+      const neet = cont?.r?.neet_2024;
+      if (neet && neet.zone?.length) {
+        const z = neet.zone.slice().sort((a, b) => b[1] - a[1]);
+        const ripDi = (nome) => regs.find((r) => r.nome === nome)?.rip;
+        const sud = z.filter(([n]) => ['Sud', 'Isole'].includes(ripDi(n)));
+        const sudSopra = sud.filter(([, v]) => v > neet.italia).length;
+        P(s, `Un dato di contesto, che però non è comunale. Nel 2024 in Italia il <b>${nf(neet.italia, 1)}%</b> dei giovani tra 15 e 29 anni non studiava e non lavorava (NEET). La quota andava dal <b>${nf(z[z.length - 1][1], 1)}%</b> della ${z[z.length - 1][0]} al <b>${nf(z[0][1], 1)}%</b> della ${z[0][0]}. ${sudSopra === sud.length ? `Tutte le regioni del Sud e delle Isole (${sud.length} su ${sud.length}) erano sopra la media italiana` : `${sudSopra} delle ${sud.length} regioni del Sud e delle Isole era sopra la media italiana`}. È un dato regionale (NUTS 2, fonte Eurostat): non si può mettere sulla mappa dei comuni, e non dice quanti NEET ci siano in un singolo comune.`);
+      }
       P(s, `La mappa mostra la stessa cosa comune per comune. Puoi passare dal senso stretto al largo e cambiare livello: le colonne si sommano dal comune alla regione.`);
       mappa(s, { def: 'gio_l', livello: 'c' });
       fig(s, 'Euro per giovane secondo la dimensione del comune', 'senso largo · sotto: quota di comuni senza alcun progetto per i giovani', (h) => G.colonne(h, {
