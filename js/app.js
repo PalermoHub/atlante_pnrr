@@ -145,6 +145,7 @@ const INDIC = {
   gio_l: { gio: 1, nome: 'PNRR per giovane 0-24 anni, misure per i giovani in senso largo (€)', f: (c) => { const r = S.gio?.c[c.id]; return r && r[0] > 0 && r[3] > 0 ? r[3] / r[0] : null; }, fmt: (v) => nf.format(Math.round(v)) + ' €' },
   gio_s: { gio: 1, nome: 'PNRR per giovane 0-24 anni, solo misure esclusive per i giovani (€)', f: (c) => { const r = S.gio?.c[c.id]; return r && r[0] > 0 && r[2] > 0 ? r[2] / r[0] : null; }, fmt: (v) => nf.format(Math.round(v)) + ' €' },
   gio_rapp: { gio: 1, nome: 'Euro per giovane rispetto agli euro per adulto (rapporto)', f: (c) => { const r = S.gio?.c[c.id]; if (!r || r[0] <= 0 || r[1] - r[0] <= 0 || r[3] <= 0 || r[4] <= 0) return null; return (r[3] / r[0]) / (r[4] / (r[1] - r[0])); }, fmt: (v) => v.toFixed(2).replace('.', ',') + '×' },
+  gio_biv: { gio: 1, biv: 1, nome: 'Giovani: quota di residenti e euro per giovane (carta a due variabili)', f: (c) => { const r = S.gio?.c[c.id]; return r && r[0] > 0 && r[3] > 0 ? r[3] / r[0] : null; }, fmt: (v) => nf.format(Math.round(v)) + ' € per giovane' },
   gio_pag: { gio: 1, nome: 'Quota già pagata delle misure esclusive per i giovani (%)', f: (c) => { const r = S.gio?.c[c.id]; return r && r[2] > 0 ? r[5] / r[2] : null; }, fmt: (v) => (100 * v).toFixed(0) + ' %' },
   dom: { nome: 'Missione prevalente (per importo)', cat: true, f: (c) => (c.fin > 0 ? c.dom : null), fmt: (k) => NOMI_MIS[k] || k },
 };
@@ -213,6 +214,7 @@ function aggiornaMappa() {
   if (!S.map || !S.map.getLayer('comuni') || !S.cur || !S.cube.c) return;
   const { liv, id, F } = S.cur; S.vals = valoriComuni(F); const I = INDIC[S.indic];
   if (I.cat) { S.cls = null; S.clsMap = null; S.clsKey = null; mappaCategorie(I, F); aggiornaQuadro(); return; }
+  if (I.biv) { S.cls = null; S.clsMap = null; S.clsKey = null; mappaBivariata(I, F); aggiornaQuadro(); return; }
   S.map.setPaintProperty('comuni', 'fill-opacity', 0.85);
   const ids = S.adatta ? ambito(liv, id) : Object.keys(S.com);
   const v = ids.map((k) => I.f(S.vals[k])).filter((x) => x != null && isFinite(x)).sort((a, b) => a - b);
@@ -231,6 +233,24 @@ function aggiornaMappa() {
     + (mio !== undefined ? `<div class="leg-fascia"><b>${esc(cn)}</b>: ${esc(I.fmt(I.f(S.vals[S.cur.id])))} → fascia ${mio + 1} di ${nc}</div>` : S.cur.liv === 'c' ? `<div class="leg-fascia"><b>${esc(cn)}</b>: nessun progetto, resta grigio</div>` : '')
     + `<div class="nota-leg">${S.cls ? '<button type="button" data-k="tutte" class="tutte">Mostra tutte le classi</button> · ' : 'Clic su una classe per isolarla · '}${S.adatta ? 'scala adattata al territorio' : 'scala su tutta Italia'}${nFiltri(F) ? (I.gio ? ' · questo indicatore non risente dei filtri' : ' · con i filtri attivi') : ''}. Grigio: nessun progetto${S.cls ? ' o classe esclusa' : ''}.</div>`);
   aggiornaQuadro();
+}
+/* Carta a due variabili: quota di residenti 0-24 (blu) × euro per giovane in senso largo (rosso), terzili su tutti i comuni d'Italia */
+const BIV = [['#e8e8e8', '#e4acac', '#c85a5a'], ['#b0d5df', '#ad9ea5', '#985356'], ['#64acbe', '#627f8c', '#574249']];
+function mappaBivariata(I, F) {
+  const nessuno = getComputedStyle(document.documentElement).getPropertyValue('--line').trim() || '#ccc', G = S.gio?.c || {};
+  if (!S.biv) {
+    const q = [], e = []; for (const v of Object.values(G)) if (v[0] > 0 && v[1] > 0) { q.push(v[0] / v[1]); e.push(v[3] / v[0]); }
+    const t = (a) => { a.sort((x, y) => x - y); return [a[Math.floor(a.length / 3)], a[Math.floor(2 * a.length / 3)]]; };
+    S.biv = { q: t(q), e: t(e) };
+  }
+  const cl = (x, t) => (x < t[0] ? 0 : x < t[1] ? 1 : 2), cnt = [[0, 0, 0], [0, 0, 0], [0, 0, 0]], inTerr = new Set(ambito(S.cur.liv, S.cur.id)), expr = ['match', ['get', 'pro_com_t']]; let n = 0;
+  for (const [id, v] of Object.entries(G)) { if (!(v[0] > 0 && v[1] > 0)) continue; const xi = cl(v[0] / v[1], S.biv.q), yi = cl(v[3] / v[0], S.biv.e); expr.push(id, BIV[xi][yi]); n++; if (inTerr.has(id)) cnt[xi][yi]++; }
+  expr.push(nessuno); S.map.setPaintProperty('comuni', 'fill-color', n ? expr : nessuno); S.map.setPaintProperty('comuni', 'fill-opacity', 0.9);
+  S.legTip = null;
+  const pq = (x) => (100 * x).toFixed(1).replace('.', ',') + ' %', ee = (x) => nf.format(Math.round(x)) + ' €';
+  const celle = [2, 1, 0].map((yi) => [0, 1, 2].map((xi) => `<i style="background:${BIV[xi][yi]}" title="${cnt[xi][yi]} comuni: ${xi === 0 ? 'pochi' : xi === 1 ? 'medi' : 'molti'} giovani, ${yi === 0 ? 'pochi' : yi === 1 ? 'medi' : 'molti'} euro per giovane"></i>`).join('')).join('');
+  setLegenda(I, `<div class="biv"><div class="biv-y">euro per giovane →<br><small>${ee(S.biv.e[0])} · ${ee(S.biv.e[1])}</small></div><div class="biv-g">${celle}</div><div class="biv-x">quota di residenti 0-24 →<br><small>${pq(S.biv.q[0])} · ${pq(S.biv.q[1])}</small></div></div>
+   <div class="nota-leg">Terzili su tutti i comuni d'Italia (soglie sotto gli assi). In basso a destra, in azzurro: <b>molti giovani e pochi euro</b> (${nf.format(cnt[2][0])} comuni nel territorio). In alto a sinistra, in rosso: pochi giovani e molti euro (${nf.format(cnt[0][2])}). Euro in senso largo, non seguono i filtri.</div>`);
 }
 /* Modo «missione prevalente»: colore = missione con più importo nel comune, trasparenza = importo (più pieno = più finanziato) */
 function mappaCategorie(I, F) {
@@ -746,15 +766,20 @@ async function disegnaSagoma(liv, id, n) {
     host.innerHTML = `<svg viewBox="-2 -2 ${sg.w + 4} ${sg.h + 4}" role="img" aria-label="Sagoma del territorio"><path d="${sg.d}" fill-rule="evenodd"/></svg>`;
   } catch (e) { /* la sagoma è un abbellimento: senza, la scheda funziona uguale */ }
 }
-/* riga «giovani 0-24» della scheda di un comune: dati di data/giovani.json (non seguono i filtri) */
+/* riga «giovani 0-24» della scheda: dati di data/giovani.json (non seguono i filtri); per province, regioni e Italia si sommano i comuni */
 function giovaniRiga(liv, id) {
-  const r = liv === 'c' ? S.gio?.c[id] : null; if (!r || !(r[0] > 0)) return '';
+  if (!S.gio) return '';
+  let r = null, nc = 0;
+  if (liv === 'c') r = S.gio.c[id];
+  else { r = new Array(12).fill(0); for (const [k, v] of Object.entries(S.gio.c)) { const c = S.com[k]; if (!c || (liv === 'r' && c.rg !== id) || (liv === 'p' && c.pv !== id)) continue; for (let i = 0; i < 12; i++) r[i] += v[i]; nc++; } }
+  if (!r || !(r[0] > 0)) return '';
   const [g, tot, s, l, altri, pag] = r, ad = tot - g, e = (v) => nf.format(Math.round(v)) + ' €';
   const ib = s > 0 || l > 0 ? `${s > 0 ? e(s / g) : '0 €'} – ${e(l / g)}` : 'nessuna misura';
+  const dove = liv === 'c' ? 'localizzato nel comune' : `localizzato nei ${nf.format(nc)} comuni`;
   return `<h2>PNRR per giovane <small>0-24 anni · <a href="guida.html#giovani">come è calcolato</a></small></h2><div class="kpi">
    <div><b>${nf.format(g)}</b><span>residenti di 0-24 anni</span><em>${(100 * g / tot).toFixed(1).replace('.', ',')} % dei residenti (ISTAT 1/1/2024)</em></div>
-   <div><b>${ib}</b><span>per giovane: senso stretto – largo</span><em>${s > 0 ? `${eur(s)} stretto · pagato ${pct(pag, s)}` : l > 0 ? `solo misure miste: ${eur(l)}` : 'nessun importo localizzato nel comune'}</em></div>
-   <div><b>${ad > 0 && altri > 0 ? e(altri / ad) : '–'}</b><span>per adulto (25 anni e più)</span><em>tutte le altre misure, ${eur(altri)}</em></div></div>`;
+   <div><b>${ib}</b><span>per giovane: senso stretto – largo</span><em>${s > 0 ? `${eur(s)} stretto · pagato ${pct(pag, s)}` : l > 0 ? `solo misure miste: ${eur(l)}` : `nessun importo ${dove}`}</em></div>
+   <div><b>${ad > 0 && altri > 0 ? e(altri / ad) : '–'}</b><span>per adulto (25 anni e più)</span><em>tutte le altre misure, ${eur(altri)}${liv === 'c' ? '' : ` · importi ${dove}`}</em></div></div>`;
 }
 function disegnaScheda(liv, id, n, nome, F) {
   const A = analisi(cells(liv, id), F), T = A.tot, nfil = nFiltri(F);
