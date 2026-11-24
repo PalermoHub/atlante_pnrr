@@ -38,7 +38,7 @@
     host.append(w); return w;
   }
 
-  Promise.all(['italia', 'regioni', 'province', 'comuni', 'meta', 'cubo_c', 'cubo_i', 'cubo_r', 'verifiche'].map(get)).then(([it, reg, prov, com, meta, cc, ci, cr, ver]) => {
+  Promise.all(['italia', 'regioni', 'province', 'comuni', 'meta', 'cubo_c', 'cubo_i', 'cubo_r', 'verifiche', 'giovani'].map(get)).then(([it, reg, prov, com, meta, cc, ci, cr, ver, gio]) => {
     el('caric').remove();
 
     /* ================= calcoli di base ================= */
@@ -59,11 +59,17 @@
     const CF = {};
     for (const [id, c] of Object.entries(cc)) {
       const info = com[id]; if (!info) continue;
-      const o = { id, nm: info.nm, pop: info.pop || 0, rg: info.rg, pv: info.pv, fin: 0, pag: 0, conc: 0, rit: 0 };
+      const o = { id, nm: info.nm, pop: info.pop || 0, rg: info.rg, pv: info.pv, fin: 0, pag: 0, conc: 0, rit: 0, gio: gio.c[id] };
       celle(c).forEach((x) => { o.fin += x.fin; o.pag += x.pag; if (x.s === 4) o.conc += x.fin; if (x.f & 2) o.rit += x.fin; });
       CF[id] = o;
     }
     const C = Object.values(CF), totCom = C.reduce((s, c) => s + c.fin, 0);
+    /* giovani 0-24: per comune come in data/giovani.json; per province e regioni si sommano i comuni (stesse colonne) */
+    const GIOP = {}, GIOR = {};
+    for (const [id, r] of Object.entries(gio.c)) {
+      const c = com[id]; if (!c) continue;
+      for (const [m, k] of [[GIOP, c.pv], [GIOR, c.rg]]) { const t = m[k] || (m[k] = new Array(19).fill(0)); for (let i = 0; i < 19; i++) t[i] += r[i]; }
+    }
 
     /* ripartizioni */
     const rip = {};
@@ -109,11 +115,15 @@
       pag: { nome: 'Quota già pagata', fmt: (v) => pc(v, 0), desc: 'Quanta parte dei fondi è già stata pagata. Più è alta, più soldi sono già stati versati a chi realizza i progetti.', v: (o) => (o.fin > 0 ? o.pag / o.fin : null) },
       conc: { nome: 'Quota di soldi di progetti conclusi', fmt: (v) => pc(v, 0), desc: 'Quanta parte dei fondi riguarda progetti con stato «concluso».', v: (o) => (o.fin > 0 ? o.conc / o.fin : null) },
       rit: { nome: 'Quota di soldi in ritardo', fmt: (v) => pc(v, 0), desc: 'Quanta parte dei fondi riguarda progetti «in corso» con fine prevista già passata al 13 giugno 2026. Può essere cambiata nelle ultime settimane.', v: (o) => (o.fin > 0 ? o.rit / o.fin : null) },
+      gio_l: { gio: 1, nome: 'Euro per giovane (senso largo)', fmt: (v) => nf(Math.round(v)) + ' €', desc: 'Misure per i giovani in senso largo, divise per i residenti di 0-24 anni (ISTAT 1/1/2024). Nei comuni con meno di 50 giovani un solo progetto produce valori enormi: guardare la mappa con prudenza.', v: (o) => (o.gio && o.gio[0] > 0 ? o.gio[3] / o.gio[0] : null) },
+      gio_s: { gio: 1, nome: 'Euro per giovane (senso stretto)', fmt: (v) => nf(Math.round(v)) + ' €', desc: 'Solo le misure quasi esclusive per i giovani, divise per i residenti di 0-24 anni (ISTAT 1/1/2024).', v: (o) => (o.gio && o.gio[0] > 0 ? o.gio[2] / o.gio[0] : null) },
+      gio_quota: { gio: 1, nome: 'Quota di residenti 0-24', fmt: (v) => pc(v, 1), desc: 'Quanta parte degli abitanti ha tra 0 e 24 anni (ISTAT 1/1/2024).', v: (o) => (o.gio && o.gio[1] > 0 ? o.gio[0] / o.gio[1] : null) },
+      gio_pag: { gio: 1, nome: 'Quota pagata delle misure per i giovani', fmt: (v) => pc(v, 1), desc: 'Pagato diviso assegnato per le misure quasi esclusive per i giovani.', v: (o) => (o.gio && o.gio[2] > 0 ? o.gio[5] / o.gio[2] : null) },
     };
     const DATI = {
       c: () => CF,
-      p: () => Object.fromEntries(provs.map((p) => [p.id, { fin: p.fin, pag: p.pag, conc: p.fs[4], rit: p.rit[1], pop: p.pop }])),
-      r: () => Object.fromEntries(regs.map((r) => [r.id, { fin: r.fin, pag: r.pag, conc: r.fs[4], rit: r.rit[1], pop: r.pop }])),
+      p: () => Object.fromEntries(provs.map((p) => [p.id, { fin: p.fin, pag: p.pag, conc: p.fs[4], rit: p.rit[1], pop: p.pop, gio: GIOP[p.id] }])),
+      r: () => Object.fromEntries(regs.map((r) => [r.id, { fin: r.fin, pag: r.pag, conc: r.fs[4], rit: r.rit[1], pop: r.pop, gio: GIOR[r.id] }])),
     };
     const NOME = { c: (id) => `${CF[id]?.nm} (${prov[CF[id]?.pv]?.sigla || ''})`, p: (id) => prov[id]?.nome, r: (id) => reg[id]?.nome };
     let protocollo = false;
@@ -338,6 +348,44 @@
       limiti(s, ['La quota pagata dipende anche da come si organizzano gli anticipi e i pagamenti a stati di avanzamento. Misura il denaro versato, non l’avanzamento dei lavori.', 'I dati dicono <b>che</b> il divario c\'è e che non dipende dal tipo di progetti. Non dicono <b>perché</b>: per saperlo servirebbero i dati dei singoli enti.']);
     }
 
+    /* ================= 4 bis. Giovani ================= */
+    {
+      const s = sezione('giovani', 'Quanto PNRR per ogni giovane');
+      /* aggregati per ripartizione e per classe dimensionale, ricalcolati da data/giovani.json (stesse colonne della mappa) */
+      const R = {}, T = { g: 0, ad: 0, s: 0, l: 0, altri: 0, pag: 0 }, CG = [];
+      const DIM = [['sotto 1.000 abitanti', 0, 1e3], ['1.000–5.000', 1e3, 5e3], ['5.000–20.000', 5e3, 2e4], ['20.000–100.000', 2e4, 1e5], ['oltre 100.000', 1e5, 1e12]];
+      const D = DIM.map(() => ({ g: 0, s: 0, l: 0, n: 0, zl: 0 }));
+      for (const [id, r] of Object.entries(gio.c)) {
+        const c = com[id]; if (!c) continue; const k = reg[c.rg]?.rip; if (!k) continue;
+        const a = R[k] || (R[k] = { g: 0, ad: 0, s: 0, l: 0, altri: 0, pag: 0 });
+        const d = DIM.findIndex(([, lo, hi]) => r[1] >= lo && r[1] < hi);
+        for (const t of [a, T]) { t.g += r[0]; t.ad += r[1] - r[0]; t.s += r[2]; t.l += r[3]; t.altri += r[4]; t.pag += r[5]; }
+        const z = D[d]; z.g += r[0]; z.s += r[2]; z.l += r[3]; z.n++; if (r[3] === 0) z.zl++;
+        CG.push([id, r]);
+      }
+      const e = (x, y) => (y > 0 ? x / y : 0), eur0 = (v) => nf(Math.round(v)) + ' €', X = (v) => nf(v, 2) + '×';
+      const ordRip = ORD_RIP.filter((k) => R[k]);
+      const senza = CG.filter(([, r]) => r[3] === 0).length, senzaP = CG.filter(([, r]) => r[3] === 0 && r[1] < 1000).length, piccoliN = CG.filter(([, r]) => r[1] < 1000).length;
+      const sPag = e(T.pag, T.s);
+      P(s, `Nel PNRR non esiste una «missione giovani». Non c'è una riga del Piano che dica quanto spetta a chi ha meno di 25 anni: le misure che li riguardano sono sparse fra asili, scuole, università, borse di studio, servizio civile e altro. Per provare a misurarle abbiamo fatto una scelta nostra, e la dichiariamo. In <b>senso stretto</b> contiamo <b>sedici</b> sub-misure quasi esclusive per i giovani (asili, scuole, ITS, borse di studio, alloggi per studenti, sistema duale). In <b>senso largo</b> aggiungiamo <b>nove</b> misure miste, che servono anche agli adulti (servizio civile, dottorati, sport e inclusione, formazione dei docenti). I due risultati si leggono come un intervallo, non come due risposte che si contraddicono.`);
+      P(s, `Il conto è semplice: gli euro dei progetti localizzati in un comune diviso i suoi residenti di 0-24 anni. In Italia fanno <b>${eur0(e(T.s, T.g))} per giovane</b> in senso stretto e <b>${eur0(e(T.l, T.g))}</b> in senso largo. Per gli adulti, con tutte le altre misure, sono ${eur0(e(T.altri, T.ad))}: in media il giovane riceve ${X(e(e(T.l, T.g), e(T.altri, T.ad)))} dell'adulto. Il dato nazionale però nasconde differenze grandi: al Sud il rapporto è <b>${X(e(e(R.Sud.l, R.Sud.g), e(R.Sud.altri, R.Sud.ad)))}</b> in senso largo (${X(e(e(R.Sud.s, R.Sud.g), e(R.Sud.altri, R.Sud.ad)))} in senso stretto), nelle Isole ${X(e(e(R.Isole.l, R.Isole.g), e(R.Isole.altri, R.Isole.ad)))}, mentre nel Nord-ovest scende a ${X(e(e(R['Nord-ovest'].l, R['Nord-ovest'].g), e(R['Nord-ovest'].altri, R['Nord-ovest'].ad)))}. La risposta alla domanda «il PNRR fa più per i giovani o per gli adulti?» dipende da dove si guarda e da cosa si conta.`);
+      P(s, `La mappa mostra la stessa cosa comune per comune. Puoi passare dal senso stretto al largo e cambiare livello: le colonne si sommano dal comune alla regione.`);
+      mappa(s, { def: 'gio_l', livello: 'c' });
+      fig(s, 'Euro per giovane secondo la dimensione del comune', 'senso largo · sotto: quota di comuni senza alcun progetto per i giovani', (h) => G.colonne(h, {
+        voci: DIM.map(([n], i) => ({ nome: n, val: e(D[i].l, D[i].g), sotto: nf(100 * D[i].zl / D[i].n, 0) + '% senza', sub: `${nf(D[i].n)} comuni · ${nf(100 * D[i].zl / D[i].n, 1)}% senza alcun progetto · euro per giovane ${eur0(e(D[i].l, D[i].g))}, in senso stretto ${eur0(e(D[i].s, D[i].g))}` })), formatta: eur0, conTip, nome: 'Euro per giovane per dimensione del comune',
+      }), 'Nei comuni più piccoli il valore medio è più basso, ma è anche meno affidabile: lì un solo progetto può cambiare tutto. La quota di comuni senza nessun progetto per i giovani è invece altissima: quasi otto su dieci sotto i mille abitanti.');
+      P(s, `In tutto, <b>${nf(senza)} comuni su ${nf(CG.length)}</b> (${pc(senza / CG.length)}) non hanno alcun progetto delle misure «giovani» in senso largo; sotto i mille abitanti sono ${pc(senzaP / piccoliN)}. Vuol dire che in quei comuni i giovani non hanno nessuna struttura finanziata dal PNRR fra quelle che abbiamo scelto: non vuol dire che non ne abbiano una, perché può essere stata costruita con altri fondi.`);
+      const piccoliG = CG.filter(([, r]) => r[0] > 0 && r[0] < 50).map(([id, r]) => ({ nm: String(com[id]?.nm ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;'), eg: r[3] / r[0] })).sort((a, b) => b.eg - a.eg)[0];
+      P(s, `Attenzione ai piccoli numeri. In un comune con una dozzina di giovani, un solo progetto da qualche milione di euro fa salire il valore per giovane a cifre enormi. Il caso più estremo fra i comuni con meno di 50 residenti di 0-24 anni è <b>${piccoliG.nm}</b>: <b>${eur0(piccoliG.eg)}</b> per giovane. Non è una misura di quanto ricevono quei ragazzi: è un progetto grande diviso per pochissime persone. Per questo nelle statistiche lasciamo fuori i comuni con meno di 50 giovani (nella scheda del comune sono segnati con «†»).`);
+      calc(s, `Euro per giovane = importo PNRR localizzato nel comune ÷ residenti di 0-24 anni (<code>data/giovani.json</code>, calcolato da <code>scrpits/giovani.py</code>; residenti ISTAT al 1° gennaio 2024, singole età). Per gli adulti: tutte le misure che non sono nel gruppo «giovani», divise per i residenti di 25 anni e più. Province e regioni: somma dei comuni. Le sub-misure dei due gruppi sono elencate nella <a href="guida.html#giovani">Guida</a>; gli importi vengono dagli stessi <code>data/cubo_c.json</code> e <code>data/comuni.json</code> dell'atlante.`);
+      limiti(s, [
+        `Il progetto è contato dove sta l'<b>opera</b>, non dove vive chi ne beneficia: un'università o un ITS servono un bacino più largo del comune in cui hanno la sede. Nei comuni sede il valore per giovane è sovrastimato, altrove sottostimato.`,
+        `L'importo è quello <b>finanziato</b>, non quello speso: dice quanto è stato assegnato, non quanto è stato realizzato. La quota pagata delle misure per i giovani in senso stretto è ${pc(sPag, 1)}.`,
+        `La scelta delle misure è <b>nostra</b>: non esiste una classificazione ufficiale. Cambiando l'elenco cambiano i numeri, e per questo mostriamo sempre i due gruppi come intervallo.`,
+      ]);
+      P(s, `L'idea di confrontare il PNRR con l'età dei residenti viene dal contributo di Piero Boccardo, <a href="https://groundtruth.space/contributi/pnrr-giovani-2026/" rel="noopener">«Quanto PNRR per ogni giovane»</a> (Ground Truth). I numeri di questa pagina sono ricalcolati da noi con una classificazione nostra e non coincidono con i suoi: il confronto sensato è sull'ordine di grandezza, non sulla cifra singola.`);
+    }
+
     /* ================= 5. Pochi comuni, molti soldi ================= */
     {
       const s = sezione('concentrazione', 'Pochi comuni prendono una fetta enorme');
@@ -416,6 +464,7 @@
       const sp = ver.stati_progetti, cc = ver.cup_chiuso_in_corso;
       P(s, `Una domanda naturale è: quanti progetti non sono stati realizzati, e quanti soldi si sono persi? <b>I dati pubblici non permettono di rispondere.</b> Nel sistema ufficiale lo stato di un progetto ha solo tre valori: «in corso» (${nf(sp.in_corso)}), «concluso» (${nf(sp.concluso)}) e «da attivare» (${nf(sp.da_attivare)}). Non esistono «revocato», «definanziato» o «non realizzato»: un progetto abbandonato o tolto dal piano non lascia traccia con un suo stato.`);
       P(s, `Non si può nemmeno dire quanto «spettava» a una regione o a un comune. La dotazione ufficiale è fissata per misura, a livello nazionale: i ${mld(ver.senza_progetto)} senza progetto del capitolo sui conti non hanno un territorio. Per questo il confronto tra dotazione, finanziato e pagato c'è per l'Italia e per missione, ma non per regioni, province e comuni.`);
+      P(s, `Anche il confronto per età ha i suoi limiti. I residenti di 0-24 anni sono quelli del 1° gennaio 2024, l'ultimo dato ISTAT per singola età, mentre il totale degli abitanti nelle schede è del 2026: nei confronti tra anni diversi usiamo sempre la stessa fonte, ma i due totali non sono perfettamente sovrapponibili. E il PNRR non dice quante famiglie usano davvero un asilo o quante persone si iscrivono a un ITS: dice quanti posti e quante strutture sono state finanziate, non quante sono piene.`);
       P(s, `Ci sono solo indizi, da non scambiare per perdite. ${nf(cc.n)} progetti hanno il codice CUP «chiuso» ma risultano ancora «in corso», per ${nf(cc.mln, 0)} milioni di euro: forse sono stati interrotti, forse è solo una chiusura amministrativa. In più, ${nf(it.rit[0])} progetti sono «in ritardo» (${mld(it.rit[1])}, capitolo precedente) e ${nf(it.icc[0])} hanno l'iter concluso ma non sono ancora segnati come conclusi (${mld(it.icc[1])}). Sono soldi fermi o in attesa di una formalità, non soldi persi.`);
       calc(s, `Stati = campo «Stato Avanzamento Progetto» del file Progetti (estrazione del ${meta.estrazione}). CUP chiuso ma in corso = «Stato CUP» uguale a «Chiuso» e stato avanzamento «In Corso». Cifre raccolte in <code>data/verifiche.json</code> da <code>scrpits/verifiche_missioni.py</code>.`);
       limiti(s, ['Per sapere quanti fondi sono stati davvero persi servono fonti esterne: le relazioni della Ragioneria generale dello Stato, le decisioni del Consiglio dell’Unione europea sulle modifiche al Piano e i decreti di definanziamento. Di solito parlano di misure, non di comuni.']);
@@ -428,6 +477,7 @@
         `<b>Possiamo dire</b> che, nei dati pubblici al ${meta.estrazione}, i progetti conclusi valgono ${pc(stg[4].fin / finSenzaNA, 1)} dei fondi dei progetti veri, e che il pagato è il ${pc(pagSenzaNA / finSenzaNA, 1)}.`,
         `<b>Possiamo dire</b> che il Sud e le Isole hanno una quota pagata più bassa delle altre zone, e che il tipo di progetti non basta a spiegarlo.`,
         `<b>Possiamo dire</b> che i fondi sono concentrati: pochi comuni e pochi enti ne ricevono una parte molto grande.`,
+        `<b>Possiamo dire</b> che il PNRR per giovane cambia molto con la definizione e con il territorio: in senso largo il Sud riceve più dei suoi adulti, il Nord-ovest no. Non esiste un solo numero che risponda alla domanda.`,
         `<b>Non possiamo dire</b> se il PNRR «ha funzionato»: i dati misurano soldi e stati amministrativi, non i risultati per i cittadini.`,
         `<b>Non possiamo dire</b> perché ci siano ritardi o divari: servirebbero informazioni sui singoli progetti e sugli enti.`,
         `<b>Non possiamo dire</b> che i dati siano giusti. Sono quelli dichiarati dagli enti. Dove abbiamo trovato scarti, li abbiamo scritti.`,
