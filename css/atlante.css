@@ -394,3 +394,9 @@ canvas.disp.clicca { cursor: pointer; }
 .biv-x { grid-column: 2; font-size: .72rem; text-align: center; line-height: 1.2; }
 .biv small { color: var(--ink3); }
 .pan .colora[hidden] { display: none; }
+
+/* interruttore Coropletica / Bivariata nel pannello «Colora per» */
+.pan .modo { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; margin-bottom: .7rem; }
+.pan .modo button { display: flex; flex-direction: column; align-items: flex-start; min-height: 44px; padding: .35rem .7rem; font: inherit; font-weight: 600; text-align: left; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+.pan .modo button small { font-weight: 400; font-size: .72rem; color: var(--ink3); }
+.pan .modo button[aria-pressed="true"] { border-color: var(--acc); background: var(--accbg); }

@@ -479,11 +479,20 @@ function filtriInit() {
     const c = e.target.closest('button[data-k]'); if (!c) return; const k = c.dataset.k;
     if (k === 'tutte') S.cls = null; else { const n = new Set(S.cls || []); n.has(+k) ? n.delete(+k) : n.add(+k); S.cls = n.size ? n : null; }
     aggiornaMappa(); });
-  $('#indic').innerHTML = Object.entries(INDIC).map(([k, v]) => `<option value="${k}">${esc(v.nome)}</option>`).join('');
+  $('#indic').innerHTML = Object.entries(INDIC).filter(([, v]) => !v.biv).map(([k, v]) => `<option value="${k}">${esc(v.nome)}</option>`).join('');
   const opAx = Object.entries(AX).map(([k, v]) => `<option value="${k}">${esc(v.nome)}</option>`).join('');
   $('#by').innerHTML = opAx; $('#bx').innerHTML = opAx; $('#by').value = S.by; $('#bx').value = S.bx;
-  for (const [id, k] of [['#bx', 'bx'], ['#by', 'by']]) $(id).addEventListener('change', (e) => { S[k] = e.target.value; aggiornaMappa(); });
-  $('#indic').addEventListener('change', (e) => { S.indic = e.target.value; $('#biv-sel').hidden = !INDIC[S.indic].biv; aggiornaMappa(); evidenziaIndicatore(); });
+  for (const [id, k] of [['#bx', 'bx'], ['#by', 'by']]) $(id).addEventListener('change', (e) => { S[k] = e.target.value; chipInd(); aggiornaMappa(); });
+  /* Coropletica (un indicatore) o Bivariata (due indicatori incrociati): il pulsante attiva i menu giusti */
+  const chipInd = () => { $('#chip-ind-t').textContent = S.indic === 'incrocio' ? `Bivariata: ${AX[S.by].nome} × ${AX[S.bx].nome}` : ($('#indic').selectedOptions[0]?.textContent || '').replace(/ \(.*/, ''); };
+  const modo = (biv) => {
+    if (biv === (S.indic === 'incrocio')) return;
+    if (biv) { S.indCoro = S.indic; S.indic = 'incrocio'; } else { S.indic = S.indCoro || 'fin_pc'; $('#indic').value = S.indic; }
+    $('#m-coro').setAttribute('aria-pressed', String(!biv)); $('#m-biv').setAttribute('aria-pressed', String(biv));
+    $('#coro-sel').hidden = biv; $('#biv-sel').hidden = !biv; chipInd(); aggiornaMappa(); evidenziaIndicatore();
+  };
+  $('#m-coro').addEventListener('click', () => modo(false)); $('#m-biv').addEventListener('click', () => modo(true));
+  $('#indic').addEventListener('change', (e) => { S.indic = e.target.value; aggiornaMappa(); evidenziaIndicatore(); });
   $('#f-scala').innerHTML = Object.entries(SCALE).map(([k, v]) => `<option value="${k}">${esc(v[0])}</option>`).join('');
   $('#f-scala').value = S.scala; $('#f-classi').value = S.classi; $('#f-inverti').checked = S.inverti;
   $('#f-scala').addEventListener('change', (e) => { S.scala = e.target.value; salvaPref(); window.applicaScalaPNRR(S.scala); });

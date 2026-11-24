@@ -35,7 +35,7 @@
 <!-- /SOCIAL -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <script>try{if(self!==top||/[?&]embed=1/.test(location.search))document.documentElement.setAttribute("data-embed","")}catch(e){document.documentElement.setAttribute("data-embed","")}</script>
-<link rel="stylesheet" href="css/atlante.css?v=62">
+<link rel="stylesheet" href="css/atlante.css?v=63">
 <link rel="stylesheet" href="css/guscio.css?v=16">
 <link rel="stylesheet" href="css/statistiche.css?v=9">
 <link rel="stylesheet" href="css/lente-app.css?v=7">
@@ -99,7 +99,11 @@
         <p class="pan-nota">Missione, Componente, Misura (investimento o riforma) e Sub-misura si scelgono a cascata e valgono per mappa, schede, tabelle ed elenco dei progetti.</p>
       </div>
       <div id="pan-ind" class="pan" hidden>
-        <div class="colora"><label for="indic">Colora i comuni per</label><select id="indic"></select></div>
+        <div class="modo" role="group" aria-label="Tipo di carta">
+          <button type="button" id="m-coro" aria-pressed="true">Coropletica<small>un indicatore</small></button>
+          <button type="button" id="m-biv" aria-pressed="false">Bivariata<small>due indicatori incrociati</small></button>
+        </div>
+        <div class="colora" id="coro-sel"><label for="indic">Colora i comuni per</label><select id="indic"></select></div>
         <div class="colora" id="biv-sel" hidden><label for="by">Asse verticale (Y)</label><select id="by"></select><label for="bx">Asse orizzontale (X)</label><select id="bx"></select></div>
       </div>
       <div id="pan-mappa" class="pan" hidden>
@@ -129,7 +133,7 @@
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pmtiles@4.3.0/dist/pmtiles.js"></script>
 <script src="js/tema.js?v=3"></script>
-<script src="js/guscio.js?v=11" defer></script>
+<script src="js/guscio.js?v=12" defer></script>
 <script src="js/tabelle.js?v=1" defer></script>
 <script src="js/cima.js?v=2" defer></script>
 <script src="js/piede.js?v=1" defer></script>
@@ -137,7 +141,7 @@
 <script src="js/info.js?v=10" defer></script>
 <script src="js/condividi.js?v=2" defer></script>
 <script src="js/grafici.js?v=8"></script>
-<script type="module" src="js/app.js?v=65"></script>
+<script type="module" src="js/app.js?v=66"></script>
 <script src="js/lente-app.js?v=7" defer></script>
 <script src="js/salva-png.js?v=4" defer></script>
 </body>
