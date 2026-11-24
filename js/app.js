@@ -159,6 +159,8 @@ const AX = {
   gio_s: { nome: 'Euro per giovane (stretto)', f: (c) => { const r = gv(c); return r && r[0] > 0 ? r[2] / r[0] : null; }, fmt: INDIC.gio_s.fmt },
   gio_rapp: { nome: 'Euro per giovane / euro per adulto', f: (c) => { const r = gv(c); return r && r[0] > 0 && r[1] - r[0] > 0 && r[4] > 0 ? (r[3] / r[0]) / (r[4] / (r[1] - r[0])) : null; }, fmt: INDIC.gio_rapp.fmt },
   gio_pag: { ...INDIC.gio_pag, nome: 'Quota pagata (misure per i giovani)' },
+  /* contesto esterno (data/contesto.json, scrpits/contesto.py): non dipende dai filtri né dai progetti */
+  reddito: { nome: 'Reddito imponibile medio per contribuente', f: (c) => S.cont?.c[c.id]?.[0] ?? null, fmt: (v) => nf.format(Math.round(v)) + ' €' },
 };
 S.bx = 'gio_quota'; S.by = 'gio_l';
 /* Scale colore: definite in js/tema.js (condivise con le pagine dei grafici). */
@@ -1058,8 +1060,8 @@ function iniziaProgetti(n, nome, F) {
 /* ---------- avvio ---------- */
 async function init() {
   try {
-    const [meta, it, reg, prov, com, bbox, ci, cr, cp, cc, ver, cupc, giovani] = await Promise.all(['meta', 'italia', 'regioni', 'province', 'comuni', 'bbox', 'cubo_i', 'cubo_r', 'cubo_p', 'cubo_c', 'verifiche', 'cup_chiusi', 'giovani'].map((n) => get(`data/${n}.json`).catch((e) => { if (n === 'giovani') return null; throw e; })));
-    Object.assign(S, { meta, it, reg, prov, com, bbox, ver, cupc, gio: giovani }); S.cube = { i: ci, r: cr, p: cp, c: cc };
+    const [meta, it, reg, prov, com, bbox, ci, cr, cp, cc, ver, cupc, giovani, contesto] = await Promise.all(['meta', 'italia', 'regioni', 'province', 'comuni', 'bbox', 'cubo_i', 'cubo_r', 'cubo_p', 'cubo_c', 'verifiche', 'cup_chiusi', 'giovani', 'contesto'].map((n) => get(`data/${n}.json`).catch((e) => { if (n === 'giovani' || n === 'contesto') return null; throw e; })));
+    Object.assign(S, { meta, it, reg, prov, com, bbox, ver, cupc, gio: giovani, cont: contesto }); S.cube = { i: ci, r: cr, p: cp, c: cc };
     /* gerarchia del piano per ogni sub-misura (indice delle celle) e dotazione ufficiale aggregata per livello */
     S.sx = { mis: meta.sub.map((c) => c.slice(0, 2)), comp: meta.sub.map(compDi), msr: meta.sub.map(msrDi), sub: meta.sub.slice(), mi: meta.sub.map((c) => meta.missioni.indexOf(c.slice(0, 2))) };
     S.dotL = { comp: {}, msr: {}, sub: {} };

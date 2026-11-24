@@ -2,7 +2,7 @@
 
 Dove e come sono stati spesi i fondi del PNRR: una scheda per Italia, regione, provincia e comune, collegate fra loro, con mappa dei comuni, imbuto di avanzamento (finanziato → gara aggiudicata → lavori avviati → concluso → pagato), per missione, per natura, chi realizza, qualità dei dati e elenco dei progetti di ogni comune.
 
-Dati: [Italia Domani, Catalogo Open Data](https://www.italiadomani.gov.it/content/sogei-ng/it/it/catalogo-open-data.html) (CC-BY 4.0), estrazione del 13/06/2026. Confini dei comuni: ISTAT, tramite il repository ANNCSU. Popolazione: ISTAT, 1/1/2026.
+Dati: [Italia Domani, Catalogo Open Data](https://www.italiadomani.gov.it/content/sogei-ng/it/it/catalogo-open-data.html) (CC-BY 4.0), estrazione del 13/06/2026. Confini dei comuni: ISTAT, tramite il repository ANNCSU. Popolazione: ISTAT, 1/1/2026; per il tema giovani anche ISTAT 1/1/2024 e 1/1/2022 (singole età). Reddito imponibile medio per contribuente: MEF, dichiarazioni dei redditi 2023, diffuso da ISTAT (`MEF_REDDITIIRPEF_COM`).
 
 ## Pagine
 - `index.html`: mappa e schede (Italia, regione, provincia, comune).
@@ -21,6 +21,8 @@ scrpits/.venv/bin/python -I scrpits/audit_chiavi.py       # genera anagrafica co
 scrpits/.venv/bin/python -I scrpits/modello.py            # progetto, quote territoriali, stadi
 scrpits/.venv/bin/python -I scrpits/verifica_dati.py      # invarianti e quadratura (docs/QUADRATURA.md)
 scrpits/.venv/bin/python -I scrpits/esporta_json.py && python3 scrpits/bbox.py
+python3 scrpits/giovani.py      # data/giovani.json (PNRR per giovane, richiede dati/pnrr.duckdb)
+python3 scrpits/contesto.py    # data/contesto.json (reddito dei comuni, da dati/geo/redditi_comuni_2023.csv)
 ```
 Il sito è statico: serve un server che supporti le richieste HTTP Range (GitHub Pages sì; `python3 -m http.server` no) per il file `data/geo/comuni.pmtiles`.
 
