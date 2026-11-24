@@ -130,7 +130,7 @@ function valoriComuni(F) {
       if (c[o + 2] === 4) conc += c[o + 5]; if (c[o + 3] & 2) rit += c[o + 5]; if (c[o + 3] & 1) chi += c[o + 5];
     }
     let dom = null, best = 0; ms.forEach((v, i) => { if (v > best) { best = v; dom = S.meta.missioni[i]; } });
-    out[id] = { n, fin, pag, conc, rit, chi, ms, mn, dom, pop: S.com[id].pop };
+    out[id] = { id, n, fin, pag, conc, rit, chi, ms, mn, dom, pop: S.com[id].pop };
   }
   return out;
 }
@@ -141,6 +141,11 @@ const INDIC = {
   conc: { nome: 'Quota di importo di progetti conclusi (%)', f: (c) => (c.fin > 0 ? c.conc / c.fin : null), fmt: (v) => (100 * v).toFixed(0) + ' %' },
   rit: { nome: 'Quota di importo in ritardo sulla fine prevista (%)', f: (c) => (c.fin > 0 ? c.rit / c.fin : null), fmt: (v) => (100 * v).toFixed(0) + ' %' },
   chius: { nome: 'Quota con iter concluso ma stato «in corso» (%)', f: (c) => (c.fin > 0 ? c.chi / c.fin : null), fmt: (v) => (100 * v).toFixed(0) + ' %' },
+  /* Giovani 0-24 (data/giovani.json, scrpits/giovani.py), indipendenti dai filtri. Riga: [giovani, abitanti, € stretta, € larga, € altre misure, pagato stretta, ...] */
+  gio_l: { gio: 1, nome: 'PNRR per giovane 0-24 anni, misure per i giovani in senso largo (€)', f: (c) => { const r = S.gio?.c[c.id]; return r && r[0] > 0 && r[3] > 0 ? r[3] / r[0] : null; }, fmt: (v) => nf.format(Math.round(v)) + ' €' },
+  gio_s: { gio: 1, nome: 'PNRR per giovane 0-24 anni, solo misure esclusive per i giovani (€)', f: (c) => { const r = S.gio?.c[c.id]; return r && r[0] > 0 && r[2] > 0 ? r[2] / r[0] : null; }, fmt: (v) => nf.format(Math.round(v)) + ' €' },
+  gio_rapp: { gio: 1, nome: 'Euro per giovane rispetto agli euro per adulto (rapporto)', f: (c) => { const r = S.gio?.c[c.id]; if (!r || r[0] <= 0 || r[1] - r[0] <= 0 || r[3] <= 0 || r[4] <= 0) return null; return (r[3] / r[0]) / (r[4] / (r[1] - r[0])); }, fmt: (v) => v.toFixed(2).replace('.', ',') + '×' },
+  gio_pag: { gio: 1, nome: 'Quota già pagata delle misure esclusive per i giovani (%)', f: (c) => { const r = S.gio?.c[c.id]; return r && r[2] > 0 ? r[5] / r[2] : null; }, fmt: (v) => (100 * v).toFixed(0) + ' %' },
   dom: { nome: 'Missione prevalente (per importo)', cat: true, f: (c) => (c.fin > 0 ? c.dom : null), fmt: (k) => NOMI_MIS[k] || k },
 };
 /* Scale colore: definite in js/tema.js (condivise con le pagine dei grafici). */
@@ -224,7 +229,7 @@ function aggiornaMappa() {
   const mio = S.cur.liv === 'c' ? S.clsMap[S.cur.id] : undefined, cn = S.cur.liv === 'c' ? S.com[S.cur.id].nm : '';
   setLegenda(I, (v.length ? `<ul class="cat">${cont.map((n, i) => `<li><button type="button" data-k="${i}" class="${S.cls?.has(i) ? 'on' : ''}${mio === i ? ' qui' : ''}" aria-pressed="${!!S.cls?.has(i)}" title="Mostra solo i comuni di questa classe"><i style="background:${r[Math.min(i, k - 1)]}"></i>${esc(lim(i))}<small>${nf.format(n)} comuni</small></button></li>`).join('')}</ul>` : '')
     + (mio !== undefined ? `<div class="leg-fascia"><b>${esc(cn)}</b>: ${esc(I.fmt(I.f(S.vals[S.cur.id])))} → fascia ${mio + 1} di ${nc}</div>` : S.cur.liv === 'c' ? `<div class="leg-fascia"><b>${esc(cn)}</b>: nessun progetto, resta grigio</div>` : '')
-    + `<div class="nota-leg">${S.cls ? '<button type="button" data-k="tutte" class="tutte">Mostra tutte le classi</button> · ' : 'Clic su una classe per isolarla · '}${S.adatta ? 'scala adattata al territorio' : 'scala su tutta Italia'}${nFiltri(F) ? ' · con i filtri attivi' : ''}. Grigio: nessun progetto${S.cls ? ' o classe esclusa' : ''}.</div>`);
+    + `<div class="nota-leg">${S.cls ? '<button type="button" data-k="tutte" class="tutte">Mostra tutte le classi</button> · ' : 'Clic su una classe per isolarla · '}${S.adatta ? 'scala adattata al territorio' : 'scala su tutta Italia'}${nFiltri(F) ? (I.gio ? ' · questo indicatore non risente dei filtri' : ' · con i filtri attivi') : ''}. Grigio: nessun progetto${S.cls ? ' o classe esclusa' : ''}.</div>`);
   aggiornaQuadro();
 }
 /* Modo «missione prevalente»: colore = missione con più importo nel comune, trasparenza = importo (più pieno = più finanziato) */
@@ -992,8 +997,8 @@ function iniziaProgetti(n, nome, F) {
 /* ---------- avvio ---------- */
 async function init() {
   try {
-    const [meta, it, reg, prov, com, bbox, ci, cr, cp, cc, ver, cupc] = await Promise.all(['meta', 'italia', 'regioni', 'province', 'comuni', 'bbox', 'cubo_i', 'cubo_r', 'cubo_p', 'cubo_c', 'verifiche', 'cup_chiusi'].map((n) => get(`data/${n}.json`)));
-    Object.assign(S, { meta, it, reg, prov, com, bbox, ver, cupc }); S.cube = { i: ci, r: cr, p: cp, c: cc };
+    const [meta, it, reg, prov, com, bbox, ci, cr, cp, cc, ver, cupc, giovani] = await Promise.all(['meta', 'italia', 'regioni', 'province', 'comuni', 'bbox', 'cubo_i', 'cubo_r', 'cubo_p', 'cubo_c', 'verifiche', 'cup_chiusi', 'giovani'].map((n) => get(`data/${n}.json`).catch((e) => { if (n === 'giovani') return null; throw e; })));
+    Object.assign(S, { meta, it, reg, prov, com, bbox, ver, cupc, gio: giovani }); S.cube = { i: ci, r: cr, p: cp, c: cc };
     /* gerarchia del piano per ogni sub-misura (indice delle celle) e dotazione ufficiale aggregata per livello */
     S.sx = { mis: meta.sub.map((c) => c.slice(0, 2)), comp: meta.sub.map(compDi), msr: meta.sub.map(msrDi), sub: meta.sub.slice(), mi: meta.sub.map((c) => meta.missioni.indexOf(c.slice(0, 2))) };
     S.dotL = { comp: {}, msr: {}, sub: {} };

@@ -139,5 +139,37 @@
     cap('g-rit', 'Le 15 province con meno importo in ritardo', (h) => G.barre(h, { voci: rit.slice(-15), apri: (x) => mappa('p/' + x.id), formatta: (v) => pc(v, 1), conTip, riferimento: it.rit[1] / fin, rifNome: 'Italia', nome: 'Province con meno ritardo' }), { sub: 'importo in ritardo ÷ finanziato · tacca = Italia', nota: `Mediana delle province: ${pc(mediana(rit.map((x) => x.val)), 1)}. Pochi grandi progetti possono spostare molto la quota di una provincia piccola. La quota dipende dalla data di estrazione (13/06/2026): non dice chi sia in ritardo oggi.` });
     const icc = vp((p) => p.icc[1] / p.fin);
     cap('g-icc', 'Chiusura da formalizzare: le 15 province con la quota più alta', (h) => G.barre(h, { voci: icc.slice(0, 15).map((x) => ({ ...x, righe: [] })), apri: (x) => mappa('p/' + x.id), formatta: (v) => pc(v, 1), conTip, riferimento: it.icc[1] / fin, rifNome: 'Italia', nome: 'Iter concluso ma stato in corso' }), { largo: true, sub: 'iter concluso ma stato ancora «in corso» ÷ finanziato · tacca = Italia', nota: 'Questi progetti hanno finito l’iter ma non risultano «Concluso» in ReGiS: non sono contati come conclusi. Il dato dipende dalla data di estrazione (13/06/2026).' });
+
+    /* ---- giovani 0-24: dati ricalcolati da scrpits/giovani.py (data/giovani.json) ---- */
+    get('data/giovani.json').then((gio) => {
+      const rip = (id) => reg[com[id]?.rg]?.rip;
+      const nuovo = () => ({ n: 0, g: 0, ad: 0, s: 0, l: 0, altri: 0, pag: 0, zl: 0, a: 0, sc: 0, u: 0, g05: 0, g618: 0, g1924: 0 });
+      const add = (t, r) => { t.n++; t.g += r[0]; t.ad += r[1] - r[0]; t.s += r[2]; t.l += r[3]; t.altri += r[4]; t.pag += r[5]; t.a += r[6]; t.sc += r[7]; t.u += r[8]; t.g05 += r[9]; t.g618 += r[10]; t.g1924 += r[11]; if (r[3] === 0) t.zl++; };
+      const R = {}, D = {}, T = nuovo(); const DIM = [['meno di 1.000', 0, 1e3], ['1.000-5.000', 1e3, 5e3], ['5.000-20.000', 5e3, 2e4], ['20.000-100.000', 2e4, 1e5], ['oltre 100.000', 1e5, 1e12]];
+      for (const [id, r] of Object.entries(gio.c)) {
+        const k = rip(id); if (!k) continue; add(R[k] = R[k] || nuovo(), r); add(T, r);
+        const d = DIM.findIndex(([, a, b]) => r[1] >= a && r[1] < b); add(D[d] = D[d] || nuovo(), r);
+      }
+      const e = (x, y) => (y > 0 ? x / y : 0), E = (v) => nf(Math.round(v)) + ' €', X = (v) => nf(v, 2) + '×';
+      const ordRip = Object.keys(RIP).filter((k) => R[k]);
+      cap('g-gio', 'Euro per giovane, per ripartizione', (h) => G.colonne(h, {
+        voci: [...ordRip.map((k) => ({ nome: k, val: e(R[k].l, R[k].g), sotto: 'adulti ' + E(e(R[k].altri, R[k].ad)), sub: `senso stretto ${E(e(R[k].s, R[k].g))} · adulti ${E(e(R[k].altri, R[k].ad))}`, col: RIP[k] })),
+               { nome: 'Italia', val: e(T.l, T.g), sotto: 'adulti ' + E(e(T.altri, T.ad)), sub: `senso stretto ${E(e(T.s, T.g))} · adulti ${E(e(T.altri, T.ad))}`, col: '--s7' }],
+        formatta: E, conTip, nome: 'Euro per giovane, senso largo' }),
+        { sub: 'misure per i giovani in senso largo, importi localizzati nei comuni', nota: 'Sotto ogni colonna: euro per adulto (25 anni e più) con tutte le altre misure. Passando alla definizione stretta i valori scendono, ma l\'ordine tra le ripartizioni non cambia.' });
+      cap('g-gio', 'Il giovane riceve più dell\'adulto?', (h) => G.colonne(h, {
+        voci: [...ordRip.map((k) => ({ nome: k, val: e(e(R[k].l, R[k].g), e(R[k].altri, R[k].ad)), sotto: 'larga', sub: `euro per giovane ${E(e(R[k].l, R[k].g))} su euro per adulto ${E(e(R[k].altri, R[k].ad))}`, col: RIP[k] })),
+               ...ordRip.map((k) => ({ nome: k, val: e(e(R[k].s, R[k].g), e(R[k].altri, R[k].ad)), sotto: 'stretta', sub: `euro per giovane ${E(e(R[k].s, R[k].g))} su euro per adulto ${E(e(R[k].altri, R[k].ad))}`, col: '--s5' }))],
+        formatta: X, conTip, nome: 'Rapporto euro per giovane su euro per adulto', soglia: 1, sogliaNome: 'parità' }),
+        { sub: 'sopra la linea il giovane riceve più dell\'adulto', nota: 'Con la definizione stretta (le ultime cinque colonne) solo il Sud sta sopra la parità; con quella larga si aggiungono Centro e Isole, mentre il Nord resta in parità o sotto. La risposta dipende da cosa si conta come «misura per i giovani».' });
+      cap('g-gio', 'Il peso della dimensione del comune', (h) => G.colonne(h, {
+        voci: DIM.map(([n], i) => ({ nome: n, val: e(D[i]?.l || 0, D[i]?.g || 0), sotto: nf(100 * e(D[i]?.zl || 0, D[i]?.n || 0), 0) + '% senza', sub: `${nf(D[i]?.n || 0)} comuni · ${nf(100 * e(D[i]?.zl || 0, D[i]?.n || 0), 1)}% senza alcun progetto per i giovani · adulti ${E(e(D[i]?.altri || 0, D[i]?.ad || 0))}`, col: '--c1' })),
+        formatta: E, conTip, nome: 'Euro per giovane per dimensione del comune' }),
+        { sub: 'abitanti del comune; sotto: quota di comuni senza alcun progetto', nota: 'Nei comuni piccoli la media nasconde molti zeri: l\'importo si concentra dove c\'è una scuola, un asilo o un ITS.' });
+      cap('g-gio', 'Per fascia d\'età', (h) => G.colonne(h, {
+        voci: [['0-5 anni', 'asili', T.a, T.g05], ['6-18 anni', 'scuola', T.sc, T.g618], ['19-24 anni', 'università e lavoro', T.u, T.g1924]].map(([n, s, v, p]) => ({ nome: n, val: e(v, p), sotto: s, sub: `${eur(v)} su ${nf(p)} residenti`, col: '--c3' })),
+        formatta: E, conTip, nome: 'Euro per giovane per fascia d\'età, senso stretto' }),
+        { sub: 'misure in senso stretto, sui residenti di ciascuna fascia', nota: 'Università e ITS servono bacini più larghi del comune: nei comuni sede il valore per giovane residente è sovrastimato, altrove sottostimato.' });
+    }).catch(() => {});
   }).catch((e) => { el('caric').textContent = 'Errore di caricamento dei dati: ' + e.message; });
 })();
