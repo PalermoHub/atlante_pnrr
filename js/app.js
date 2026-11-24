@@ -482,17 +482,17 @@ function filtriInit() {
   $('#indic').innerHTML = Object.entries(INDIC).filter(([, v]) => !v.biv).map(([k, v]) => `<option value="${k}">${esc(v.nome)}</option>`).join('');
   const opAx = Object.entries(AX).map(([k, v]) => `<option value="${k}">${esc(v.nome)}</option>`).join('');
   $('#by').innerHTML = opAx; $('#bx').innerHTML = opAx; $('#by').value = S.by; $('#bx').value = S.bx;
-  for (const [id, k] of [['#bx', 'bx'], ['#by', 'by']]) $(id).addEventListener('change', (e) => { S[k] = e.target.value; chipInd(); aggiornaMappa(); });
-  /* Coropletica (un indicatore) o Bivariata (due indicatori incrociati): il pulsante attiva i menu giusti */
-  const chipInd = () => { $('#chip-ind-t').textContent = S.indic === 'incrocio' ? `Bivariata: ${AX[S.by].nome} × ${AX[S.bx].nome}` : ($('#indic').selectedOptions[0]?.textContent || '').replace(/ \(.*/, ''); };
+  for (const [id, k] of [['#bx', 'bx'], ['#by', 'by']]) $(id).addEventListener('change', (e) => { S[k] = e.target.value; chipBiv(); aggiornaMappa(); });
+  /* Riquadro «Bivariata» accanto a «Colora per»: accende la carta a due variabili (il suo pannello ha i due assi); scegliere un indicatore in «Colora per» la spegne */
+  const chipBiv = () => { const on = S.indic === 'incrocio'; $('#chip-biv-t').textContent = on ? `${AX[S.by].nome} × ${AX[S.bx].nome}` : 'Spenta'; $('#chip-biv').setAttribute('aria-pressed', String(on)); };
   const modo = (biv) => {
     if (biv === (S.indic === 'incrocio')) return;
     if (biv) { S.indCoro = S.indic; S.indic = 'incrocio'; } else { S.indic = S.indCoro || 'fin_pc'; $('#indic').value = S.indic; }
-    $('#m-coro').setAttribute('aria-pressed', String(!biv)); $('#m-biv').setAttribute('aria-pressed', String(biv));
-    $('#coro-sel').hidden = biv; $('#biv-sel').hidden = !biv; chipInd(); aggiornaMappa(); evidenziaIndicatore();
+    chipBiv(); aggiornaMappa(); evidenziaIndicatore();
   };
-  $('#m-coro').addEventListener('click', () => modo(false)); $('#m-biv').addEventListener('click', () => modo(true));
-  $('#indic').addEventListener('change', (e) => { S.indic = e.target.value; aggiornaMappa(); evidenziaIndicatore(); });
+  $('#chip-biv').addEventListener('click', () => modo(true));
+  $('#biv-off').addEventListener('click', () => { modo(false); $('#pan-biv').hidden = true; $('#chip-biv').setAttribute('aria-expanded', 'false'); });
+  $('#indic').addEventListener('change', (e) => { S.indic = e.target.value; chipBiv(); aggiornaMappa(); evidenziaIndicatore(); });
   $('#f-scala').innerHTML = Object.entries(SCALE).map(([k, v]) => `<option value="${k}">${esc(v[0])}</option>`).join('');
   $('#f-scala').value = S.scala; $('#f-classi').value = S.classi; $('#f-inverti').checked = S.inverti;
   $('#f-scala').addEventListener('change', (e) => { S.scala = e.target.value; salvaPref(); window.applicaScalaPNRR(S.scala); });
