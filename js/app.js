@@ -13,6 +13,7 @@ const eur = (v) => {
   return nf.format(Math.round(v)) + ' €';
 };
 const eurAb = (v, pop) => (pop > 0 ? nf.format(Math.round(v / pop)) + ' €' : '–');
+const AREE_NOMI = { A: 'polo', B: 'polo intercomunale', C: 'cintura', D: 'intermedio', E: 'periferico', F: 'ultraperiferico' };
 const NOMI_MIS = { M1: 'M1 Digitalizzazione, innovazione, cultura', M2: 'M2 Rivoluzione verde e transizione ecologica', M3: 'M3 Infrastrutture per la mobilità', M4: 'M4 Istruzione e ricerca', M5: 'M5 Inclusione e coesione', M6: 'M6 Salute', M7: 'M7 REPowerEU' };
 /* colori delle missioni (M1–M6 come nella mappa onData/ixMaps «Universo ReGiS»; M7 scelto per distinguersi) */
 const COL_MIS = { M1: '#5BBBEB', M2: '#92C151', M3: '#EA425B', M4: '#F49E4B', M5: '#B671DC', M6: '#FACB49', M7: '#8D6E63' };
@@ -38,7 +39,7 @@ const labProg = (c) => { const l = livDi(c); return l === 'mis' ? NOMI_MIS[c] ||
 const LIV_NOME = { mis: 'Missione', comp: 'Componente', msr: 'Misura', sub: 'Sub-misura' };
 
 const S = { meta: null, it: null, reg: null, prov: null, com: null, bbox: null, cube: {}, map: null, indic: 'fin_pc', adatta: true, scala: 'blu', classi: 'quantili', inverti: false, breaks: [], cache: new Map(), cur: null, vals: null, det: {} };
-const get = async (u) => { if (!S.cache.has(u)) { S.cache.set(u, fetch(u + '?d=2').then((r) => { if (!r.ok) throw new Error(u + ' ' + r.status); return r.json(); })); } return S.cache.get(u); };
+const get = async (u) => { if (!S.cache.has(u)) { S.cache.set(u, fetch(u + '?d=3').then((r) => { if (!r.ok) throw new Error(u + ' ' + r.status); return r.json(); })); } return S.cache.get(u); };
 
 /* ---------- stato nell'indirizzo ---------- */
 const F0 = () => ({ mis: null, comp: null, msr: null, sub: null, nat: null, st: null, fl: null, k: null, x: false });
@@ -161,6 +162,7 @@ const AX = {
   gio_pag: { ...INDIC.gio_pag, nome: 'Quota pagata (misure per i giovani)' },
   /* contesto esterno (data/contesto.json, scrpits/contesto.py): non dipende dai filtri né dai progetti */
   reddito: { nome: 'Reddito imponibile medio per contribuente', f: (c) => S.cont?.c[c.id]?.[0] ?? null, fmt: (v) => nf.format(Math.round(v)) + ' €' },
+  area: { nome: 'Aree interne (A polo → F ultraperiferico)', f: (c) => { const a = S.cont?.c[c.id]?.[2]; const i = a ? 'ABCDEF'.indexOf(a) : -1; return i >= 0 ? i + 1 : null; }, fmt: (v) => { if (Math.abs(v - Math.round(v)) > 1e-9) return nf.format(Math.round(v * 10) / 10) + ' / 6'; const a = 'ABCDEF'[Math.min(5, Math.max(0, Math.round(v) - 1))]; return `${a} · ${AREE_NOMI[a]}`; } },
 };
 S.bx = 'gio_quota'; S.by = 'gio_l';
 /* Scale colore: definite in js/tema.js (condivise con le pagine dei grafici). */
