@@ -28,7 +28,8 @@
   });
   for (const id of ['f-reg', 'f-prov', 'f-com']) $('#' + id).addEventListener('change', () => setTimeout(() => chiudiPannelli(null), 0));
   $('#f-reset').addEventListener('click', () => setTimeout(() => chiudiPannelli(null), 0));
-  $('#indic').addEventListener('change', () => chiudiPannelli(null));
+  /* con «Incrocio di due indicatori» il pannello resta aperto: servono ancora i due selettori degli assi */
+  $('#indic').addEventListener('change', () => { if ($('#indic').value !== 'incrocio') chiudiPannelli(null); });
 
   /* ---------- etichette dei chip, lette da ciò che app.js disegna ---------- */
   const terr = () => { $('#chip-terr-t').textContent = $('#crumbs .cur')?.textContent || 'Italia'; };

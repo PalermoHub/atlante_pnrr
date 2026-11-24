@@ -393,4 +393,4 @@ canvas.disp.clicca { cursor: pointer; }
 .biv-y { writing-mode: vertical-rl; transform: rotate(180deg); font-size: .72rem; text-align: center; line-height: 1.2; }
 .biv-x { grid-column: 2; font-size: .72rem; text-align: center; line-height: 1.2; }
 .biv small { color: var(--ink3); }
-.colora[hidden] { display: none; }
+.pan .colora[hidden] { display: none; }
