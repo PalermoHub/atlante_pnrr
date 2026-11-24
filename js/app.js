@@ -798,8 +798,8 @@ function giovaniRiga(liv, id) {
   const dove = liv === 'c' ? 'localizzato nel comune' : `localizzato nei ${nf.format(nc)} comuni`;
   return `<h2>PNRR per giovane <small>0-24 anni · <a href="guida.html#giovani">come è calcolato</a></small></h2><div class="kpi">
    <div><b>${nf.format(g)}</b><span>residenti di 0-24 anni</span><em>${(100 * g / tot).toFixed(1).replace('.', ',')} % dei residenti (ISTAT 1/1/2024)</em></div>
-   <div><b>${ib}</b><span>per giovane: senso stretto – largo</span><em>${s > 0 ? `${eur(s)} stretto · pagato ${pct(pag, s)}` : l > 0 ? `solo misure miste: ${eur(l)}` : `nessun importo ${dove}`}</em></div>
-   <div><b>${ad > 0 && altri > 0 ? e(altri / ad) : '–'}</b><span>per adulto (25 anni e più)</span><em>tutte le altre misure, ${eur(altri)}${liv === 'c' ? '' : ` · importi ${dove}`}</em></div></div>`;
+   <div><b>${ib}${g < 50 ? ' <sup title="Meno di 50 residenti di 0-24 anni: un solo progetto basta a produrre un valore enorme">†</sup>' : ''}</b><span>per giovane: senso stretto – largo</span><em>${s > 0 ? `${eur(s)} stretto · pagato ${pct(pag, s)}` : l > 0 ? `solo misure miste: ${eur(l)}` : `nessun importo ${dove}`}</em></div>
+   <div><b>${ad > 0 && altri > 0 ? e(altri / ad) : '–'}</b><span>per adulto (25 anni e più)</span><em>tutte le altre misure, ${eur(altri)}${liv === 'c' ? '' : ` · importi ${dove}`}</em></div></div>${g < 50 ? '<p class="nota">† Meno di 50 residenti di 0-24 anni: il valore per giovane è poco stabile.</p>' : ''}`;
 }
 function disegnaScheda(liv, id, n, nome, F) {
   const A = analisi(cells(liv, id), F), T = A.tot, nfil = nFiltri(F);
